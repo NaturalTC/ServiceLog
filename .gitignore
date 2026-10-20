@@ -1,0 +1,15 @@
+# Backend
+backend/target/
+# Frontend
+node_modules/
+frontend/dist/
+# Env and secrets
+.env
+.env.*
+!.env.example
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+settings.local.json
