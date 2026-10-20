@@ -59,19 +59,20 @@
 | S1 | As the owner, I can log in with my own account so customer data stays private. | E5 | 3 |
 | S2 | As the owner, I can add and edit a customer with address and phone in under 30 seconds. | E1 | 3 |
 | S3 | As the owner, I can search customers by name, street or phone and get results as I type. | E1 | 3 |
-| S4 | As the owner, I can record a customer's equipment (type, brand, model, serial, install year). | E1 | 3 |
+| S4 | As the owner, I can record a customer's equipment (type, brand, model, serial, install date). | E1 | 3 |
 | S5 | As the owner, I can add a service record (date, work done, parts, notes) to a piece of equipment. | E1 | 3 |
 | S6 | As the owner, I can see one piece of equipment's full service history, newest first. | E1 | 2 |
-| S7 | As the owner, I can schedule a job for a customer on a date and time. | E2 | 3 |
+| S7 | As the owner, I can schedule a job for a customer on a date and time, with a type (install, service call, tune-up, estimate visit) and urgency. | E2 | 3 |
 | S8 | As the owner, I open the app to today's jobs in order, and tap to navigate or call. | E2 | 5 |
 | S9 | As the owner, I can mark a job done, and that creates the service record automatically. | E2 | 3 |
-| S10 | As the owner, I see a list of customers due for a seasonal tune-up (AC in spring, heating in fall), based on last service date. | E3 | 5 |
+| S10 | As the owner, I see a list of customers due for a seasonal tune-up (oil burner / heating in fall, AC and mini-split in spring), based on equipment type and last service date. | E3 | 5 |
 | S11 | As the owner, I can send a tune-up reminder email to a due customer with one tap. | E3 | 5 |
 | S12 | As a customer, I can unsubscribe from reminders with one link. | E3 | 2 |
 
 ### Should have - Iteration 1 if capacity allows, otherwise Iteration 2
 | ID | Story | Epic | Pts |
 |---|---|---|---|
+| S24 | As the owner, I can record warranty details on installed equipment (registered yes/no, registration date, warranty and extended-warranty end dates) and see units not yet registered. | E1 | 3 |
 | S13 | As the owner, I can dictate service notes, and AI turns them into a structured service record (work done, parts, readings, follow-up) that I review before saving. | E4 | 8 |
 | S14 | As the developer, I have an evaluation set of 30+ synthetic service notes with expected fields, and measure the AI's extraction accuracy before shipping S13. | E4 | 5 |
 | S15 | As the owner, I can install the app on my phone's home screen. | E5 | 2 |
@@ -87,9 +88,13 @@
 | S21 | As the owner, the app works offline in a basement and syncs when I'm back online. | E5 | 8 |
 | S22 | As the owner, I can attach photos to a service record. | E1 | 5 |
 | S23 | As the owner, AI suggests likely causes for a symptom, using the equipment model and its history (suggestions only, clearly labelled). | E4 | 8 |
+| S25 | As the owner, I'm reminded before a warranty or extended warranty expires so I can offer service or a renewal. | E3 | 3 |
+| S26 | As the owner, I'm reminded when an estimate is about 4 months old so I can re-price it before the customer accepts. | E3 | 3 |
+| S27 | As the owner, I can track stock of my most-used install materials and see what's running low. | E1 | 5 |
 
 ### Won't have (for now)
-Quotes and invoices, payments, text-message reminders, multiple technicians and dispatch.
+Invoices, payments and customer billing (the owner already uses QuickBooks for these),
+payroll and employees (he now works alone), text-message reminders, dispatch.
 Revisit only if the owner asks.
 
 ---
@@ -101,6 +106,7 @@ Revisit only if the owner asks.
 | 1 | "I can look up any customer's equipment" | S1, S2, S3, S4, S5, S6 | 17 |
 | 2 | "My day on my phone" | S7, S8, S9, S15 | 13 |
 | 3 | "Customers come back for tune-ups" | S10, S11, S12, S16 | 17 |
+| (3 or 4, if capacity) | Warranty tracking | S24 | 3 |
 | 4 | "Less typing in the field" (AI) | S14, S13 | 13 |
 | - | **Trial starts:** owner uses it on real jobs for a month | | |
 
