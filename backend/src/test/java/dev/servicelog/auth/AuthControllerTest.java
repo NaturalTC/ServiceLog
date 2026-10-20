@@ -5,9 +5,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -17,7 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // End-to-end tests of login and protected routes, against the real database
-@SpringBootTest(properties = "app.jwt.secret=test-secret-that-is-at-least-32-bytes-long")
+@SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
 class AuthControllerTest {
 
@@ -33,10 +37,16 @@ class AuthControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // No real SMTP server in tests
+    @MockitoBean
+    private JavaMailSender mailSender;
+
     @BeforeEach
     void createOwner() {
         users.deleteAll();
-        users.save(new AppUser(EMAIL, passwordEncoder.encode(PASSWORD)));
+        AppUser owner = new AppUser(EMAIL, passwordEncoder.encode(PASSWORD));
+        owner.markEmailVerified();
+        users.save(owner);
     }
 
     @AfterEach

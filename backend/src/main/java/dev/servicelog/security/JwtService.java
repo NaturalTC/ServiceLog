@@ -1,5 +1,6 @@
 package dev.servicelog.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -18,6 +19,10 @@ public class JwtService {
 
     // HS256 needs a key of at least 256 bits (32 bytes)
     private static final int MIN_SECRET_BYTES = 32;
+    private static final String SESSION_VERSION_CLAIM = "sv";
+
+    public record TokenClaims(String email, int sessionVersion) {
+    }
 
     private final SecretKey signingKey;
     private final long expirationMs;
@@ -33,26 +38,32 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(String email) {
+    // sessionVersion ties the token to the account's current password (see AppUser.changePassword)
+    public String generateToken(String email, int sessionVersion) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(email)
+                .claim(SESSION_VERSION_CLAIM, sessionVersion)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationMs))
                 .signWith(signingKey)
                 .compact();
     }
 
-    // Returns the email inside a valid token; empty if the token is malformed,
-    // tampered with or expired. Parsing once does all three checks.
-    public Optional<String> validateAndGetEmail(String token) {
+    // Returns the token's claims if it is well-formed, correctly signed and not expired;
+    // empty otherwise. Parsing once does all three checks.
+    public Optional<TokenClaims> validate(String token) {
         try {
-            return Optional.ofNullable(Jwts.parser()
+            Claims claims = Jwts.parser()
                     .verifyWith(signingKey)
                     .build()
                     .parseSignedClaims(token)
-                    .getPayload()
-                    .getSubject());
+                    .getPayload();
+            Integer sessionVersion = claims.get(SESSION_VERSION_CLAIM, Integer.class);
+            if (claims.getSubject() == null || sessionVersion == null) {
+                return Optional.empty();
+            }
+            return Optional.of(new TokenClaims(claims.getSubject(), sessionVersion));
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }

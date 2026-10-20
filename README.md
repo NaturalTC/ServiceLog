@@ -16,7 +16,7 @@ Docker Compose · GitHub Actions
 Requires Java 21+, Node 22+ and Docker.
 
 ```bash
-docker compose up -d                 # PostgreSQL on localhost:5433
+docker compose up -d                 # PostgreSQL on :5433, Mailpit (dev inbox) on :8025
 
 cp backend/.env.example backend/.env # then fill it in:
 #   JWT_SECRET      a long random string: openssl rand -base64 48
@@ -28,10 +28,14 @@ cd frontend && npm install && npm run dev   # app on :5173
 ```
 
 There is no sign-up page: the single owner account is created on first startup from
-`OWNER_EMAIL` and `OWNER_PASSWORD`. Remove `OWNER_PASSWORD` from `.env` afterwards.
+`OWNER_EMAIL` and `OWNER_PASSWORD`, and a verification email is sent. Remove
+`OWNER_PASSWORD` from `.env` afterwards.
+
+**Emails in development** (verification, password reset) never reach real inboxes: Mailpit
+catches them all. Open http://localhost:8025 to read them and click their links.
 
 ## Tests
 ```bash
-cd backend && ./mvnw verify          # needs the database running
+cd backend && ./mvnw verify          # needs `docker compose up -d`; uses its own servicelog_test database
 cd frontend && npm run lint && npm run build
 ```

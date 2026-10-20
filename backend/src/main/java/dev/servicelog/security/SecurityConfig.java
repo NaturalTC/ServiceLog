@@ -2,6 +2,7 @@ package dev.servicelog.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,7 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 // Security rules for every request:
 // - Stateless: no server sessions; the JWT proves identity on each request
 // - CSRF off: tokens travel in the Authorization header, not cookies, so CSRF doesn't apply
-// - Only login and the health check are public; everything else needs a valid token
+// - Only the login, email-link and health endpoints are public; everything else needs a valid token
 // - No CORS config: the frontend is served from the same origin, so cross-origin calls are refused
 @Configuration
 @EnableWebSecurity
@@ -34,7 +35,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/login",
+                                "/api/auth/verify-email",
+                                "/api/auth/resend-verification",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated())
                 // Answer 401 (not logged in) instead of Spring's default 403 for missing tokens

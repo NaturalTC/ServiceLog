@@ -12,7 +12,7 @@ jobs:
       db:
         image: postgres:17
         env:
-          POSTGRES_DB: servicelog
+          POSTGRES_DB: servicelog_test
           POSTGRES_USER: servicelog
           POSTGRES_PASSWORD: servicelog
         ports:

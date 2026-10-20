@@ -5,11 +5,18 @@ const TOKEN_KEY = 'servicelog.token'
 
 export class ApiError extends Error {
   readonly status: number
+  // Machine-readable reason from the API, e.g. "EMAIL_NOT_VERIFIED" or "INVALID_TOKEN"
+  readonly code: string | null
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code: string | null = null) {
     super(message)
     this.status = status
+    this.code = code
   }
+}
+
+export function errorMessage(err: unknown): string {
+  return err instanceof ApiError ? err.message : 'Could not reach the server. Check your connection.'
 }
 
 // The token lives in localStorage so the owner stays logged in between app opens.
@@ -46,7 +53,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   if (!res.ok) {
     const body = await res.json().catch(() => null)
-    throw new ApiError(res.status, body?.message ?? `Request failed (${res.status})`)
+    throw new ApiError(res.status, body?.message ?? `Request failed (${res.status})`, body?.code ?? null)
   }
 
   return res.json() as Promise<T>

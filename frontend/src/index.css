@@ -10,6 +10,8 @@
   --accent: #0b57d0;
   --accent-text: #ffffff;
   --error: #b3261e;
+  --notice-bg: #e7f3ec;
+  --notice-text: #0f5223;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +23,8 @@
     --accent: #a8c7fa;
     --accent-text: #062e6f;
     --error: #f2b8b5;
+    --notice-bg: #0f3d1d;
+    --notice-text: #c4eed0;
   }
 }
 
@@ -113,4 +117,33 @@ button.secondary {
 
 .home h1 {
   margin: 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+.notice {
+  background: var(--notice-bg);
+  color: var(--notice-text);
+  padding: 12px;
+  border-radius: 8px;
+  margin: 0 0 16px;
+}
+
+.hint {
+  color: var(--muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.links {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* Tap target size for text links */
+.links a {
+  display: inline-block;
+  padding: 12px 8px;
 }
