@@ -54,6 +54,9 @@ public class Job {
 
     private String notes;
 
+    @Column(name = "completed_at")
+    private Instant completedAt;
+
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
 
@@ -81,8 +84,26 @@ public class Job {
         this.notes = notes;
     }
 
+    public void markInProgress() {
+        if (status != JobStatus.SCHEDULED) {
+            throw new IllegalStateException("Only a scheduled job can be started");
+        }
+        status = JobStatus.IN_PROGRESS;
+    }
+
+    public void complete(Instant when) {
+        if (!status.isOpen()) {
+            throw new IllegalStateException("Only a scheduled or in-progress job can be finished");
+        }
+        status = JobStatus.DONE;
+        completedAt = when;
+    }
+
     public void cancel() {
-        this.status = JobStatus.CANCELLED;
+        if (!status.isOpen()) {
+            throw new IllegalStateException("Only a scheduled or in-progress job can be cancelled");
+        }
+        status = JobStatus.CANCELLED;
     }
 
     public LocalDateTime start() {
@@ -112,4 +133,5 @@ public class Job {
     public JobUrgency getUrgency() { return urgency; }
     public JobStatus getStatus() { return status; }
     public String getNotes() { return notes; }
+    public Instant getCompletedAt() { return completedAt; }
 }

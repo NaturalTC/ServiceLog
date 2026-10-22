@@ -13,11 +13,11 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     @EntityGraph(attributePaths = {"property", "property.customer"})
     Optional<Job> findDetailedById(Long id);
 
-    // Scheduled jobs in a date range, in the order they happen
+    // Jobs on the calendar in a date range (anything not cancelled), in the order they happen
     @EntityGraph(attributePaths = {"property", "property.customer"})
     @Query("""
             select j from Job j
-            where j.scheduledDate between :from and :to and j.status = dev.servicelog.job.JobStatus.SCHEDULED
+            where j.scheduledDate between :from and :to and j.status <> dev.servicelog.job.JobStatus.CANCELLED
             order by j.scheduledDate, j.startTime, j.id""")
     List<Job> findScheduledBetween(LocalDate from, LocalDate to);
 
@@ -25,7 +25,7 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     @Query("""
             select j from Job j
             where j.property.customer.id = :customerId and j.scheduledDate >= :from
-              and j.status = dev.servicelog.job.JobStatus.SCHEDULED
+              and j.status in (dev.servicelog.job.JobStatus.SCHEDULED, dev.servicelog.job.JobStatus.IN_PROGRESS)
             order by j.scheduledDate, j.startTime, j.id""")
     List<Job> findUpcomingForCustomer(Long customerId, LocalDate from);
 }

@@ -19,8 +19,11 @@ function nowMinutes(): number {
   return now.getHours() * 60 + now.getMinutes()
 }
 
-// The job happening now, or else the next one still to come
+// The job happening now, or else the next one still to come (finished jobs don't count)
 function currentOrNext(jobs: Job[], minute: number): { id: number; label: 'Now' | 'Next' } | null {
+  jobs = jobs.filter((j) => j.status !== 'DONE')
+  const inProgress = jobs.find((j) => j.status === 'IN_PROGRESS')
+  if (inProgress) return { id: inProgress.id, label: 'Now' }
   const now = jobs.find((j) => {
     const start = minutesOfDay(j.startTime)
     return start <= minute && minute < start + j.durationMinutes
@@ -75,7 +78,7 @@ export function MyDayPage() {
 
   const { jobs } = today
   const highlight = currentOrNext(jobs, minute)
-  const remaining = jobs.filter((j) => minutesOfDay(j.startTime) + j.durationMinutes > minute).length
+  const remaining = jobs.filter((j) => j.status !== 'DONE').length
 
   return (
     <main>
@@ -113,7 +116,8 @@ export function MyDayPage() {
       <ol className="day-list">
         {jobs.map((job) => {
           const start = minutesOfDay(job.startTime)
-          const finished = start + job.durationMinutes <= minute
+          const done = job.status === 'DONE'
+          const finished = done || (start + job.durationMinutes <= minute && job.status !== 'IN_PROGRESS')
           const tag = highlight?.id === job.id ? highlight.label : null
           return (
             <li key={job.id} className={`day-job${tag ? ' highlighted' : ''}${finished ? ' finished' : ''}`}>
@@ -124,8 +128,9 @@ export function MyDayPage() {
                     <span className="muted"> · {formatDuration(job.durationMinutes)}</span>
                   </strong>
                   <span className="tags">
+                    {done && <span className="badge done">Done</span>}
                     {tag && <span className="badge now">{tag}</span>}
-                    {job.urgency === 'URGENT' && <span className="badge urgent">Urgent</span>}
+                    {job.urgency === 'URGENT' && !done && <span className="badge urgent">Urgent</span>}
                   </span>
                 </span>
                 <strong className="customer">{job.customerName}</strong>
@@ -133,20 +138,29 @@ export function MyDayPage() {
                 <span className="muted">{job.address}</span>
                 {job.notes && <span className="clamp muted">{job.notes}</span>}
               </Link>
-              <div className="day-job-actions">
-                <a href={`tel:${job.customerPhone}`} className="button secondary" aria-label={`Call ${job.customerName}`}>
-                  Call {formatPhone(job.customerPhone)}
-                </a>
-                <a
-                  href={directionsUrl(job.address)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="button"
-                  aria-label={`Navigate to ${job.address}`}
-                >
-                  Navigate
-                </a>
-              </div>
+              {!done && (
+                <div className="day-job-actions">
+                  <a
+                    href={`tel:${job.customerPhone}`}
+                    className="button secondary"
+                    aria-label={`Call ${job.customerName}`}
+                  >
+                    Call {formatPhone(job.customerPhone)}
+                  </a>
+                  <a
+                    href={directionsUrl(job.address)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="button"
+                    aria-label={`Navigate to ${job.address}`}
+                  >
+                    Navigate
+                  </a>
+                  <Link to={`/jobs/${job.id}/finish`} className="button secondary span-2">
+                    Finish job
+                  </Link>
+                </div>
+              )}
             </li>
           )
         })}

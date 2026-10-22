@@ -27,9 +27,11 @@ import java.util.List;
 public class JobController {
 
     private final JobService jobService;
+    private final JobCompletionService completionService;
 
-    public JobController(JobService jobService) {
+    public JobController(JobService jobService, JobCompletionService completionService) {
         this.jobService = jobService;
+        this.completionService = completionService;
     }
 
     @GetMapping("/api/job-types")
@@ -75,6 +77,18 @@ public class JobController {
     @PostMapping("/api/jobs/{id}/cancel")
     public JobResponse cancel(@PathVariable long id) {
         return jobService.cancel(id);
+    }
+
+    @PostMapping("/api/jobs/{id}/start")
+    public JobResponse start(@PathVariable long id) {
+        return jobService.start(id);
+    }
+
+    // Marks the job done and creates a service record on each piece of equipment worked on
+    @PostMapping("/api/jobs/{id}/complete")
+    public JobDtos.CompleteJobResponse complete(@PathVariable long id,
+                                                @Valid @RequestBody JobDtos.CompleteJobRequest request) {
+        return completionService.complete(id, request);
     }
 
     @ExceptionHandler(JobOverlapException.class)

@@ -50,6 +50,10 @@ public class ServiceRecord {
     @Column(name = "follow_up_note")
     private String followUpNote;
 
+    // The job this record was created from, if any (see JobCompletionService)
+    @Column(name = "job_id")
+    private Long jobId;
+
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
 
@@ -78,6 +82,10 @@ public class ServiceRecord {
         this.followUpNote = followUpNeeded ? followUpNote : null;
     }
 
+    public void linkToJob(Long jobId) {
+        this.jobId = jobId;
+    }
+
     @PreUpdate
     void touch() {
         updatedAt = Instant.now();
@@ -92,4 +100,5 @@ public class ServiceRecord {
     public String getNotes() { return notes; }
     public boolean isFollowUpNeeded() { return followUpNeeded; }
     public String getFollowUpNote() { return followUpNote; }
+    public Long getJobId() { return jobId; }
 }

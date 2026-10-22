@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -32,7 +33,20 @@ public final class JobDtos {
     public record JobResponse(Long id, LocalDate date, LocalTime startTime, int durationMinutes, JobType type,
                               String typeLabel, JobUrgency urgency, JobStatus status, String notes,
                               Long propertyId, String address, Long customerId, String customerName,
-                              String customerPhone) {
+                              String customerPhone, Instant completedAt) {
+    }
+
+    // Finishing a job: the same work notes are recorded on each piece of equipment worked on
+    public record CompleteJobRequest(
+            List<Long> equipmentIds, // empty is fine, e.g. an estimate visit
+            @Size(max = 4000) String workDone, // required when equipment is selected
+            @Size(max = 2000) String partsUsed,
+            @Size(max = 4000) String notes,
+            Boolean followUpNeeded,
+            @Size(max = 500) String followUpNote) {
+    }
+
+    public record CompleteJobResponse(JobResponse job, List<Long> serviceRecordIds) {
     }
 
     // "My day": the business's today (not the server's or the phone's) and its jobs in time order

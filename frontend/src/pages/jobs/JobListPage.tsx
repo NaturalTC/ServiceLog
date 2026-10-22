@@ -51,7 +51,9 @@ export function JobListPage() {
                     <strong>
                       {formatTime(job.startTime)} · {job.customerName}
                     </strong>
-                    {job.urgency === 'URGENT' && <span className="badge urgent">Urgent</span>}
+                    {job.status === 'DONE' && <span className="badge done">Done</span>}
+                    {job.status === 'IN_PROGRESS' && <span className="badge now">In progress</span>}
+                    {job.urgency === 'URGENT' && job.status !== 'DONE' && <span className="badge urgent">Urgent</span>}
                   </span>
                   <span>
                     {job.typeLabel} · {formatDuration(job.durationMinutes)}

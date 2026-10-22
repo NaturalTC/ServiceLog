@@ -79,6 +79,9 @@ public class JobService {
         if (job.getStatus() == JobStatus.CANCELLED) {
             throw new ConflictException("This job was cancelled. Schedule a new one instead.");
         }
+        if (job.getStatus() == JobStatus.DONE) {
+            throw new ConflictException("This job is already done and can't be changed.");
+        }
         job.update(property(request.propertyId()), request.date(), request.startTime(), duration(request),
                 request.type(), urgency(request), clean(request.notes()));
         checkOverlap(job, request);
@@ -88,7 +91,20 @@ public class JobService {
     @Transactional
     public JobResponse cancel(long id) {
         Job job = find(id);
+        if (!job.getStatus().isOpen()) {
+            throw new ConflictException("Only a scheduled or in-progress job can be cancelled.");
+        }
         job.cancel();
+        return toResponse(jobs.saveAndFlush(job));
+    }
+
+    @Transactional
+    public JobResponse start(long id) {
+        Job job = find(id);
+        if (job.getStatus() != JobStatus.SCHEDULED) {
+            throw new ConflictException("Only a scheduled job can be started.");
+        }
+        job.markInProgress();
         return toResponse(jobs.saveAndFlush(job));
     }
 
@@ -133,7 +149,7 @@ public class JobService {
                 + p.getState() + " " + p.getZip();
         return new JobResponse(j.getId(), j.getScheduledDate(), j.getStartTime(), j.getDurationMinutes(), j.getType(),
                 j.getType().getLabel(), j.getUrgency(), j.getStatus(), j.getNotes(), p.getId(), address,
-                p.getCustomer().getId(), p.getCustomer().getName(), p.getCustomer().getPhone());
+                p.getCustomer().getId(), p.getCustomer().getName(), p.getCustomer().getPhone(), j.getCompletedAt());
     }
 
     private static String clean(String input) {

@@ -10,6 +10,7 @@ import { CustomerFormPage } from './pages/customers/CustomerFormPage'
 import { CustomerListPage } from './pages/customers/CustomerListPage'
 import { EquipmentDetailPage } from './pages/equipment/EquipmentDetailPage'
 import { EquipmentFormPage } from './pages/equipment/EquipmentFormPage'
+import { FinishJobPage } from './pages/jobs/FinishJobPage'
 import { JobDetailPage } from './pages/jobs/JobDetailPage'
 import { JobFormPage } from './pages/jobs/JobFormPage'
 import { JobListPage } from './pages/jobs/JobListPage'
@@ -33,6 +34,7 @@ function App() {
         <Route path="/jobs/new" element={<JobFormPage />} />
         <Route path="/jobs/:id" element={<JobDetailPage />} />
         <Route path="/jobs/:id/edit" element={<JobFormPage />} />
+        <Route path="/jobs/:id/finish" element={<FinishJobPage />} />
         <Route path="/customers" element={<CustomerListPage />} />
         <Route path="/customers/new" element={<CustomerFormPage />} />
         <Route path="/customers/:id" element={<CustomerDetailPage />} />

@@ -2,7 +2,7 @@ import { ApiError, apiFetch } from './client'
 
 export type JobType = 'INSTALL' | 'SERVICE_CALL' | 'TUNE_UP' | 'ESTIMATE_VISIT'
 export type JobUrgency = 'NORMAL' | 'URGENT'
-export type JobStatus = 'SCHEDULED' | 'CANCELLED'
+export type JobStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED'
 
 export interface Job {
   id: number
@@ -19,6 +19,19 @@ export interface Job {
   customerId: number
   customerName: string
   customerPhone: string
+  completedAt: string | null
+}
+
+// Still on the calendar and changeable
+export const isOpen = (job: Job) => job.status === 'SCHEDULED' || job.status === 'IN_PROGRESS'
+
+export interface CompleteJobInput {
+  equipmentIds: number[]
+  workDone: string | null
+  partsUsed: string | null
+  notes: string | null
+  followUpNeeded: boolean
+  followUpNote: string | null
 }
 
 export interface JobInput {
@@ -62,4 +75,8 @@ export const jobsApi = {
   create: (input: JobInput) => apiFetch<Job>('/api/jobs', json('POST', input)),
   update: (id: number, input: JobInput) => apiFetch<Job>(`/api/jobs/${id}`, json('PUT', input)),
   cancel: (id: number) => apiFetch<Job>(`/api/jobs/${id}/cancel`, { method: 'POST' }),
+  start: (id: number) => apiFetch<Job>(`/api/jobs/${id}/start`, { method: 'POST' }),
+  // Marks the job done and creates a service record on each selected unit
+  complete: (id: number, input: CompleteJobInput) =>
+    apiFetch<{ job: Job; serviceRecordIds: number[] }>(`/api/jobs/${id}/complete`, json('POST', input)),
 }

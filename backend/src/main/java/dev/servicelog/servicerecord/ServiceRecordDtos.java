@@ -28,12 +28,12 @@ public final class ServiceRecordDtos {
 
     public record ServiceRecordResponse(Long id, Long equipmentId, LocalDate serviceDate, ServiceKind kind,
                                         String kindLabel, String workDone, String partsUsed, String notes,
-                                        boolean followUpNeeded, String followUpNote) {
+                                        boolean followUpNeeded, String followUpNote, Long jobId) {
 
         static ServiceRecordResponse from(ServiceRecord r) {
             return new ServiceRecordResponse(r.getId(), r.getEquipment().getId(), r.getServiceDate(), r.getKind(),
                     r.getKind().getLabel(), r.getWorkDone(), r.getPartsUsed(), r.getNotes(), r.isFollowUpNeeded(),
-                    r.getFollowUpNote());
+                    r.getFollowUpNote(), r.getJobId());
         }
     }
 

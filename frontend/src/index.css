@@ -707,3 +707,28 @@ label.option {
   white-space: normal;
   text-align: center;
 }
+
+/* --- Finishing jobs --- */
+.badge.done {
+  background: var(--notice-bg);
+  color: var(--notice-text);
+  border-color: var(--notice-bg);
+}
+
+.page-title .tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.day-job-actions .span-2 {
+  grid-column: span 2;
+}
+
+label.option input[type='checkbox'] {
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  flex-shrink: 0;
+}
