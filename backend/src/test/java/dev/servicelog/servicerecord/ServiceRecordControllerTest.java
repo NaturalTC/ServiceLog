@@ -1,4 +1,4 @@
-package dev.servicelog.service;
+package dev.servicelog.servicerecord;
 
 import com.jayway.jsonpath.JsonPath;
 import dev.servicelog.auth.AppUser;

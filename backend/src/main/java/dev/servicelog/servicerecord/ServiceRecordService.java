@@ -1,13 +1,13 @@
-package dev.servicelog.service;
+package dev.servicelog.servicerecord;
 
 import dev.servicelog.config.BusinessCalendar;
 import dev.servicelog.customer.Property;
 import dev.servicelog.equipment.Equipment;
 import dev.servicelog.equipment.EquipmentRepository;
 import dev.servicelog.exception.NotFoundException;
-import dev.servicelog.service.ServiceRecordDtos.ServiceRecordDetailResponse;
-import dev.servicelog.service.ServiceRecordDtos.ServiceRecordRequest;
-import dev.servicelog.service.ServiceRecordDtos.ServiceRecordResponse;
+import dev.servicelog.servicerecord.ServiceRecordDtos.ServiceRecordDetailResponse;
+import dev.servicelog.servicerecord.ServiceRecordDtos.ServiceRecordRequest;
+import dev.servicelog.servicerecord.ServiceRecordDtos.ServiceRecordResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

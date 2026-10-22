@@ -1,4 +1,4 @@
-package dev.servicelog.service;
+package dev.servicelog.servicerecord;
 
 // What kind of visit this was. Tune-up reminders (S10) look for the last TUNE_UP.
 public enum ServiceKind {

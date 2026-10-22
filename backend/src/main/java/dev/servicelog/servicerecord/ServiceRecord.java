@@ -1,4 +1,4 @@
-package dev.servicelog.service;
+package dev.servicelog.servicerecord;
 
 import dev.servicelog.equipment.Equipment;
 import jakarta.persistence.Column;

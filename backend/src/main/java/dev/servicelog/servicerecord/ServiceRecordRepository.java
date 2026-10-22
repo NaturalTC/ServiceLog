@@ -1,4 +1,4 @@
-package dev.servicelog.service;
+package dev.servicelog.servicerecord;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

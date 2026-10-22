@@ -1,9 +1,9 @@
-package dev.servicelog.service;
+package dev.servicelog.servicerecord;
 
-import dev.servicelog.service.ServiceRecordDtos.ServiceKindOption;
-import dev.servicelog.service.ServiceRecordDtos.ServiceRecordDetailResponse;
-import dev.servicelog.service.ServiceRecordDtos.ServiceRecordRequest;
-import dev.servicelog.service.ServiceRecordDtos.ServiceRecordResponse;
+import dev.servicelog.servicerecord.ServiceRecordDtos.ServiceKindOption;
+import dev.servicelog.servicerecord.ServiceRecordDtos.ServiceRecordDetailResponse;
+import dev.servicelog.servicerecord.ServiceRecordDtos.ServiceRecordRequest;
+import dev.servicelog.servicerecord.ServiceRecordDtos.ServiceRecordResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;

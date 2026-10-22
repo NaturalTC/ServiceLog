@@ -1,4 +1,4 @@
-package dev.servicelog.service;
+package dev.servicelog.servicerecord;
 
 import dev.servicelog.config.BusinessCalendar;
 import org.junit.jupiter.api.Test;
