@@ -25,6 +25,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthTokenService authTokens;
     private final AuthMailer mailer;
+    private final LoginAttemptLimiter limiter;
 
     // A BCrypt hash of a random value. When the email is unknown we still run one BCrypt
     // comparison against it, so a failed login takes the same time either way and response
@@ -35,16 +36,23 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        AuthTokenService authTokens,
-                       AuthMailer mailer) {
+                       AuthMailer mailer,
+                       LoginAttemptLimiter limiter) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authTokens = authTokens;
         this.mailer = mailer;
+        this.limiter = limiter;
         this.dummyHash = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request, String clientAddress) {
+        // Checked before the password, so a blocked attacker learns nothing from further guesses
+        limiter.retryAfter(request.email(), clientAddress).ifPresent(wait -> {
+            throw new TooManyLoginAttemptsException(wait);
+        });
+
         AppUser user = users.findByEmailIgnoreCase(request.email().trim()).orElse(null);
 
         String hash = user != null ? user.getPasswordHash() : dummyHash;
@@ -53,6 +61,7 @@ public class AuthService {
         if (user == null || !passwordMatches) {
             // Don't log the email: failed logins are where typos of real passwords end up
             log.warn("Login failed");
+            limiter.recordFailure(request.email(), clientAddress);
             throw new InvalidCredentialsException();
         }
         if (!user.isEmailVerified()) {
@@ -60,6 +69,7 @@ public class AuthService {
             throw new EmailNotVerifiedException();
         }
 
+        limiter.recordSuccess(request.email());
         log.info("Login succeeded for user id={}", user.getId());
         String token = jwtService.generateToken(user.getEmail(), user.getSessionVersion());
         return new LoginResponse(token, jwtService.getExpirationSeconds());

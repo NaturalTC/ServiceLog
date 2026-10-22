@@ -7,6 +7,7 @@ import dev.servicelog.auth.AuthDtos.LoginResponse;
 import dev.servicelog.auth.AuthDtos.MessageResponse;
 import dev.servicelog.auth.AuthDtos.ResetPasswordRequest;
 import dev.servicelog.auth.AuthDtos.TokenRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -34,8 +35,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
+        // Behind a reverse proxy, server.forward-headers-strategy makes this the client's address
+        return authService.login(request, http.getRemoteAddr());
     }
 
     @PostMapping("/verify-email")

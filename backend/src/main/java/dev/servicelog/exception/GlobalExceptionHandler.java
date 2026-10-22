@@ -3,6 +3,7 @@ package dev.servicelog.exception;
 import dev.servicelog.auth.EmailNotVerifiedException;
 import dev.servicelog.auth.InvalidCredentialsException;
 import dev.servicelog.auth.InvalidTokenException;
+import dev.servicelog.auth.TooManyLoginAttemptsException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
         return build(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", ex.getMessage());
+    }
+
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<Map<String, Object>> handleTooManyAttempts(TooManyLoginAttemptsException ex) {
+        ResponseEntity<Map<String, Object>> response = build(HttpStatus.TOO_MANY_REQUESTS, "TOO_MANY_ATTEMPTS",
+                ex.getMessage());
+        return ResponseEntity.status(response.getStatusCode())
+                // Rounded up, so a client never retries a moment too early
+                .header("Retry-After", String.valueOf((ex.getRetryAfter().toMillis() + 999) / 1000))
+                .body(response.getBody());
     }
 
     @ExceptionHandler(EmailNotVerifiedException.class)
