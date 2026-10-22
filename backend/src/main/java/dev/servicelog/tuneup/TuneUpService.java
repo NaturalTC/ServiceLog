@@ -12,7 +12,9 @@ import dev.servicelog.tuneup.TuneUpDtos.Season;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,11 +32,14 @@ public class TuneUpService {
     private final TuneUpQueries queries;
     private final TuneUpRules rules;
     private final BusinessCalendar calendar;
+    private final TuneUpReminderRepository reminders;
 
-    public TuneUpService(TuneUpQueries queries, TuneUpRules rules, BusinessCalendar calendar) {
+    public TuneUpService(TuneUpQueries queries, TuneUpRules rules, BusinessCalendar calendar,
+                         TuneUpReminderRepository reminders) {
         this.queries = queries;
         this.rules = rules;
         this.calendar = calendar;
+        this.reminders = reminders;
     }
 
     @Transactional(readOnly = true)
@@ -60,6 +65,13 @@ public class TuneUpService {
             bookedByProperty.putIfAbsent(job.getProperty().getId(), job);
         }
 
+        // Reminders sent this season (within the interval), so the list can say "Reminder sent"
+        Map<Long, Instant> remindedByProperty = new HashMap<>();
+        Instant since = today.minusMonths(rules.intervalMonths()).atStartOfDay(ZoneOffset.UTC).toInstant();
+        for (Object[] row : reminders.latestSentPerPropertySince(since)) {
+            remindedByProperty.put((Long) row[0], (Instant) row[1]);
+        }
+
         LocalDate dueIfOnOrBefore = today.minusMonths(rules.intervalMonths());
         List<DueUnit> units = queries.seasonalEquipmentWithLastTuneUp(inSeason).stream()
                 .filter(row -> {
@@ -67,7 +79,7 @@ public class TuneUpService {
                     return last == null || !last.isAfter(dueIfOnOrBefore);
                 })
                 .map(row -> toDueUnit(row, seasonFor(TuneUpQueries.equipment(row).getType(), heating, cooling),
-                        bookedByProperty))
+                        bookedByProperty, remindedByProperty))
                 .sorted(Comparator
                         // Not yet booked first: those are the ones to call
                         .comparing((DueUnit u) -> u.bookedJobId() != null)
@@ -101,7 +113,8 @@ public class TuneUpService {
         return installed == null || fromRecords.isAfter(installed) ? fromRecords : installed;
     }
 
-    private static DueUnit toDueUnit(Object[] row, Season season, Map<Long, Job> bookedByProperty) {
+    private static DueUnit toDueUnit(Object[] row, Season season, Map<Long, Job> bookedByProperty,
+                                     Map<Long, Instant> remindedByProperty) {
         Equipment e = TuneUpQueries.equipment(row);
         Property p = e.getProperty();
         Customer c = p.getCustomer();
@@ -111,6 +124,7 @@ public class TuneUpService {
         return new DueUnit(e.getId(), e.getType().getLabel(), e.getBrand(), e.getModel(), season, baseline(row),
                 c.getId(), c.getName(), c.getPhone(), c.getEmail(), p.getId(), address,
                 booked == null ? null : booked.getId(),
-                booked == null ? null : booked.getScheduledDate());
+                booked == null ? null : booked.getScheduledDate(),
+                remindedByProperty.get(p.getId()));
     }
 }

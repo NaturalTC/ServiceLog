@@ -1,5 +1,6 @@
 package dev.servicelog.config;
 
+import dev.servicelog.tuneup.BusinessInfo;
 import dev.servicelog.tuneup.TuneUpRules;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -9,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import java.time.Clock;
 
 @Configuration
-@EnableConfigurationProperties(TuneUpRules.class)
+@EnableConfigurationProperties({TuneUpRules.class, BusinessInfo.class})
 @EnableAsync // lets AuthMailer send emails in the background
 public class AppConfig {
 

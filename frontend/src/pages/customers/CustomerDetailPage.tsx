@@ -4,21 +4,29 @@ import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
 import { equipmentApi, type Equipment } from '../../api/equipment'
 import { jobsApi, type Job } from '../../api/jobs'
-import { formatAddress, formatDate, formatPhone, formatTime, mapsUrl } from '../../lib/format'
+import { tuneUpsApi, type Reminder } from '../../api/tuneUps'
+import { formatAddress, formatDate, formatDateTime, formatPhone, formatTime, mapsUrl } from '../../lib/format'
 
 export function CustomerDetailPage() {
   const id = Number(useParams().id)
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
+  const [reminders, setReminders] = useState<Reminder[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([customersApi.get(id), equipmentApi.listForCustomer(id), jobsApi.upcomingForCustomer(id)])
-      .then(([c, e, j]) => {
+    Promise.all([
+      customersApi.get(id),
+      equipmentApi.listForCustomer(id),
+      jobsApi.upcomingForCustomer(id),
+      tuneUpsApi.history(id),
+    ])
+      .then(([c, e, j, r]) => {
         setCustomer(c)
         setEquipment(e)
         setJobs(j)
+        setReminders(r)
       })
       .catch((err) => setError(errorMessage(err)))
   }, [id])
@@ -115,6 +123,26 @@ export function CustomerDetailPage() {
           )
         })}
       </ul>
+
+      {reminders.length > 0 && (
+        <>
+          <h2>Reminder emails</h2>
+          <ul className="card-list">
+            {reminders.map((r) => (
+              <li key={r.id} className="card">
+                <span className="card-row">
+                  <strong>{formatDateTime(r.sentAt)}</strong>
+                  <span className={r.status === 'SENT' ? 'badge done' : 'badge urgent'}>
+                    {r.status === 'SENT' ? 'Sent' : 'Failed'}
+                  </span>
+                </span>
+                <span>{r.subject}</span>
+                <span className="muted">To {r.recipientEmail}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <p className="links">
         <Link to="/customers">Back to customers</Link>

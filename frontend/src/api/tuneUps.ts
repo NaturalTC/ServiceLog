@@ -1,4 +1,4 @@
-import { apiFetch } from './client'
+import { ApiError, apiFetch } from './client'
 
 export type Season = 'HEATING' | 'COOLING'
 
@@ -18,6 +18,27 @@ export interface DueUnit {
   address: string
   bookedJobId: number | null // a tune-up already scheduled at this address
   bookedDate: string | null
+  lastReminderAt: string | null // ISO timestamp of the last reminder email to this address
+}
+
+export interface Reminder {
+  id: number
+  customerId: number
+  propertyId: number
+  recipientEmail: string
+  subject: string
+  body: string
+  status: 'SENT' | 'FAILED'
+  error: string | null
+  sentAt: string
+}
+
+// 409 when a reminder already went to this address in the last two weeks
+export function recentlyRemindedAt(err: unknown): string | null {
+  if (err instanceof ApiError && err.code === 'REMINDER_RECENTLY_SENT') {
+    return (err.body as { lastSentAt: string }).lastSentAt
+  }
+  return null
 }
 
 export interface DueList {
@@ -30,4 +51,11 @@ export interface DueList {
 
 export const tuneUpsApi = {
   due: () => apiFetch<DueList>('/api/tune-ups/due'),
+  // Sends one reminder email; only ever called from the owner's tap
+  sendReminder: (customerId: number, propertyId: number, resend = false) =>
+    apiFetch<Reminder>('/api/tune-ups/reminders', {
+      method: 'POST',
+      body: JSON.stringify({ customerId, propertyId, resend }),
+    }),
+  history: (customerId: number) => apiFetch<Reminder[]>(`/api/customers/${customerId}/reminders`),
 }

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { errorMessage } from '../../api/client'
-import { tuneUpsApi, type DueList, type DueUnit } from '../../api/tuneUps'
-import { daysAgo, formatDate, formatPhone } from '../../lib/format'
+import { recentlyRemindedAt, tuneUpsApi, type DueList, type DueUnit } from '../../api/tuneUps'
+import { daysAgo, formatDate, formatDateTime, formatPhone } from '../../lib/format'
 
 // Customers due for a seasonal tune-up. Units are grouped by address, since one visit
 // covers everything there; addresses not yet booked come first.
@@ -32,13 +32,47 @@ function seasonText(list: DueList): string {
 export function TuneUpsPage() {
   const [list, setList] = useState<DueList | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [sending, setSending] = useState<string | null>(null)
+  const [message, setMessage] = useState<{ key: string; text: string; ok: boolean } | null>(null)
 
-  useEffect(() => {
+  const load = () =>
     tuneUpsApi
       .due()
       .then(setList)
       .catch((err) => setError(errorMessage(err)))
+
+  useEffect(() => {
+    load()
   }, [])
+
+  // Nothing is emailed without the owner's tap and a confirmation
+  async function emailReminder(key: string, unit: DueUnit) {
+    if (!window.confirm(`Email a tune-up reminder to ${unit.customerName} (${unit.customerEmail})?`)) return
+    setSending(key)
+    setMessage(null)
+    try {
+      await send(unit, false)
+    } catch (err) {
+      const lastSent = recentlyRemindedAt(err)
+      if (lastSent && window.confirm(`A reminder already went out ${formatDateTime(lastSent)}. Send another?`)) {
+        try {
+          await send(unit, true)
+        } catch (retryErr) {
+          setMessage({ key, text: errorMessage(retryErr), ok: false })
+        }
+      } else if (!lastSent) {
+        setMessage({ key, text: errorMessage(err), ok: false })
+      }
+    }
+    setSending(null)
+  }
+
+  async function send(unit: DueUnit, resend: boolean) {
+    const sent = await tuneUpsApi.sendReminder(unit.customerId, unit.propertyId, resend)
+    const key = `${unit.customerId}-${unit.propertyId}`
+    setMessage({ key, text: `Reminder sent to ${sent.recipientEmail}.`, ok: true })
+    await load()
+  }
 
   if (error) {
     return (
@@ -88,6 +122,9 @@ export function TuneUpsPage() {
                 {booked && <span className="badge done">Booked {formatDate(first.bookedDate!)}</span>}
               </span>
               <span className="muted">{first.address}</span>
+              {first.lastReminderAt && (
+                <span className="muted">Reminder emailed {formatDateTime(first.lastReminderAt)}</span>
+              )}
 
               <ul className="equipment-list">
                 {units.map((u) => (
@@ -107,10 +144,31 @@ export function TuneUpsPage() {
                 ))}
               </ul>
 
+              {message?.key === key && (
+                <p className={message.ok ? 'notice' : 'error'} role="status">
+                  {message.text}
+                </p>
+              )}
+
               <div className="actions">
                 <a href={`tel:${first.customerPhone}`} className="button secondary">
                   Call {formatPhone(first.customerPhone)}
                 </a>
+                {!booked &&
+                  (first.customerEmail ? (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => emailReminder(key, first)}
+                      disabled={sending === key}
+                    >
+                      {sending === key ? 'Sending…' : 'Email reminder'}
+                    </button>
+                  ) : (
+                    <Link to={`/customers/${first.customerId}/edit`} className="button secondary">
+                      Add email
+                    </Link>
+                  ))}
                 {booked ? (
                   <Link to={`/jobs/${first.bookedJobId}`} className="button secondary">
                     View booking

@@ -1,5 +1,6 @@
 package dev.servicelog.tuneup;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -15,7 +16,8 @@ public final class TuneUpDtos {
                           LocalDate lastTuneUp, // null: no tune-up or install on record
                           Long customerId, String customerName, String customerPhone, String customerEmail,
                           Long propertyId, String address,
-                          Long bookedJobId, LocalDate bookedDate) { // a tune-up already scheduled there
+                          Long bookedJobId, LocalDate bookedDate, // a tune-up already scheduled there
+                          Instant lastReminderAt) { // the last reminder email sent to this address, if recent
     }
 
     public record DueResponse(LocalDate today, boolean heatingSeason, boolean coolingSeason, int intervalMonths,
