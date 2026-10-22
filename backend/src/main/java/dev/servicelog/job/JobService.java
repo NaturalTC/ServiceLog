@@ -108,6 +108,17 @@ public class JobService {
         return toResponse(jobs.saveAndFlush(job));
     }
 
+    // For an accidental tap on "Start job"
+    @Transactional
+    public JobResponse undoStart(long id) {
+        Job job = find(id);
+        if (job.getStatus() != JobStatus.IN_PROGRESS) {
+            throw new ConflictException("Only a job in progress can be put back to scheduled.");
+        }
+        job.markScheduled();
+        return toResponse(jobs.saveAndFlush(job));
+    }
+
     // A one-person business can't be in two places at once: warn before double booking.
     // Jobs that start the day before can run past midnight, so look one day back.
     private void checkOverlap(Job job, JobRequest request) {

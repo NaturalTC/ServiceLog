@@ -202,6 +202,28 @@ class JobCompletionTest {
     }
 
     @Test
+    void accidentalStart_canBeUndone() throws Exception {
+        long job = schedule(oakStreet, TODAY, "SERVICE_CALL");
+        send(post("/api/jobs/" + job + "/start"), "").andExpect(status().isOk());
+
+        send(post("/api/jobs/" + job + "/undo-start"), "")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SCHEDULED"));
+        // And it can be started again afterwards
+        send(post("/api/jobs/" + job + "/start"), "").andExpect(status().isOk());
+    }
+
+    @Test
+    void undoStart_onlyWorksForJobsInProgress() throws Exception {
+        long scheduled = schedule(oakStreet, TODAY, "SERVICE_CALL");
+        long done = schedule(oakStreet, TODAY, "TUNE_UP", "15:00");
+        complete(done, work(outdoorUnit)).andExpect(status().isOk());
+
+        send(post("/api/jobs/" + scheduled + "/undo-start"), "").andExpect(status().isConflict());
+        send(post("/api/jobs/" + done + "/undo-start"), "").andExpect(status().isConflict());
+    }
+
+    @Test
     void finishedJob_cantBeFinishedAgain_edited_orCancelled() throws Exception {
         long job = schedule(oakStreet, TODAY, "TUNE_UP");
         complete(job, work(outdoorUnit)).andExpect(status().isOk());

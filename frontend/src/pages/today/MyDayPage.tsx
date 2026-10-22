@@ -64,10 +64,11 @@ export function MyDayPage() {
 
   const [starting, setStarting] = useState<number | null>(null)
 
-  async function startJob(jobId: number) {
+  // Start a job, or undo an accidental start; then reload the day
+  async function changeStatus(jobId: number, action: 'start' | 'undoStart') {
     setStarting(jobId)
     try {
-      await jobsApi.start(jobId)
+      await jobsApi[action](jobId)
       load()
     } catch (err) {
       setError(errorMessage(err))
@@ -174,15 +175,25 @@ export function MyDayPage() {
                     <button
                       type="button"
                       className="secondary span-2"
-                      onClick={() => startJob(job.id)}
+                      onClick={() => changeStatus(job.id, 'start')}
                       disabled={starting === job.id}
                     >
                       {starting === job.id ? 'Starting…' : 'Start job'}
                     </button>
                   ) : (
-                    <Link to={`/jobs/${job.id}/finish`} className="button span-2">
-                      Finish job
-                    </Link>
+                    <>
+                      <Link to={`/jobs/${job.id}/finish`} className="button span-2">
+                        Finish job
+                      </Link>
+                      <button
+                        type="button"
+                        className="link-button span-2"
+                        onClick={() => changeStatus(job.id, 'undoStart')}
+                        disabled={starting === job.id}
+                      >
+                        Undo start
+                      </button>
+                    </>
                   )}
                 </div>
               )}

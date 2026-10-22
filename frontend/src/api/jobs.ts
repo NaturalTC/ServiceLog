@@ -76,6 +76,8 @@ export const jobsApi = {
   update: (id: number, input: JobInput) => apiFetch<Job>(`/api/jobs/${id}`, json('PUT', input)),
   cancel: (id: number) => apiFetch<Job>(`/api/jobs/${id}/cancel`, { method: 'POST' }),
   start: (id: number) => apiFetch<Job>(`/api/jobs/${id}/start`, { method: 'POST' }),
+  // For an accidental "Start job": back to scheduled
+  undoStart: (id: number) => apiFetch<Job>(`/api/jobs/${id}/undo-start`, { method: 'POST' }),
   // Marks the job done and creates a service record on each selected unit
   complete: (id: number, input: CompleteJobInput) =>
     apiFetch<{ job: Job; serviceRecordIds: number[] }>(`/api/jobs/${id}/complete`, json('POST', input)),

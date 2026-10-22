@@ -30,6 +30,17 @@ export function JobDetailPage() {
     }
   }
 
+  async function undoStart() {
+    if (!job) return
+    setBusy(true)
+    try {
+      setJob(await jobsApi.undoStart(job.id))
+    } catch (err) {
+      setError(errorMessage(err))
+    }
+    setBusy(false)
+  }
+
   async function startJob() {
     if (!job) return
     setBusy(true)
@@ -120,6 +131,13 @@ export function JobDetailPage() {
           {job.status === 'SCHEDULED' && (
             <p className="center">
               <Link to={`/jobs/${job.id}/finish`}>Already done? Finish without starting</Link>
+            </p>
+          )}
+          {job.status === 'IN_PROGRESS' && (
+            <p className="center">
+              <button type="button" className="link-button" onClick={undoStart} disabled={busy}>
+                Started by mistake? Undo start
+              </button>
             </p>
           )}
           <div className="actions spaced">

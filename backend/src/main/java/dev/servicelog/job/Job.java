@@ -91,6 +91,14 @@ public class Job {
         status = JobStatus.IN_PROGRESS;
     }
 
+    // Undo an accidental start: back to scheduled
+    public void markScheduled() {
+        if (status != JobStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Only an in-progress job can go back to scheduled");
+        }
+        status = JobStatus.SCHEDULED;
+    }
+
     public void complete(Instant when) {
         if (!status.isOpen()) {
             throw new IllegalStateException("Only a scheduled or in-progress job can be finished");
