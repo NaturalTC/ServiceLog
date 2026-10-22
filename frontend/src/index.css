@@ -1000,7 +1000,7 @@ button.icon-button:hover {
   bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   padding: 6px max(4px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(4px, env(safe-area-inset-left));
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: blur(16px);
@@ -1027,7 +1027,7 @@ button.icon-button:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
+  width: 52px;
   height: 30px;
   border-radius: 999px;
   transition: background-color 0.15s;
@@ -1901,4 +1901,261 @@ a.sync-pill.refused {
 a.pending-card {
   border-style: dashed;
   border-color: var(--border-strong);
+}
+
+/* --- Ask ServiceLog (S33): a chat, like a message thread --- */
+main.assistant {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 160px);
+}
+
+.assistant-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--dark);
+  color: var(--dark-text);
+}
+
+.assistant-avatar.large {
+  width: 56px;
+  height: 56px;
+}
+
+.assistant-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px 0 8px;
+}
+
+.assistant-welcome p {
+  margin: 0;
+  max-width: 420px;
+}
+
+.assistant-welcome .chips {
+  justify-content: center;
+}
+
+button.chip {
+  min-height: 40px;
+  font-size: 0.92rem;
+}
+
+button.chip:hover {
+  background: var(--surface-2);
+}
+
+.small {
+  font-size: 0.82rem;
+}
+
+.messages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.message-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  max-width: 88%;
+}
+
+.message.user .message-body {
+  align-items: flex-end;
+}
+
+.bubble {
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+.bubble p {
+  margin: 0;
+}
+
+.bubble p + p,
+.bubble ul + p,
+.bubble p + ul {
+  margin-top: 8px;
+}
+
+.bubble ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.bubble li + li {
+  margin-top: 4px;
+}
+
+.message.user .bubble {
+  background: var(--surface-2);
+  border-color: transparent;
+  border-bottom-right-radius: 6px;
+}
+
+.message.assistant .bubble {
+  border-top-left-radius: 6px;
+}
+
+.message.error .bubble {
+  background: var(--error-bg);
+  color: var(--error);
+  border-color: transparent;
+}
+
+/* Three dots while the assistant looks things up */
+.bubble.typing {
+  display: inline-flex;
+  gap: 5px;
+  padding: 16px 18px;
+}
+
+.bubble.typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--muted);
+  animation: typing 1.2s infinite ease-in-out;
+}
+
+.bubble.typing i:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.bubble.typing i:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble.typing i {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* Scrolling to the newest message leaves room for the question box and the tab bar */
+.chat-end {
+  scroll-margin-bottom: calc(170px + env(safe-area-inset-bottom));
+}
+
+/* A customer the answer mentions */
+.result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+a.result-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.result-actions .button {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.92rem;
+}
+
+/* The question box, kept in reach above the tab bar */
+form.ask-bar {
+  position: sticky;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 8px 8px 8px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+form.ask-bar textarea {
+  flex: 1;
+  min-height: 40px;
+  max-height: 160px;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  resize: none;
+  field-sizing: content;
+}
+
+form.ask-bar textarea:focus {
+  box-shadow: none;
+}
+
+button.send {
+  flex-shrink: 0;
+  width: 40px;
+  min-height: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+@media (min-width: 720px) {
+  form.ask-bar {
+    bottom: 16px;
+  }
 }

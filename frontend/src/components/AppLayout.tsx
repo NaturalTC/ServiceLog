@@ -1,10 +1,11 @@
-import { BriefcaseBusiness, CalendarCheck, LogOut, Users, Wrench } from 'lucide-react'
+import { BriefcaseBusiness, CalendarCheck, LogOut, Sparkles, Users, Wrench } from 'lucide-react'
 import { useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import { useAuth } from '../auth/authContext'
 import { CACHE, offlineStore } from '../lib/offlineStore'
 import { startSyncing, syncQueue, useSyncQueue } from '../lib/syncQueue'
 import { OfflineStatus } from './OfflineStatus'
+import { CHAT_KEY } from '../pages/assistant/AssistantPage'
 
 // Shown on every page after login: a slim top bar, and a tab bar at the bottom of the
 // screen where a thumb can reach it (like a native phone app). On wide screens the tabs
@@ -12,6 +13,7 @@ import { OfflineStatus } from './OfflineStatus'
 const TABS = [
   { to: '/', label: 'Today', icon: CalendarCheck, end: true },
   { to: '/jobs', label: 'Jobs', icon: BriefcaseBusiness, end: false },
+  { to: '/assistant', label: 'Ask', icon: Sparkles, end: false },
   { to: '/tune-ups', label: 'Tune-ups', icon: Wrench, end: false },
   { to: '/customers', label: 'Customers', icon: Users, end: false },
 ]
@@ -33,6 +35,7 @@ export function AppLayout() {
     if (!window.confirm(message)) return
     await syncQueue.clear()
     await offlineStore.clear(CACHE).catch(() => {})
+    sessionStorage.removeItem(CHAT_KEY)
     logout()
   }
 

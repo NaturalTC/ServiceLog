@@ -20,6 +20,7 @@ import { MyDayPage } from './pages/today/MyDayPage'
 import { TuneUpsPage } from './pages/tuneups/TuneUpsPage'
 import { WarrantyPage } from './pages/warranty/WarrantyPage'
 import { SyncPage } from './pages/sync/SyncPage'
+import { AssistantPage } from './pages/assistant/AssistantPage'
 import { ServiceRecordDetailPage } from './pages/service/ServiceRecordDetailPage'
 import { ServiceRecordFormPage } from './pages/service/ServiceRecordFormPage'
 import { Loading } from './components/Loading'
@@ -55,6 +56,7 @@ function App() {
         <Route path="/equipment/:equipmentId/service-records/new" element={<ServiceRecordFormPage />} />
         <Route path="/warranty" element={<WarrantyPage />} />
         <Route path="/sync" element={<SyncPage />} />
+        <Route path="/assistant" element={<AssistantPage />} />
         <Route path="/service-records/:id" element={<ServiceRecordDetailPage />} />
         <Route path="/service-records/:id/edit" element={<ServiceRecordFormPage />} />
       </Route>

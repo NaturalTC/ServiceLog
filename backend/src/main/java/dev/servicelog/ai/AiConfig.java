@@ -27,14 +27,31 @@ public class AiConfig {
                 throw new AiUnavailableException("AI drafts aren't set up on this server. Fill in the form by hand.");
             };
         }
+        return new OpenAiNoteExtractor(openAi(apiKey, baseUrl, timeoutSeconds), jsonMapper, model);
+    }
+
+    // For the assistant (S33) and form filling: any chat request, with tools if needed
+    @Bean
+    public ChatModel chatModel(@Value("${servicelog.ai.openai-api-key:}") String apiKey,
+                               @Value("${servicelog.ai.model}") String model,
+                               @Value("${servicelog.ai.base-url}") String baseUrl,
+                               @Value("${servicelog.ai.assistant-timeout-seconds:60}") int timeoutSeconds) {
+        if (apiKey.isBlank()) {
+            return request -> {
+                throw new AiUnavailableException("The AI assistant isn't set up on this server.");
+            };
+        }
+        return new OpenAiChatModel(openAi(apiKey, baseUrl, timeoutSeconds), model);
+    }
+
+    private static RestClient openAi(String apiKey, String baseUrl, int timeoutSeconds) {
         HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(client);
         requestFactory.setReadTimeout(Duration.ofSeconds(timeoutSeconds));
-        RestClient http = RestClient.builder()
+        return RestClient.builder()
                 .baseUrl(baseUrl)
                 .requestFactory(requestFactory)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .build();
-        return new OpenAiNoteExtractor(http, jsonMapper, model);
     }
 }

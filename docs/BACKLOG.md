@@ -107,6 +107,16 @@ yet; those get written when a phase starts, from what the owner says he needs.
 | S30 | As the owner, every screen uses the new look, with the most important thing first. | E5 | 5 |
 | S31 | As a visitor, the landing page matches the app and shows current screenshots. | E5 | 3 |
 
+### AI assistant (sprint 7)
+| ID | Story | Epic | Pts |
+|---|---|---|---|
+| S33 | As the owner, I can ask ServiceLog questions about my customers, jobs and equipment in plain words. | E8 | 8 |
+| S34 | As the owner, the assistant prepares jobs, customers and service records for me to confirm. | E8 | 5 |
+| S35 | As the owner, I can fill in a customer, job or equipment form from one sentence. | E8 | 3 |
+| S36 | As the owner, AI reads a unit's nameplate photo into the equipment form. | E8 | 5 |
+| S23 | As the owner, AI suggests likely causes for a symptom (suggestions only, clearly labelled). | E8 | 3 |
+| S37 | As the developer, the assistant is measured before it ships (accuracy, privacy, prompt injection). | E8 | 3 |
+
 ### Later phases (see VISION.md)
 - **E7 (v2):** quotes and PDF invoices built from service records, synced with QuickBooks
   (the owner already uses it for billing, so we connect to it rather than replace it).

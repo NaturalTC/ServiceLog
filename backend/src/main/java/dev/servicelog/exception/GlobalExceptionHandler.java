@@ -1,5 +1,6 @@
 package dev.servicelog.exception;
 
+import dev.servicelog.ai.AiUnavailableException;
 import dev.servicelog.auth.EmailNotVerifiedException;
 import dev.servicelog.auth.InvalidCredentialsException;
 import dev.servicelog.auth.InvalidTokenException;
@@ -67,6 +68,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
         return build(HttpStatus.CONFLICT, "CONFLICT", "This change conflicts with data that already exists.");
+    }
+
+    // AI not set up, over the daily limit, or the provider didn't answer: the app works without it
+    @ExceptionHandler(AiUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleAiUnavailable(AiUnavailableException ex) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, "AI_UNAVAILABLE", ex.getMessage());
     }
 
     // Photos bigger than spring.servlet.multipart.max-file-size (the app shrinks them first)

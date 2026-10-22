@@ -5,15 +5,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 // Login required (see SecurityConfig). Drafts only: nothing here saves a service record.
 @RestController
@@ -41,11 +36,5 @@ public class AiController {
     @PostMapping("/api/ai/extract")
     public NoteExtraction extract(@Valid @RequestBody ExtractRequest request) {
         return ai.extract(request.note(), request.equipmentType());
-    }
-
-    @ExceptionHandler(AiUnavailableException.class)
-    public ResponseEntity<Map<String, Object>> unavailable(AiUnavailableException ex) {
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
-                "status", 503, "code", "AI_UNAVAILABLE", "message", ex.getMessage()));
     }
 }
