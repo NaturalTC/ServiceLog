@@ -1,7 +1,7 @@
 import { Sparkles } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { errorMessage } from '../../api/client'
+import { errorMessage, OfflineError } from '../../api/client'
 import { equipmentApi } from '../../api/equipment'
 import {
   serviceRecordsApi,
@@ -15,6 +15,7 @@ import { Loading } from '../../components/Loading'
 import { PendingPhotos } from '../../components/Photos'
 import { photosApi } from '../../api/photos'
 import { shrinkPhoto } from '../../lib/photos'
+import { syncQueue } from '../../lib/syncQueue'
 
 // One form for "add service record" (/equipment/:equipmentId/service-records/new) and
 // "edit" (/service-records/:id/edit). Built to fill in on site: the date is already today,
@@ -184,6 +185,23 @@ export function ServiceRecordFormPage() {
       }
       navigate(`/service-records/${saved.record.id}`, { replace: true, state: notice ? { notice } : undefined })
     } catch (err) {
+      // No signal: keep a new record (and its photos) on the phone; it syncs by itself later
+      if (err instanceof OfflineError && !editingId) {
+        await syncQueue.add({
+          kind: 'service-record',
+          label: `Service record · ${context?.label ?? 'equipment'}`,
+          method: 'POST',
+          path: `/api/equipment/${equipmentId}/service-records`,
+          body: input,
+          photos: await Promise.all(photos.map(shrinkPhoto)),
+          equipmentId: equipmentId!,
+        })
+        navigate(`/equipment/${equipmentId}`, {
+          replace: true,
+          state: { notice: 'No signal, so this was saved on your phone. It will sync by itself when there’s signal.' },
+        })
+        return
+      }
       setServerError(errorMessage(err))
       setSaving(false)
     }

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { equipmentApi, type EquipmentDetail } from '../../api/equipment'
 import { serviceRecordsApi, type ServiceRecord } from '../../api/serviceRecords'
-import { daysAgo, formatDate, formatInstallDate, todayIso } from '../../lib/format'
+import { daysAgo, formatDate, formatDateTime, formatInstallDate, todayIso } from '../../lib/format'
+import { useSyncQueue } from '../../lib/syncQueue'
+import type { ServiceRecordInput } from '../../api/serviceRecords'
 import { Loading } from '../../components/Loading'
 
 // "Jun 15, 2033", or "Ended Jun 15, 2023" once it's past
@@ -16,6 +18,11 @@ export function EquipmentDetailPage() {
   const [detail, setDetail] = useState<EquipmentDetail | null>(null)
   const [history, setHistory] = useState<ServiceRecord[]>([])
   const [error, setError] = useState<string | null>(null)
+  // e.g. "saved on your phone" after adding a record without signal
+  const notice = (useLocation().state as { notice?: string } | null)?.notice
+  // Records added without signal that haven't reached the server yet
+  const pending = useSyncQueue().filter((q) => q.kind === 'service-record' && q.equipmentId === id)
+  const [synced, setSynced] = useState(0)
 
   useEffect(() => {
     Promise.all([equipmentApi.get(id), serviceRecordsApi.history(id)])
@@ -24,7 +31,14 @@ export function EquipmentDetailPage() {
         setHistory(h)
       })
       .catch((err) => setError(errorMessage(err)))
-  }, [id])
+  }, [id, synced])
+
+  // Reload once something synced, so it moves from "waiting" into the history
+  useEffect(() => {
+    const onSynced = () => setSynced((n) => n + 1)
+    window.addEventListener('servicelog:synced', onSynced)
+    return () => window.removeEventListener('servicelog:synced', onSynced)
+  }, [])
 
   if (error) {
     return (
@@ -116,8 +130,29 @@ export function EquipmentDetailPage() {
       </dl>
 
       <h2>Service history</h2>
-      {history.length === 0 && <p className="empty">No service recorded yet.</p>}
+      {notice && (
+        <p className="notice" role="status">
+          {notice}
+        </p>
+      )}
+      {history.length === 0 && pending.length === 0 && <p className="empty">No service recorded yet.</p>}
       <ul className="card-list">
+        {pending.map((q) => {
+          const input = q.body as ServiceRecordInput
+          return (
+            <li key={q.id}>
+              <Link to="/sync" className="card pending-card">
+                <span className="card-row">
+                  <strong>{input.serviceDate ? formatDate(input.serviceDate) : `Added ${formatDateTime(q.createdAt)}`}</strong>
+                  <span className={q.error ? 'badge urgent' : 'badge now'}>
+                    {q.error ? "Couldn't sync" : 'Waiting to sync'}
+                  </span>
+                </span>
+                <span className="clamp">{input.workDone}</span>
+              </Link>
+            </li>
+          )
+        })}
         {history.map((r) => (
           <li key={r.id}>
             <Link to={`/service-records/${r.id}`} className="card">

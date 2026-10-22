@@ -25,6 +25,8 @@ backend/src/main/java/dev/servicelog/
 ├── job/             scheduling, rescheduling, double-booking check
 ├── tuneup/          tune-up due list, reminder emails, unsubscribe
 ├── ai/              AI drafts of service records (OpenAI), privacy redaction, cost limit
+├── photo/           photos on service records: clean-up, thumbnails, signed links, storage
+├── sync/            repeat-safe requests for actions taken offline (Idempotency-Key)
 ├── security/        JWT filter and Spring Security configuration (shared)
 ├── config/          app-wide beans: clock, async email, business time zone (shared)
 └── exception/       shared exceptions and the JSON error handler

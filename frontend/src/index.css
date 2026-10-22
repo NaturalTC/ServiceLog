@@ -1849,3 +1849,56 @@ dialog.photo-viewer img {
   gap: 8px;
   margin-top: 12px;
 }
+
+/* --- Offline (S21) --- */
+.offline-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 560px;
+  margin: 12px auto 0;
+  padding: 0 16px;
+}
+
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--info-bg);
+  color: var(--info);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.offline-banner svg {
+  flex-shrink: 0;
+}
+
+a.sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+a.sync-pill.refused {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+/* A service record added without signal, not on the server yet */
+a.pending-card {
+  border-style: dashed;
+  border-color: var(--border-strong);
+}

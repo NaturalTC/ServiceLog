@@ -1,6 +1,10 @@
 import { BriefcaseBusiness, CalendarCheck, LogOut, Users, Wrench } from 'lucide-react'
+import { useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import { useAuth } from '../auth/authContext'
+import { CACHE, offlineStore } from '../lib/offlineStore'
+import { startSyncing, syncQueue, useSyncQueue } from '../lib/syncQueue'
+import { OfflineStatus } from './OfflineStatus'
 
 // Shown on every page after login: a slim top bar, and a tab bar at the bottom of the
 // screen where a thumb can reach it (like a native phone app). On wide screens the tabs
@@ -14,10 +18,22 @@ const TABS = [
 
 export function AppLayout() {
   const { logout } = useAuth()
+  const queue = useSyncQueue()
 
-  // Out of the way in the corner, and confirmed, so it's never tapped by accident on a job
-  function confirmLogout() {
-    if (window.confirm('Log out of ServiceLog?')) logout()
+  // Send anything done without signal as soon as it can go
+  useEffect(startSyncing, [])
+
+  // Out of the way in the corner, and confirmed, so it's never tapped by accident on a job.
+  // Logging out wipes everything saved on the phone, including anything not yet synced.
+  async function confirmLogout() {
+    const message =
+      queue.length > 0
+        ? `${queue.length} change${queue.length === 1 ? " hasn't" : "s haven't"} synced yet and will be lost. Log out anyway?`
+        : 'Log out of ServiceLog?'
+    if (!window.confirm(message)) return
+    await syncQueue.clear()
+    await offlineStore.clear(CACHE).catch(() => {})
+    logout()
   }
 
   return (
@@ -43,6 +59,7 @@ export function AppLayout() {
         </button>
       </header>
       <div className="app-content">
+        <OfflineStatus />
         <Outlet />
       </div>
     </>

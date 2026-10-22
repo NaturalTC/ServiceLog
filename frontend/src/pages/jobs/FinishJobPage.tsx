@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { errorMessage } from '../../api/client'
+import { errorMessage, OfflineError } from '../../api/client'
 import { equipmentApi, type Equipment } from '../../api/equipment'
 import { isOpen, jobsApi, type Job, type JobType } from '../../api/jobs'
 import { formatTime } from '../../lib/format'
 import { Loading } from '../../components/Loading'
+import { syncQueue } from '../../lib/syncQueue'
 
 // "Finish job": tick the equipment worked on and describe the work. The app writes one
 // service record per unit (kind and date come from the job) and marks the job done.
@@ -84,17 +85,34 @@ export function FinishJobPage() {
       return
     }
     setSaving(true)
+    const input = {
+      equipmentIds: [...selected],
+      workDone: hasWork ? description : null,
+      partsUsed: partsUsed.trim() || null,
+      notes: notes.trim() || null,
+      followUpNeeded,
+      followUpNote: followUpNeeded ? followUpNote.trim() || null : null,
+    }
     try {
-      await jobsApi.complete(job!.id, {
-        equipmentIds: [...selected],
-        workDone: hasWork ? description : null,
-        partsUsed: partsUsed.trim() || null,
-        notes: notes.trim() || null,
-        followUpNeeded,
-        followUpNote: followUpNeeded ? followUpNote.trim() || null : null,
-      })
+      await jobsApi.complete(job!.id, input)
       navigate(`/jobs/${job!.id}`, { replace: true })
     } catch (err) {
+      // No signal: keep it on the phone; the job and its service records sync by itself later
+      if (err instanceof OfflineError) {
+        await syncQueue.add({
+          kind: 'finish-job',
+          label: `Finish job · ${job!.customerName}`,
+          method: 'POST',
+          path: `/api/jobs/${job!.id}/complete`,
+          body: input,
+          jobId: job!.id,
+        })
+        navigate(`/jobs/${job!.id}`, {
+          replace: true,
+          state: { notice: 'No signal, so this was saved on your phone. It will sync by itself when there’s signal.' },
+        })
+        return
+      }
       setError(errorMessage(err))
       setSaving(false)
     }

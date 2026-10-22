@@ -1,7 +1,7 @@
 import { CalendarCheck, ChevronRight, CircleCheck, Navigation, Phone, Play, ShieldAlert, Undo2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { errorMessage } from '../../api/client'
+import { errorMessage, OfflineError } from '../../api/client'
 import { equipmentApi } from '../../api/equipment'
 import { jobsApi, type Job, type Today } from '../../api/jobs'
 import {
@@ -13,6 +13,8 @@ import {
   minutesOfDay,
 } from '../../lib/format'
 import { Loading } from '../../components/Loading'
+import { saveTodayForOffline } from '../../lib/prefetch'
+import { pendingStatus, syncQueue, useSyncQueue } from '../../lib/syncQueue'
 
 // The home screen: today's jobs in time order, each with one-tap Call and Navigate.
 // "Today" comes from the server (the business's time zone), not the phone's clock.
@@ -47,6 +49,8 @@ export function MyDayPage() {
       .then((t) => {
         setToday(t)
         setError(null)
+        // While there's signal, save what today's jobs need for working in a basement
+        void saveTodayForOffline(t.jobs)
       })
       .catch((err) => setError(errorMessage(err)))
     setMinute(nowMinutes())
@@ -57,10 +61,13 @@ export function MyDayPage() {
     // Refresh when the owner comes back to the app (a phone left open since morning)
     const onVisible = () => document.visibilityState === 'visible' && load()
     document.addEventListener('visibilitychange', onVisible)
+    // Something done without signal just reached the server: show the day as it is now
+    window.addEventListener('servicelog:synced', load)
     // Keep "Now" / "Next" current while the screen stays open
     const timer = setInterval(() => setMinute(nowMinutes()), 60_000)
     return () => {
       document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('servicelog:synced', load)
       clearInterval(timer)
     }
   }, [load])
@@ -76,14 +83,33 @@ export function MyDayPage() {
       .catch(() => setWarrantiesEnding(0))
   }, [])
 
-  // Start a job, or undo an accidental start; then reload the day
-  async function changeStatus(jobId: number, action: 'start' | 'undoStart') {
-    setStarting(jobId)
+  const queue = useSyncQueue()
+
+  // Start a job, or undo an accidental start; then reload the day. Without signal a start
+  // is kept on the phone, and undoing a start that hasn't synced just drops it.
+  async function changeStatus(job: Job, action: 'start' | 'undoStart') {
+    setStarting(job.id)
+    const queuedStart = queue.find((q) => q.jobId === job.id && q.kind === 'start-job')
     try {
-      await jobsApi[action](jobId)
-      load()
+      if (action === 'undoStart' && queuedStart) {
+        await syncQueue.discard(queuedStart.id)
+      } else {
+        await jobsApi[action](job.id)
+        load()
+      }
     } catch (err) {
-      setError(errorMessage(err))
+      if (err instanceof OfflineError && action === 'start') {
+        await syncQueue.add({
+          kind: 'start-job',
+          label: `Start job · ${job.customerName}`,
+          method: 'POST',
+          path: `/api/jobs/${job.id}/start`,
+          body: undefined,
+          jobId: job.id,
+        })
+      } else {
+        setError(errorMessage(err))
+      }
     }
     setStarting(null)
   }
@@ -102,7 +128,11 @@ export function MyDayPage() {
   }
   if (!today) return <Loading />
 
-  const { jobs } = today
+  // Shown as they'll be once anything done without signal has synced
+  const jobs = today.jobs.map((j) => {
+    const status = pendingStatus(j.id, queue)
+    return status ? { ...j, status, unsynced: true } : { ...j, unsynced: false }
+  })
   const highlight = currentOrNext(jobs, minute)
   const remaining = jobs.filter((j) => j.status !== 'DONE').length
   const nextJob = jobs.find((j) => j.id === highlight?.id)
@@ -179,6 +209,7 @@ export function MyDayPage() {
                     <span className="muted"> · {formatDuration(job.durationMinutes)}</span>
                   </strong>
                   <span className="tags">
+                    {job.unsynced && <span className="badge">Waiting to sync</span>}
                     {done && <span className="badge done">Done</span>}
                     {tag && <span className="badge now">{tag}</span>}
                     {job.urgency === 'URGENT' && !done && <span className="badge urgent">Urgent</span>}
@@ -214,7 +245,7 @@ export function MyDayPage() {
                     <button
                       type="button"
                       className="secondary span-2"
-                      onClick={() => changeStatus(job.id, 'start')}
+                      onClick={() => changeStatus(job, 'start')}
                       disabled={starting === job.id}
                     >
                       <Play size={18} aria-hidden="true" />
@@ -229,7 +260,7 @@ export function MyDayPage() {
                       <button
                         type="button"
                         className="link-button span-2"
-                        onClick={() => changeStatus(job.id, 'undoStart')}
+                        onClick={() => changeStatus(job, 'undoStart')}
                         disabled={starting === job.id}
                       >
                         <Undo2 size={16} aria-hidden="true" />

@@ -10,7 +10,7 @@ public final class DatabaseCleaner {
     }
 
     public static void reset(JdbcTemplate jdbc) {
-        jdbc.execute("TRUNCATE TABLE service_record_photo, tune_up_reminder, job, service_record, equipment, property, customer, auth_token, app_user "
+        jdbc.execute("TRUNCATE TABLE idempotent_request, service_record_photo, tune_up_reminder, job, service_record, equipment, property, customer, auth_token, app_user "
                 + "RESTART IDENTITY CASCADE");
     }
 }

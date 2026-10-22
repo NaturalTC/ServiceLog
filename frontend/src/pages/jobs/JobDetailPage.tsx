@@ -1,10 +1,11 @@
 import { CalendarDays, CircleCheck, Clock, MapPin, Navigation, Phone, Play, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
-import { errorMessage } from '../../api/client'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { errorMessage, OfflineError } from '../../api/client'
 import { isOpen, jobsApi, type Job } from '../../api/jobs'
 import { formatDate, formatDuration, formatPhone, formatTime, mapsUrl } from '../../lib/format'
 import { Loading } from '../../components/Loading'
+import { pendingStatus, syncQueue, useSyncQueue } from '../../lib/syncQueue'
 
 export function JobDetailPage() {
   const id = Number(useParams().id)
@@ -12,6 +13,9 @@ export function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const queue = useSyncQueue()
+  // e.g. "finished on your phone" after finishing without signal
+  const notice = (useLocation().state as { notice?: string } | null)?.notice
 
   useEffect(() => {
     jobsApi
@@ -35,6 +39,13 @@ export function JobDetailPage() {
   async function undoStart() {
     if (!job) return
     setBusy(true)
+    // A start that hasn't synced yet is simply dropped
+    const queuedStart = queue.find((q) => q.jobId === job.id && q.kind === 'start-job')
+    if (queuedStart) {
+      await syncQueue.discard(queuedStart.id)
+      setBusy(false)
+      return
+    }
     try {
       setJob(await jobsApi.undoStart(job.id))
     } catch (err) {
@@ -49,7 +60,19 @@ export function JobDetailPage() {
     try {
       setJob(await jobsApi.start(job.id))
     } catch (err) {
-      setError(errorMessage(err))
+      // No signal: keep the start on the phone; it syncs by itself later
+      if (err instanceof OfflineError) {
+        await syncQueue.add({
+          kind: 'start-job',
+          label: `Start job · ${job.customerName}`,
+          method: 'POST',
+          path: `/api/jobs/${job.id}/start`,
+          body: undefined,
+          jobId: job.id,
+        })
+      } else {
+        setError(errorMessage(err))
+      }
     }
     setBusy(false)
   }
@@ -66,20 +89,29 @@ export function JobDetailPage() {
   }
   if (!job) return <Loading />
 
-  const cancelled = job.status === 'CANCELLED'
-  const open = isOpen(job)
+  // As it will be once anything done on this phone without signal has synced
+  const unsynced = pendingStatus(job.id, queue)
+  const shown = unsynced ? { ...job, status: unsynced } : job
+  const cancelled = shown.status === 'CANCELLED'
+  const open = isOpen(shown)
 
   return (
     <main>
       <div className="page-title">
         <h1>{job.typeLabel}</h1>
         <span className="tags">
-          {job.status === 'IN_PROGRESS' && <span className="badge now">In progress</span>}
-          {job.status === 'DONE' && <span className="badge done">Done</span>}
+          {shown.status === 'IN_PROGRESS' && <span className="badge now">In progress</span>}
+          {shown.status === 'DONE' && <span className="badge done">Done</span>}
           {job.urgency === 'URGENT' && open && <span className="badge urgent">Urgent</span>}
         </span>
       </div>
       {cancelled && <p className="error">This job was cancelled.</p>}
+      {unsynced && (
+        <p className="notice" role="status">
+          {notice ?? `${unsynced === 'DONE' ? 'Finished' : 'Started'} on this phone without signal. It will sync by itself.`}{' '}
+          <Link to="/sync">See what's waiting</Link>
+        </p>
+      )}
       {job.status === 'DONE' && (
         <p className="notice" role="status">
           Finished. Service records were saved on the equipment worked on; see the{' '}
@@ -137,7 +169,7 @@ export function JobDetailPage() {
         <>
           {/* One clear next step: Start a scheduled job, Finish one in progress */}
           <div className="actions spaced">
-            {job.status === 'SCHEDULED' ? (
+            {shown.status === 'SCHEDULED' ? (
               <button type="button" onClick={startJob} disabled={busy}>
                 <Play size={18} aria-hidden="true" />
                 {busy ? 'Starting…' : 'Start job'}
@@ -149,12 +181,12 @@ export function JobDetailPage() {
               </Link>
             )}
           </div>
-          {job.status === 'SCHEDULED' && (
+          {shown.status === 'SCHEDULED' && (
             <p className="center">
               <Link to={`/jobs/${job.id}/finish`}>Already done? Finish without starting</Link>
             </p>
           )}
-          {job.status === 'IN_PROGRESS' && (
+          {shown.status === 'IN_PROGRESS' && (
             <p className="center">
               <button type="button" className="link-button" onClick={undoStart} disabled={busy}>
                 Started by mistake? Undo start
