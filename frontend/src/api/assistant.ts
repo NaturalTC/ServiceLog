@@ -39,6 +39,31 @@ export const assistantApi = {
       method: 'POST',
       body: JSON.stringify({ conversationId, message }),
     }),
+  // "Describe it" (S35): fields for the form, for the owner to check; nothing is saved
+  fill: <T>(form: 'customer' | 'job' | 'equipment', text: string) =>
+    apiFetch<T>('/api/assistant/fill', { method: 'POST', body: JSON.stringify({ form, text }) }),
   end: (conversationId: string) =>
     apiFetch<void>(`/api/assistant/conversations/${conversationId}`, { method: 'DELETE' }),
+}
+
+// What "Describe it" returns for each form (null: not mentioned)
+export interface JobFill {
+  customerId: number | null
+  customerName: string | null
+  propertyId: number | null
+  type: string | null
+  date: string | null
+  startTime: string | null
+  durationMinutes: number | null
+  urgency: 'NORMAL' | 'URGENT'
+  notes: string | null
+}
+
+export interface EquipmentFill {
+  type: string | null
+  brand: string | null
+  model: string | null
+  serialNumber: string | null
+  installDate: string | null
+  notes: string | null
 }

@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
+import { assistantApi } from '../../api/assistant'
 import { customersApi, type CustomerInput } from '../../api/customers'
+import { DescribeBox } from '../../components/DescribeBox'
 import { formatPhone, isValidEmail, isValidState, isValidUsPhone, isValidZip } from '../../lib/format'
 import { Loading } from '../../components/Loading'
 
@@ -197,6 +199,12 @@ export function CustomerFormPage() {
   return (
     <main>
       <h1>{editingId ? 'Edit customer' : 'New customer'}</h1>
+      {!editingId && (
+        <DescribeBox
+          placeholder="e.g. Mark Lee, 413-555-0166, 22 Birch Rd Westfield, two oil burners"
+          fill={async (text) => setDraft(fromInput(await assistantApi.fill<Partial<CustomerInput>>('customer', text)))}
+        />
+      )}
       <form onSubmit={handleSubmit} noValidate className="customer-form">
         <label htmlFor="name">Name</label>
         <input

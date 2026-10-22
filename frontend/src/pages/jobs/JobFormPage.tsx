@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
+import { assistantApi, type JobFill } from '../../api/assistant'
+import { DescribeBox } from '../../components/DescribeBox'
 import { jobsApi, overlappingJobs, type Job, type JobInput, type JobType, type JobTypeOption } from '../../api/jobs'
 import { addDays, formatAddress, formatPhone, formatTime, todayIso } from '../../lib/format'
 import { useDebouncedValue } from '../../lib/useDebouncedValue'
@@ -195,6 +197,33 @@ export function JobFormPage() {
   return (
     <main>
       <h1>{editingId ? 'Reschedule or edit job' : 'Schedule a job'}</h1>
+
+      {!editingId && (
+        <DescribeBox
+          placeholder="e.g. No heat at the Kowalski house, tomorrow at 8, urgent"
+          fill={async (text) => {
+            const f = await assistantApi.fill<JobFill>('job', text)
+            if (f.customerId) {
+              const c = await customersApi.get(f.customerId)
+              setCustomer(c)
+            } else if (f.customerName) {
+              setQuery(f.customerName) // the owner picks from the matches
+            }
+            setDraft((d) =>
+              d && {
+                ...d,
+                propertyId: f.propertyId ?? (f.customerId ? null : d.propertyId),
+                type: (f.type as JobType | null) ?? d.type,
+                date: f.date ?? d.date,
+                startTime: f.startTime ?? d.startTime,
+                durationMinutes: f.durationMinutes ?? d.durationMinutes,
+                urgent: f.urgency === 'URGENT',
+                notes: f.notes ?? d.notes,
+              },
+            )
+          }}
+        />
+      )}
 
       <form onSubmit={handleSubmit} noValidate className="customer-form">
         {/* Customer */}

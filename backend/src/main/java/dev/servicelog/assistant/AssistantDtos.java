@@ -1,6 +1,7 @@
 package dev.servicelog.assistant;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
@@ -29,6 +30,11 @@ public final class AssistantDtos {
     }
 
     public record Detail(String label, String value) {
+    }
+
+    // "Describe it" (S35): which form, and the owner's sentence
+    public record FillRequest(@NotBlank @Pattern(regexp = "customer|job|equipment") String form,
+                              @NotBlank @Size(max = 1000) String text) {
     }
 
     public record CustomerCard(Long id, String name, String phone, String address) {

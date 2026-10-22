@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
+import { assistantApi, type EquipmentFill } from '../../api/assistant'
+import { DescribeBox } from '../../components/DescribeBox'
 import { equipmentApi, type EquipmentInput, type EquipmentType, type EquipmentTypeOption } from '../../api/equipment'
 import { todayIso } from '../../lib/format'
 import { Loading } from '../../components/Loading'
@@ -144,6 +146,27 @@ export function EquipmentFormPage() {
     <main>
       <h1>{editingId ? 'Edit equipment' : 'Add equipment'}</h1>
       {location && <p className="muted">{location.address}</p>}
+
+      {!editingId && (
+        <DescribeBox
+          placeholder="e.g. Mitsubishi condenser MXZ-3C24NA, serial 54A01234, installed 2023, side of the garage"
+          fill={async (text) => {
+            const f = await assistantApi.fill<EquipmentFill>('equipment', text)
+            setDraft((d) =>
+              d && {
+                ...d,
+                type: (f.type as EquipmentType | null) ?? d.type,
+                brand: f.brand ?? d.brand,
+                model: f.model ?? d.model,
+                serialNumber: f.serialNumber ?? d.serialNumber,
+                installDate: f.installDate ?? d.installDate,
+                notes: f.notes ?? d.notes,
+              },
+            )
+            if (f.type) setTypeError(false)
+          }}
+        />
+      )}
 
       <form onSubmit={handleSubmit} noValidate className="customer-form">
         <label htmlFor="type">Type</label>
