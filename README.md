@@ -65,6 +65,10 @@ There is no sign-up page: the single owner account is created on first startup f
 **Emails in development** (verification, password reset) never reach real inboxes: Mailpit
 catches them all. Open http://localhost:8025 to read them and click their links.
 
+## Deploying
+One small server with Docker: Caddy (automatic HTTPS), the Spring Boot backend and
+PostgreSQL, deployed by a GitHub Actions workflow. Step by step: [docs/DEPLOY.md](docs/DEPLOY.md).
+
 ## Install on a phone
 ServiceLog is an installable web app (PWA): no app store needed. Phones only install
 apps served over HTTPS, so this works on the deployed site (or `localhost` on a computer).

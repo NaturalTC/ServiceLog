@@ -1,0 +1,9 @@
+# For deploy/web.Dockerfile, built from the repo root
+**/node_modules
+**/dist
+backend
+docs
+.git
+.github
+**/.env
+**/.env.*

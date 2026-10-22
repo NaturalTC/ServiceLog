@@ -1,0 +1,65 @@
+# Production: one server running the database, the backend and the web server.
+# Values come from deploy/.env on the server (see .env.example); nothing secret is in git.
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: servicelog
+      POSTGRES_USER: servicelog
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U servicelog"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # No ports: only the backend can reach the database
+
+  backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/naturaltc/servicelog-backend:latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/servicelog
+      DB_USER: servicelog
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      OWNER_EMAIL: ${OWNER_EMAIL:-}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:-}
+      MAIL_HOST: ${MAIL_HOST:?set MAIL_HOST in .env}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_STARTTLS:-true}
+      MAIL_FROM: ${MAIL_FROM:?set MAIL_FROM in .env}
+      FRONTEND_URL: https://${DOMAIN:?set DOMAIN in .env}
+      BUSINESS_NAME: ${BUSINESS_NAME:-}
+      BUSINESS_PHONE: ${BUSINESS_PHONE:-}
+      # Trust Caddy's X-Forwarded-For, so the login rate limit sees real client addresses
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+    # No ports: Caddy forwards /api here
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/naturaltc/servicelog-web:latest}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy-data:/data   # certificates: keep them, or Let's Encrypt rate limits bite
+      - caddy-config:/config
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,69 @@
+name: Deploy
+
+# Manual for now: run it from the Actions tab once the server and secrets are set up
+# (see docs/DEPLOY.md). Nothing here runs on its own.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write   # publish images to GitHub Container Registry
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ghcr.io/naturaltc/servicelog-backend:latest
+            ghcr.io/naturaltc/servicelog-backend:${{ github.sha }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/web.Dockerfile
+          push: true
+          tags: |
+            ghcr.io/naturaltc/servicelog-web:latest
+            ghcr.io/naturaltc/servicelog-web:${{ github.sha }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  deploy:
+    needs: images
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Pull the new images and restart on the server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/servicelog
+            export BACKEND_IMAGE=ghcr.io/naturaltc/servicelog-backend:${{ github.sha }}
+            export WEB_IMAGE=ghcr.io/naturaltc/servicelog-web:${{ github.sha }}
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
