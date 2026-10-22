@@ -34,7 +34,6 @@ const ids = await page.evaluate(async () => {
 const shots = [
   ['my-day', '/'],
   ['tune-ups', '/tune-ups'],
-  ['customer', `/customers/${ids.customer}`],
   ['equipment', `/equipment/${ids.boiler}`],
 ]
 for (const [name, path] of shots) {
@@ -44,4 +43,17 @@ for (const [name, path] of shots) {
   await page.screenshot({ path: `${out}${name}.png` })
   console.log(`captured ${name}`)
 }
+
+// The AI box filling in a service record from a short note. Needs OPENAI_API_KEY on the
+// backend; the note is made up and customer details are redacted before sending.
+await page.goto(`${base}/equipment/${ids.boiler}/service-records/new`)
+await page.fill('#quick-note', 'annual on the boiler, replaced the lwco probe, CO 12. expansion tank waterlogged, quote a new one')
+await page.click('text=Fill in with AI')
+await page.waitForSelector('.ai-box [role=status]', { timeout: 60_000 })
+// Scroll so the note sits at the top and the fields AI filled in show below it
+await page.locator('#quick-note').evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 64))
+await page.waitForTimeout(300)
+await page.screenshot({ path: `${out}service-note.png` })
+console.log('captured service-note')
+
 await browser.close()
