@@ -62,6 +62,19 @@ export function MyDayPage() {
     }
   }, [load])
 
+  const [starting, setStarting] = useState<number | null>(null)
+
+  async function startJob(jobId: number) {
+    setStarting(jobId)
+    try {
+      await jobsApi.start(jobId)
+      load()
+    } catch (err) {
+      setError(errorMessage(err))
+    }
+    setStarting(null)
+  }
+
   if (error && !today) {
     return (
       <main>
@@ -156,9 +169,21 @@ export function MyDayPage() {
                   >
                     Navigate
                   </a>
-                  <Link to={`/jobs/${job.id}/finish`} className="button secondary span-2">
-                    Finish job
-                  </Link>
+                  {/* Start first; once started, the same spot becomes Finish */}
+                  {job.status === 'SCHEDULED' ? (
+                    <button
+                      type="button"
+                      className="secondary span-2"
+                      onClick={() => startJob(job.id)}
+                      disabled={starting === job.id}
+                    >
+                      {starting === job.id ? 'Starting…' : 'Start job'}
+                    </button>
+                  ) : (
+                    <Link to={`/jobs/${job.id}/finish`} className="button span-2">
+                      Finish job
+                    </Link>
+                  )}
                 </div>
               )}
             </li>

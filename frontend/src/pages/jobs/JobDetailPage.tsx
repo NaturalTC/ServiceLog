@@ -105,16 +105,23 @@ export function JobDetailPage() {
 
       {open && (
         <>
+          {/* One clear next step: Start a scheduled job, Finish one in progress */}
           <div className="actions spaced">
-            {job.status === 'SCHEDULED' && (
-              <button type="button" className="secondary" onClick={startJob} disabled={busy}>
-                Start job
+            {job.status === 'SCHEDULED' ? (
+              <button type="button" onClick={startJob} disabled={busy}>
+                {busy ? 'Starting…' : 'Start job'}
               </button>
+            ) : (
+              <Link to={`/jobs/${job.id}/finish`} className="button">
+                Finish job
+              </Link>
             )}
-            <Link to={`/jobs/${job.id}/finish`} className="button">
-              Finish job
-            </Link>
           </div>
+          {job.status === 'SCHEDULED' && (
+            <p className="center">
+              <Link to={`/jobs/${job.id}/finish`}>Already done? Finish without starting</Link>
+            </p>
+          )}
           <div className="actions spaced">
             <Link to={`/jobs/${job.id}/edit`} className="button secondary">
               Reschedule or edit
