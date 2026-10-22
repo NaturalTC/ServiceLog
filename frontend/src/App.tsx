@@ -21,11 +21,12 @@ import { TuneUpsPage } from './pages/tuneups/TuneUpsPage'
 import { WarrantyPage } from './pages/warranty/WarrantyPage'
 import { ServiceRecordDetailPage } from './pages/service/ServiceRecordDetailPage'
 import { ServiceRecordFormPage } from './pages/service/ServiceRecordFormPage'
+import { Loading } from './components/Loading'
 
 function App() {
   const { status } = useAuth()
 
-  if (status === 'checking') return <p className="loading">Loading…</p>
+  if (status === 'checking') return <Loading />
   const loggedIn = status === 'logged-in'
 
   return (

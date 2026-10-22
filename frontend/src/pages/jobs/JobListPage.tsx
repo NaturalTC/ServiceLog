@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { jobsApi, type Job } from '../../api/jobs'
 import { addDays, formatDate, formatDuration, formatTime, todayIso } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 const DAYS_AHEAD = 13 // today plus the next two weeks
 
@@ -37,7 +38,7 @@ export function JobListPage() {
           {error}
         </p>
       )}
-      {!jobs && !error && <p className="loading">Loading…</p>}
+      {!jobs && !error && <Loading />}
       {jobs?.length === 0 && <p className="empty">Nothing scheduled in the next two weeks.</p>}
 
       {[...byDay.entries()].map(([day, dayJobs]) => (

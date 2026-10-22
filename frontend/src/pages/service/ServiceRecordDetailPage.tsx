@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { serviceRecordsApi, type ServiceRecordDetail } from '../../api/serviceRecords'
 import { formatDate } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 export function ServiceRecordDetailPage() {
   const id = Number(useParams().id)
@@ -26,7 +27,7 @@ export function ServiceRecordDetailPage() {
       </main>
     )
   }
-  if (!detail) return <p className="loading">Loading…</p>
+  if (!detail) return <Loading />
 
   const { record: r, equipmentLabel, customerId, customerName, address } = detail
 

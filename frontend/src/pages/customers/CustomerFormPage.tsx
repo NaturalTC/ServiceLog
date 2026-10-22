@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { customersApi, type CustomerInput } from '../../api/customers'
 import { formatPhone, isValidEmail, isValidState, isValidUsPhone, isValidZip } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 // One form for both "new customer" (/customers/new) and "edit" (/customers/:id/edit).
 // Built for speed on a phone: name gets focus, the phone field opens the number pad,
@@ -122,7 +123,7 @@ export function CustomerFormPage() {
         </p>
       </main>
     ) : (
-      <p className="loading">Loading…</p>
+      <Loading />
     )
   }
 

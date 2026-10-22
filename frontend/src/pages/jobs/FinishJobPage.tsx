@@ -4,6 +4,7 @@ import { errorMessage } from '../../api/client'
 import { equipmentApi, type Equipment } from '../../api/equipment'
 import { isOpen, jobsApi, type Job, type JobType } from '../../api/jobs'
 import { formatTime } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 // "Finish job": tick the equipment worked on and describe the work. The app writes one
 // service record per unit (kind and date come from the job) and marks the job done.
@@ -55,7 +56,7 @@ export function FinishJobPage() {
       </main>
     )
   }
-  if (!job) return <p className="loading">Loading…</p>
+  if (!job) return <Loading />
   if (!isOpen(job)) {
     return (
       <main>

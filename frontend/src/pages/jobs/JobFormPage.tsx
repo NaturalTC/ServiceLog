@@ -5,6 +5,7 @@ import { customersApi, type Customer } from '../../api/customers'
 import { jobsApi, overlappingJobs, type Job, type JobInput, type JobType, type JobTypeOption } from '../../api/jobs'
 import { addDays, formatAddress, formatPhone, formatTime, todayIso } from '../../lib/format'
 import { useDebouncedValue } from '../../lib/useDebouncedValue'
+import { Loading } from '../../components/Loading'
 
 // One form for scheduling (/jobs/new, optionally ?customerId=) and rescheduling or
 // editing (/jobs/:id/edit). If the time clashes with another job, the owner sees the
@@ -124,7 +125,7 @@ export function JobFormPage() {
         </p>
       </main>
     ) : (
-      <p className="loading">Loading…</p>
+      <Loading />
     )
   }
 

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { equipmentApi, type EquipmentInput, type EquipmentType, type EquipmentTypeOption } from '../../api/equipment'
 import { todayIso } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 // One form for "add equipment" (/properties/:propertyId/equipment/new) and
 // "edit" (/equipment/:id/edit). Only the type is required, so a unit can be logged
@@ -96,7 +97,7 @@ export function EquipmentFormPage() {
         </p>
       </main>
     ) : (
-      <p className="loading">Loading…</p>
+      <Loading />
     )
   }
 

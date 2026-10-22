@@ -4,6 +4,7 @@ import { errorMessage } from '../../api/client'
 import { equipmentApi, type EquipmentDetail } from '../../api/equipment'
 import { serviceRecordsApi, type ServiceRecord } from '../../api/serviceRecords'
 import { daysAgo, formatDate, formatInstallDate, todayIso } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 // "Jun 15, 2033", or "Ended Jun 15, 2023" once it's past
 function warrantyEnd(isoDate: string): string {
@@ -35,7 +36,7 @@ export function EquipmentDetailPage() {
       </main>
     )
   }
-  if (!detail) return <p className="loading">Loading…</p>
+  if (!detail) return <Loading />
 
   const { equipment: e, customerId, customerName, address } = detail
   const makeModel = [e.brand, e.model].filter(Boolean).join(' ')

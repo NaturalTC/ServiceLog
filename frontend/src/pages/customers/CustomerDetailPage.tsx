@@ -1,3 +1,4 @@
+import { Mail, MapPin, Phone } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
@@ -6,6 +7,7 @@ import { equipmentApi, type Equipment } from '../../api/equipment'
 import { jobsApi, type Job } from '../../api/jobs'
 import { tuneUpsApi, type Reminder } from '../../api/tuneUps'
 import { formatAddress, formatDate, formatDateTime, formatPhone, formatTime, mapsUrl } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 export function CustomerDetailPage() {
   const id = Number(useParams().id)
@@ -52,7 +54,7 @@ export function CustomerDetailPage() {
       </main>
     )
   }
-  if (!customer) return <p className="loading">Loading…</p>
+  if (!customer) return <Loading />
 
   return (
     <main>
@@ -65,16 +67,18 @@ export function CustomerDetailPage() {
 
       <div className="actions">
         <a href={`tel:${customer.phone}`} className="button">
+          <Phone size={18} aria-hidden="true" />
           Call {formatPhone(customer.phone)}
         </a>
         {customer.email && (
           <a href={`mailto:${customer.email}`} className="button secondary">
+            <Mail size={18} aria-hidden="true" />
             Email
           </a>
         )}
       </div>
 
-      {customer.notes && <p className="notes">{customer.notes}</p>}
+      {customer.notes && <p className="notes note-card">{customer.notes}</p>}
 
       <h2>Upcoming jobs</h2>
       {jobs.length === 0 && <p className="muted">Nothing scheduled.</p>}
@@ -106,13 +110,14 @@ export function CustomerDetailPage() {
           const units = equipment.filter((e) => e.propertyId === p.id)
           return (
             <li key={p.id} className="card">
-              <span>{address}</span>
+              <strong>{address}</strong>
               {p.notes && <span className="muted">{p.notes}</span>}
-              <a href={mapsUrl(address)} target="_blank" rel="noreferrer">
+              <a href={mapsUrl(address)} target="_blank" rel="noreferrer" className="icon-link">
+                <MapPin size={16} aria-hidden="true" />
                 Directions
               </a>
 
-              <h3>Equipment</h3>
+              <h3 className="section-label">Equipment</h3>
               {units.length === 0 && <span className="muted">None recorded yet.</span>}
               <ul className="equipment-list">
                 {units.map((e) => (

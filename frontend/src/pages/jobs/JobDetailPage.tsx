@@ -1,8 +1,10 @@
+import { CalendarDays, CircleCheck, Clock, MapPin, Navigation, Phone, Play, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { isOpen, jobsApi, type Job } from '../../api/jobs'
 import { formatDate, formatDuration, formatPhone, formatTime, mapsUrl } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 export function JobDetailPage() {
   const id = Number(useParams().id)
@@ -62,7 +64,7 @@ export function JobDetailPage() {
       </main>
     )
   }
-  if (!job) return <p className="loading">Loading…</p>
+  if (!job) return <Loading />
 
   const cancelled = job.status === 'CANCELLED'
   const open = isOpen(job)
@@ -85,28 +87,45 @@ export function JobDetailPage() {
         </p>
       )}
 
-      <p>
-        <strong>{formatDate(job.date)}</strong>
-        <br />
-        {formatTime(job.startTime)} · {formatDuration(job.durationMinutes)}
-      </p>
-
-      <p>
-        <Link to={`/customers/${job.customerId}`}>{job.customerName}</Link>
-        <br />
-        <span className="muted">{job.address}</span>
-      </p>
+      {/* Key facts first: when, who, where */}
+      <ul className="fact-list">
+        <li>
+          <CalendarDays size={18} aria-hidden="true" />
+          <strong>{formatDate(job.date)}</strong>
+        </li>
+        <li>
+          <Clock size={18} aria-hidden="true" />
+          <span className="time">
+            {formatTime(job.startTime)} · {formatDuration(job.durationMinutes)}
+          </span>
+        </li>
+        <li>
+          <User size={18} aria-hidden="true" />
+          <Link to={`/customers/${job.customerId}`}>{job.customerName}</Link>
+        </li>
+        <li>
+          <MapPin size={18} aria-hidden="true" />
+          <span>{job.address}</span>
+        </li>
+      </ul>
 
       <div className="actions">
         <a href={`tel:${job.customerPhone}`} className="button secondary">
+          <Phone size={18} aria-hidden="true" />
           Call {formatPhone(job.customerPhone)}
         </a>
         <a href={mapsUrl(job.address)} target="_blank" rel="noreferrer" className="button secondary">
+          <Navigation size={18} aria-hidden="true" />
           Directions
         </a>
       </div>
 
-      {job.notes && <p className="notes">{job.notes}</p>}
+      {job.notes && (
+        <>
+          <h2>Notes</h2>
+          <p className="notes note-card">{job.notes}</p>
+        </>
+      )}
 
       {error && (
         <p className="error" role="alert">
@@ -120,10 +139,12 @@ export function JobDetailPage() {
           <div className="actions spaced">
             {job.status === 'SCHEDULED' ? (
               <button type="button" onClick={startJob} disabled={busy}>
+                <Play size={18} aria-hidden="true" />
                 {busy ? 'Starting…' : 'Start job'}
               </button>
             ) : (
               <Link to={`/jobs/${job.id}/finish`} className="button">
+                <CircleCheck size={18} aria-hidden="true" />
                 Finish job
               </Link>
             )}

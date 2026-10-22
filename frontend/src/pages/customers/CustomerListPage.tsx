@@ -1,3 +1,4 @@
+import { ChevronRight, ShieldAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
@@ -5,6 +6,7 @@ import { customersApi, type Customer } from '../../api/customers'
 import { equipmentApi } from '../../api/equipment'
 import { formatAddress, formatPhone } from '../../lib/format'
 import { useDebouncedValue } from '../../lib/useDebouncedValue'
+import { Loading } from '../../components/Loading'
 
 const SEARCH_DELAY_MS = 250
 const MAX_RESULTS = 50 // the server's cap on search results
@@ -54,11 +56,13 @@ export function CustomerListPage() {
       </div>
 
       {unregistered > 0 && (
-        <p className="notice">
-          <Link to="/warranty">
+        <Link to="/warranty" className="banner warning">
+          <ShieldAlert size={20} aria-hidden="true" />
+          <span>
             {unregistered} installed unit{unregistered === 1 ? '' : 's'} not registered for warranty
-          </Link>
-        </p>
+          </span>
+          <ChevronRight size={18} aria-hidden="true" />
+        </Link>
       )}
 
       <label htmlFor="customer-search" className="visually-hidden">
@@ -80,7 +84,7 @@ export function CustomerListPage() {
           {error}
         </p>
       )}
-      {!customers && !error && <p className="loading">Loading…</p>}
+      {!customers && !error && <Loading />}
 
       {/* Announced by screen readers as results change */}
       <p className="visually-hidden" aria-live="polite">

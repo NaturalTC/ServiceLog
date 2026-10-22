@@ -1,3 +1,4 @@
+import { CalendarCheck, CircleCheck, Navigation, Phone, Play, Undo2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { errorMessage } from '../../api/client'
@@ -10,6 +11,7 @@ import {
   formatTime,
   minutesOfDay,
 } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 // The home screen: today's jobs in time order, each with one-tap Call and Navigate.
 // "Today" comes from the server (the business's time zone), not the phone's clock.
@@ -88,11 +90,12 @@ export function MyDayPage() {
       </main>
     )
   }
-  if (!today) return <p className="loading">Loading…</p>
+  if (!today) return <Loading />
 
   const { jobs } = today
   const highlight = currentOrNext(jobs, minute)
   const remaining = jobs.filter((j) => j.status !== 'DONE').length
+  const nextJob = jobs.find((j) => j.id === highlight?.id)
 
   return (
     <main>
@@ -106,15 +109,29 @@ export function MyDayPage() {
         </Link>
       </div>
 
+      {/* The day at a glance */}
       {jobs.length > 0 && (
-        <p className="muted">
-          {jobs.length} job{jobs.length === 1 ? '' : 's'} today
-          {remaining < jobs.length && ` · ${remaining} left`}
-        </p>
+        <div className="stats">
+          <div>
+            <span className="stat-label">Jobs today</span>
+            <strong className="stat-value">{jobs.length}</strong>
+          </div>
+          <div>
+            <span className="stat-label">Left</span>
+            <strong className="stat-value">{remaining}</strong>
+          </div>
+          <div>
+            <span className="stat-label">{highlight?.label ?? 'Next'}</span>
+            <strong className="stat-value time">
+              {nextJob ? formatTime(nextJob.startTime) : '—'}
+            </strong>
+          </div>
+        </div>
       )}
 
       {jobs.length === 0 && (
         <div className="empty-day">
+          <CalendarCheck size={32} className="empty-icon" aria-hidden="true" />
           <p>Nothing scheduled today.</p>
           <div className="actions">
             <Link to="/jobs/new" className="button">
@@ -159,6 +176,7 @@ export function MyDayPage() {
                     className="button secondary"
                     aria-label={`Call ${job.customerName} at ${formatPhone(job.customerPhone)}`}
                   >
+                    <Phone size={18} aria-hidden="true" />
                     Call
                   </a>
                   <a
@@ -168,6 +186,7 @@ export function MyDayPage() {
                     className="button"
                     aria-label={`Navigate to ${job.address}`}
                   >
+                    <Navigation size={18} aria-hidden="true" />
                     Navigate
                   </a>
                   {/* Start first; once started, the same spot becomes Finish */}
@@ -178,11 +197,13 @@ export function MyDayPage() {
                       onClick={() => changeStatus(job.id, 'start')}
                       disabled={starting === job.id}
                     >
+                      <Play size={18} aria-hidden="true" />
                       {starting === job.id ? 'Starting…' : 'Start job'}
                     </button>
                   ) : (
                     <>
                       <Link to={`/jobs/${job.id}/finish`} className="button span-2">
+                        <CircleCheck size={18} aria-hidden="true" />
                         Finish job
                       </Link>
                       <button
@@ -191,6 +212,7 @@ export function MyDayPage() {
                         onClick={() => changeStatus(job.id, 'undoStart')}
                         disabled={starting === job.id}
                       >
+                        <Undo2 size={16} aria-hidden="true" />
                         Undo start
                       </button>
                     </>

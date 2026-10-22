@@ -1,3 +1,4 @@
+import { Sparkles } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
@@ -10,6 +11,7 @@ import {
   type ServiceRecordInput,
 } from '../../api/serviceRecords'
 import { todayIso } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 // One form for "add service record" (/equipment/:equipmentId/service-records/new) and
 // "edit" (/service-records/:id/edit). Built to fill in on site: the date is already today,
@@ -109,7 +111,7 @@ export function ServiceRecordFormPage() {
         </p>
       </main>
     ) : (
-      <p className="loading">Loading…</p>
+      <Loading />
     )
   }
 
@@ -185,7 +187,10 @@ export function ServiceRecordFormPage() {
 
       {!editingId && (
         <section className="ai-box" aria-labelledby="ai-title">
-          <h2 id="ai-title">Describe the visit</h2>
+          <h2 id="ai-title">
+            <Sparkles size={16} aria-hidden="true" />
+            Describe the visit
+          </h2>
           <p className="muted no-margin">
             Type or dictate it (tap the microphone on your keyboard) and AI fills in the form below. You check it before
             saving.
@@ -200,7 +205,8 @@ export function ServiceRecordFormPage() {
             value={quickNote}
             onChange={(e) => setQuickNote(e.target.value)}
           />
-          <button type="button" className="secondary" onClick={fillWithAi} disabled={drafting || !quickNote.trim()}>
+          <button type="button" className="dark" onClick={fillWithAi} disabled={drafting || !quickNote.trim()}>
+            <Sparkles size={18} aria-hidden="true" />
             {drafting ? 'Filling in…' : 'Fill in with AI'}
           </button>
           {aiMessage && (

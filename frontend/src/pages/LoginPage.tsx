@@ -42,7 +42,11 @@ export function LoginPage() {
 
   return (
     <main className="auth">
-      <h1>ServiceLog</h1>
+      <div className="auth-brand">
+        <img src="/icons/icon-192.png" alt="" width="56" height="56" />
+        <h1>ServiceLog</h1>
+        <p className="muted">Your customers, equipment and day, in one place.</p>
+      </div>
       {notice && (
         <p className="notice" role="status">
           {notice}

@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { recentlyRemindedAt, tuneUpsApi, type DueList, type DueUnit } from '../../api/tuneUps'
 import { daysAgo, formatDate, formatDateTime, formatPhone } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 // Customers due for a seasonal tune-up. Units are grouped by address, since one visit
 // covers everything there; addresses not yet booked come first.
@@ -83,7 +84,7 @@ export function TuneUpsPage() {
       </main>
     )
   }
-  if (!list) return <p className="loading">Loading…</p>
+  if (!list) return <Loading />
 
   const visits = groupByAddress(list.units)
   const toBook = visits.filter((v) => !v.units[0].bookedJobId)

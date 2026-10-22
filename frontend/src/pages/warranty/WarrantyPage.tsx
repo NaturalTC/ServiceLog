@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { equipmentApi, toInput, type UnregisteredUnit } from '../../api/equipment'
 import { daysAgo, formatDate, todayIso } from '../../lib/format'
+import { Loading } from '../../components/Loading'
 
 // Installed units whose warranty still has to be registered with the manufacturer,
 // newest install first. Units with no install date aren't listed: they may predate the owner.
@@ -44,7 +45,7 @@ export function WarrantyPage() {
         </p>
       </main>
     ) : (
-      <p className="loading">Loading…</p>
+      <Loading />
     )
   }
 
@@ -63,12 +64,10 @@ export function WarrantyPage() {
       <ul className="card-list">
         {units.map((u) => (
           <li key={u.equipmentId} className="card">
-            <Link to={`/equipment/${u.equipmentId}`}>
-              <span className="card-row">
-                <strong>{u.typeLabel}</strong>
-                <span className="muted">{[u.brand, u.model].filter(Boolean).join(' ')}</span>
-              </span>
+            <Link to={`/equipment/${u.equipmentId}`} className="card-title">
+              {u.typeLabel}
             </Link>
+            {(u.brand || u.model) && <span className="muted">{[u.brand, u.model].filter(Boolean).join(' ')}</span>}
             <span>
               Installed {formatDate(u.installDate)} ({daysAgo(u.installDate)})
             </span>
