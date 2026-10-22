@@ -2246,3 +2246,15 @@ a.proposal.done {
   color: var(--success);
   font-weight: 600;
 }
+
+/* "Read nameplate" (S36) */
+.nameplate {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.nameplate label.file-button {
+  align-self: stretch;
+}

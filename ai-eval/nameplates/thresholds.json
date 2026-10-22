@@ -1,0 +1,7 @@
+{
+  "brand_accuracy": 0.9,
+  "model_accuracy": 0.9,
+  "serial_accuracy": 0.9,
+  "wrong_value_rate": 0.05,
+  "unreadable_flagged": 1.0
+}

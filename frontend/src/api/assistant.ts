@@ -42,6 +42,12 @@ export const assistantApi = {
   // "Describe it" (S35): fields for the form, for the owner to check; nothing is saved
   fill: <T>(form: 'customer' | 'job' | 'equipment', text: string) =>
     apiFetch<T>('/api/assistant/fill', { method: 'POST', body: JSON.stringify({ form, text }) }),
+  // "Read nameplate" (S36)
+  nameplate: (photo: Blob) => {
+    const form = new FormData()
+    form.append('photo', photo, 'nameplate.jpg')
+    return apiFetch<NameplateReading>('/api/assistant/nameplate', { method: 'POST', body: form })
+  },
   end: (conversationId: string) =>
     apiFetch<void>(`/api/assistant/conversations/${conversationId}`, { method: 'DELETE' }),
 }
@@ -66,4 +72,15 @@ export interface EquipmentFill {
   serialNumber: string | null
   installDate: string | null
   notes: string | null
+}
+
+export interface NameplateReading {
+  readable: boolean
+  brand: string | null
+  model: string | null
+  serialNumber: string | null
+  type: string | null
+  manufactured: string | null // YYYY-MM or YYYY-MM-DD
+  details: string[]
+  confidence: 'high' | 'medium' | 'low'
 }

@@ -23,7 +23,7 @@ import java.util.Iterator;
 // Re-encoding drops everything except the pixels, including hidden metadata such as the
 // GPS location a phone camera writes into its photos. The phone already shrinks photos
 // and turns them upright before uploading; this is the server's own guarantee.
-final class ImageProcessor {
+public final class ImageProcessor {
 
     static final int FULL_SIZE = 2000;
     static final int THUMB_SIZE = 480;
@@ -38,12 +38,21 @@ final class ImageProcessor {
     }
 
     static Processed process(byte[] upload) {
+        BufferedImage image = checkedDecode(upload);
+        BufferedImage full = scale(image, FULL_SIZE);
+        return new Processed(encode(full), full.getWidth(), full.getHeight(), encode(scale(image, THUMB_SIZE)));
+    }
+
+    // A clean JPEG for sending to the AI (S36): same checks, metadata (GPS) dropped, at most `size` px
+    public static byte[] forAi(byte[] upload, int size) {
+        return encode(scale(checkedDecode(upload), size));
+    }
+
+    private static BufferedImage checkedDecode(byte[] upload) {
         if (!isJpeg(upload) && !isPng(upload)) {
             throw new InvalidRequestException("Only JPEG and PNG photos can be added");
         }
-        BufferedImage image = decode(upload);
-        BufferedImage full = scale(image, FULL_SIZE);
-        return new Processed(encode(full), full.getWidth(), full.getHeight(), encode(scale(image, THUMB_SIZE)));
+        return decode(upload);
     }
 
     private static BufferedImage decode(byte[] bytes) {

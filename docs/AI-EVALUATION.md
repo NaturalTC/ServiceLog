@@ -132,3 +132,46 @@ python3 evaluate.py --notes holdout.jsonl --endpoint ... --check                
 
 Standard library only (Python 3.10+). When a prompt or model changes, rerun the set:
 the numbers are the regression test.
+
+---
+
+# Read nameplate (S36)
+
+A photo of a unit's data plate in; brand, model, serial number (and type, manufacture date,
+a few ratings) out, for the owner to check on the equipment form. The photo is re-encoded
+before it goes to the AI, which drops hidden metadata such as GPS location, and it isn't kept.
+
+## The test set (`ai-eval/nameplates/`)
+Twelve photos made by `generate.py`: data plates for ten brands (Carrier, Trane, Rheem,
+Weil-McLain, Navien, Mitsubishi, Burnham, Goodman, Daikin, Lennox) with labelled model and
+serial numbers, voltage and refrigerant lines, rivets and a brushed-metal finish, then
+"photographed" badly on purpose: tilted up to 9°, on a concrete wall, with noise, glare, blur
+and one in a dark basement. Two are unreadable on purpose (a heavily blurred plate, and a
+wall with no plate at all) to check that the AI says so instead of guessing. All model and
+serial numbers are made up.
+
+## How it's scored (`evaluate_nameplates.py`)
+Brand, model and serial number are compared exactly, ignoring case and spaces. **Wrong values
+are counted separately and weigh more than blanks:** a blank serial is obvious to the owner,
+a serial with one wrong character isn't, and it would break a warranty registration. Anything
+returned for an unreadable photo counts as wrong.
+
+| Measure | Bar |
+|---|---|
+| Brand, model, serial accuracy | 90% each |
+| Wrong values (of those returned) | at most 5% |
+| Unreadable photos reported as unreadable | 100% |
+
+## Results (October 2026, gpt-5.4-mini)
+| Measure | Result |
+|---|---|
+| Brand / model / serial accuracy | 100% / 100% / 100% (10 of 10 plates) |
+| Wrong values | 0 |
+| Unreadable photos reported as unreadable | 2 of 2 |
+
+## Honest limitation
+These plates are printed in clean digital fonts. Real plates are stamped metal, worn stickers
+and dot-matrix print, often partly painted over, so this is a **floor check, not proof**. That's
+why the app always asks the owner to check the model and serial against the plate before saving,
+and why the plan is to add real nameplate photos from the owner's trial to this set (with any
+customer details cropped out) and measure again.

@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
-import { assistantApi, type EquipmentFill } from '../../api/assistant'
+import { assistantApi, type EquipmentFill, type NameplateReading } from '../../api/assistant'
 import { DescribeBox } from '../../components/DescribeBox'
+import { NameplateButton } from '../../components/NameplateButton'
 import { equipmentApi, type EquipmentInput, type EquipmentType, type EquipmentTypeOption } from '../../api/equipment'
 import { todayIso } from '../../lib/format'
 import { Loading } from '../../components/Loading'
@@ -103,6 +104,22 @@ export function EquipmentFormPage() {
     )
   }
 
+  // Fills in what the plate shows; the extra facts (refrigerant, voltage...) go in the notes
+  function readNameplate(r: NameplateReading) {
+    const facts = [...r.details, r.manufactured ? `Made ${r.manufactured}` : null].filter(Boolean).join('; ')
+    setDraft((d) =>
+      d && {
+        ...d,
+        type: d.type || ((r.type as EquipmentType | null) ?? ''),
+        brand: r.brand ?? d.brand,
+        model: r.model ?? d.model,
+        serialNumber: r.serialNumber ?? d.serialNumber,
+        notes: facts ? [d.notes.trim(), `Nameplate: ${facts}`].filter(Boolean).join('\n') : d.notes,
+      },
+    )
+    if (r.type) setTypeError(false)
+  }
+
   const set = (field: keyof Draft, value: string | boolean) => {
     setDraft({ ...draft, [field]: value })
     if (field === 'type' && value) setTypeError(false)
@@ -167,6 +184,8 @@ export function EquipmentFormPage() {
           }}
         />
       )}
+
+      <NameplateButton onRead={readNameplate} />
 
       <form onSubmit={handleSubmit} noValidate className="customer-form">
         <label htmlFor="type">Type</label>

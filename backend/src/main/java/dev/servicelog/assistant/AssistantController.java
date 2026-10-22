@@ -5,13 +5,17 @@ import dev.servicelog.assistant.AssistantDtos.FillRequest;
 import dev.servicelog.assistant.AssistantDtos.MessageRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Map;
 
 // Login required (see SecurityConfig). Nothing here saves anything: the assistant looks
@@ -21,10 +25,18 @@ public class AssistantController {
 
     private final AssistantService assistant;
     private final FormFiller formFiller;
+    private final NameplateReader nameplates;
 
-    public AssistantController(AssistantService assistant, FormFiller formFiller) {
+    public AssistantController(AssistantService assistant, FormFiller formFiller, NameplateReader nameplates) {
         this.assistant = assistant;
         this.formFiller = formFiller;
+        this.nameplates = nameplates;
+    }
+
+    // "Read nameplate" on the equipment form (S36): brand, model, serial for the owner to check
+    @PostMapping(value = "/api/assistant/nameplate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Map<String, Object> nameplate(@RequestPart("photo") MultipartFile photo) throws IOException {
+        return nameplates.read(photo.getBytes());
     }
 
     // "Describe it" on the customer, job and equipment forms: fields for the owner to check; nothing is saved
