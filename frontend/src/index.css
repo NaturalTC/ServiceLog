@@ -2159,3 +2159,90 @@ button.send {
     bottom: 16px;
   }
 }
+
+/* --- Prepared by the assistant, ready to confirm (S34) --- */
+.proposal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--slate-accent, #8a99b3);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.proposal-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.proposal-head > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.proposal-head .section-label {
+  margin: 0;
+  color: var(--success);
+}
+
+.proposal-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.proposal dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.proposal dl > div {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 8px;
+}
+
+.proposal dt {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.proposal dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.proposal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.proposal-actions button:only-child {
+  grid-column: span 2;
+}
+
+a.proposal.done {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  border-top-width: 1px;
+  background: var(--success-bg);
+  color: var(--success);
+  font-weight: 600;
+}

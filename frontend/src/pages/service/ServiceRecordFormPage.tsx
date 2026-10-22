@@ -1,6 +1,6 @@
 import { Sparkles } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { errorMessage, OfflineError } from '../../api/client'
 import { equipmentApi } from '../../api/equipment'
 import {
@@ -47,17 +47,19 @@ export function ServiceRecordFormPage() {
 
   const [kinds, setKinds] = useState<ServiceKindOption[]>([])
   const [context, setContext] = useState<{ label: string; address: string } | null>(null)
+  // Filled in by the assistant's "Edit" (S34): the record it prepared
+  const prefill = (useLocation().state as { prefill?: Partial<ServiceRecordInput> } | null)?.prefill
   const [draft, setDraft] = useState<Draft | null>(
     editingId
       ? null
       : {
-          serviceDate: todayIso(),
-          kind: 'TUNE_UP',
-          workDone: '',
-          partsUsed: '',
-          notes: '',
-          followUpNeeded: false,
-          followUpNote: '',
+          serviceDate: prefill?.serviceDate ?? todayIso(),
+          kind: prefill?.kind ?? 'TUNE_UP',
+          workDone: prefill?.workDone ?? '',
+          partsUsed: prefill?.partsUsed ?? '',
+          notes: prefill?.notes ?? '',
+          followUpNeeded: prefill?.followUpNeeded ?? false,
+          followUpNote: prefill?.followUpNote ?? '',
         },
   )
   const [workDoneError, setWorkDoneError] = useState(false)

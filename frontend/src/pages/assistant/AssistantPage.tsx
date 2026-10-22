@@ -1,8 +1,9 @@
 import { ArrowUp, Navigation, Phone, Sparkles, SquarePen, UserRound } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { Link } from 'react-router'
-import { assistantApi, type CustomerCard } from '../../api/assistant'
+import { assistantApi, type CustomerCard, type Proposal } from '../../api/assistant'
 import { ApiError, errorMessage, OfflineError } from '../../api/client'
+import { ProposalCard } from '../../components/ProposalCard'
 import { RichText } from '../../components/RichText'
 import { directionsUrl, formatPhone } from '../../lib/format'
 
@@ -14,6 +15,7 @@ interface Message {
   role: 'user' | 'assistant' | 'error'
   text: string
   customers?: CustomerCard[]
+  proposals?: Proposal[]
 }
 
 interface Chat {
@@ -25,6 +27,7 @@ export const CHAT_KEY = 'servicelog.chat'
 
 const SUGGESTIONS = [
   "What's on tomorrow?",
+  'Book a tune-up for … next week',
   'Who’s due for a tune-up?',
   'Any follow-ups I still owe?',
   'Which warranties end soon?',
@@ -68,7 +71,10 @@ export function AssistantPage() {
       const reply = await assistantApi.ask(chat.conversationId, message)
       setChat({
         conversationId: reply.conversationId,
-        messages: [...asked.messages, { role: 'assistant', text: reply.reply, customers: reply.customers }],
+        messages: [
+          ...asked.messages,
+          { role: 'assistant', text: reply.reply, customers: reply.customers, proposals: reply.proposals },
+        ],
       })
     } catch (err) {
       const text =
@@ -80,6 +86,16 @@ export function AssistantPage() {
       setChat({ ...asked, messages: [...asked.messages, { role: 'error', text }] })
     }
     setThinking(false)
+  }
+
+  // A confirmed card stays confirmed when coming back to the chat
+  function markDone(message: number, proposal: number, outcome: Proposal['outcome']) {
+    setChat((c) => ({
+      ...c,
+      messages: c.messages.map((m, i) =>
+        i !== message ? m : { ...m, proposals: m.proposals?.map((p, j) => (j === proposal ? { ...p, outcome } : p)) },
+      ),
+    }))
   }
 
   function newChat() {
@@ -153,6 +169,9 @@ export function AssistantPage() {
               <div className="bubble">
                 {m.role === 'user' ? <p>{m.text}</p> : <RichText text={m.text} />}
               </div>
+              {m.proposals?.map((p, j) => (
+                <ProposalCard key={j} proposal={p} onDone={(outcome) => markDone(i, j, outcome)} />
+              ))}
               {m.customers && m.customers.length > 0 && <CustomerResults customers={m.customers} />}
             </div>
           </li>

@@ -4,6 +4,7 @@ import dev.servicelog.ai.AiUnavailableException;
 import dev.servicelog.ai.AiUsageLimiter;
 import dev.servicelog.ai.ChatModel;
 import dev.servicelog.assistant.AssistantDtos.AssistantReply;
+import dev.servicelog.assistant.AssistantDtos.Proposal;
 import dev.servicelog.assistant.Pseudonyms.KnownCustomer;
 import dev.servicelog.config.BusinessCalendar;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,7 +40,8 @@ public class AssistantService {
     static final String SYSTEM_PROMPT = """
             You are the assistant inside ServiceLog, the app a one-person HVAC business uses for its
             customers, equipment, service history and schedule. You talk to the owner, a technician who is
-            often on a job: answer short and plainly, the way a good office manager would.
+            often on a job: answer short and plainly, the way a good office manager would. Speak to him as
+            "you" ("ready for you to confirm"), never as "the owner".
 
             Today is %s. Times are local (%s).
 
@@ -53,8 +56,13 @@ public class AssistantService {
               than saying you couldn't and then filtering yourself.
             - Dates: work out "tomorrow", "next Tuesday", "this week" from today's date. Say dates like
               "Tue, Oct 14".
-            - You can't change anything: if asked to schedule, add or edit something, say that it isn't
-              possible from the chat yet and which screen in the app does it.
+            - To schedule a job, add a customer or log a service record, use propose_job,
+              propose_customer or propose_service_record. These only show the owner a card with Confirm and
+              Edit: never say it's booked or saved; say it's ready for him to confirm. Look the customer or
+              equipment up first. If something needed is unclear (which customer, which address, which
+              unit, what time), ask one short question instead of guessing. Without a length, jobs are 60
+              minutes. In a service record, a follow-up goes in the follow-up fields only, not in notes too.
+            - You can't change or delete existing records; for that, say which screen in the app does it.
 
             Privacy placeholders:
             - Customers' names, phone numbers, emails and street addresses are replaced with placeholders
@@ -75,17 +83,20 @@ public class AssistantService {
 
     private final ChatModel model;
     private final AssistantTools tools;
+    private final Proposals proposals;
     private final ConversationStore conversations;
     private final AiUsageLimiter limiter;
     private final BusinessCalendar calendar;
     private final JsonMapper json;
     private final String timeZone;
 
-    public AssistantService(ChatModel model, AssistantTools tools, ConversationStore conversations,
+    public AssistantService(ChatModel model, AssistantTools tools, Proposals proposals,
+                            ConversationStore conversations,
                             AiUsageLimiter limiter, BusinessCalendar calendar, JsonMapper json,
                             @Value("${app.time-zone}") String timeZone) {
         this.model = model;
         this.tools = tools;
+        this.proposals = proposals;
         this.conversations = conversations;
         this.limiter = limiter;
         this.calendar = calendar;
@@ -97,6 +108,7 @@ public class AssistantService {
         Conversation chat = conversations.getOrStart(conversationId);
         synchronized (chat) {
             List<KnownCustomer> known = tools.knownCustomers();
+            List<Proposal> cards = new ArrayList<>();
             String question = chat.pseudonyms.scrub(message, known);
             // Placeholders only, so safe to log when debugging the assistant
             log.debug("Assistant question: {}", question);
@@ -115,7 +127,7 @@ public class AssistantService {
                         log.debug("Assistant lookup: {} {}", call.path("function").path("name").asString(),
                                 call.path("function").path("arguments").asString());
                         chat.messages.add(Map.of("role", "tool", "tool_call_id", call.path("id").asString(),
-                                "content", runTool(call, chat.pseudonyms, known)));
+                                "content", runTool(call, chat.pseudonyms, known, cards)));
                     }
                     continue;
                 }
@@ -123,12 +135,12 @@ public class AssistantService {
                 chat.messages.add(Map.of("role", "assistant", "content", text));
                 trimHistory(chat);
                 return new AssistantReply(chat.id, chat.pseudonyms.rehydrate(text),
-                        tools.cards(chat.pseudonyms.customersIn(text)));
+                        tools.cards(chat.pseudonyms.customersIn(text)), cards);
             }
             trimHistory(chat);
             return new AssistantReply(chat.id,
                     "I couldn't finish looking that up. Try a narrower question, like one customer or one week.",
-                    List.of());
+                    List.of(), cards);
         }
     }
 
@@ -139,10 +151,12 @@ public class AssistantService {
     private Map<String, Object> request(Conversation chat) {
         LocalDate today = calendar.today();
         String date = today.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy", Locale.US)) + " (" + today + ")";
-        List<Map<String, Object>> messages = new java.util.ArrayList<>();
+        List<Map<String, Object>> messages = new ArrayList<>();
         messages.add(Map.of("role", "system", "content", SYSTEM_PROMPT.formatted(date, timeZone)));
         messages.addAll(chat.messages);
-        return Map.of("messages", messages, "tools", AssistantTools.definitions(), "parallel_tool_calls", true);
+        List<Map<String, Object>> allTools = new ArrayList<>(AssistantTools.definitions());
+        allTools.addAll(Proposals.definitions());
+        return Map.of("messages", messages, "tools", allTools, "parallel_tool_calls", true);
     }
 
     // The tool call as the AI made it, kept in the history so it can see its own lookups
@@ -156,11 +170,13 @@ public class AssistantService {
 
     // Arguments come back with placeholders; the lookup needs real values. The result goes
     // out with placeholders again. A failing lookup is reported to the AI, not thrown.
-    private String runTool(JsonNode call, Pseudonyms pseudonyms, List<KnownCustomer> known) {
+    private String runTool(JsonNode call, Pseudonyms pseudonyms, List<KnownCustomer> known, List<Proposal> cards) {
         String name = call.path("function").path("name").asString();
         try {
             JsonNode args = json.readTree(pseudonyms.rehydrate(call.path("function").path("arguments").asString("{}")));
-            return json.writeValueAsString(tools.run(name, args, pseudonyms, known));
+            Object result = Proposals.handles(name) ? proposals.prepare(name, args, cards)
+                    : tools.run(name, args, pseudonyms, known);
+            return json.writeValueAsString(result);
         } catch (RuntimeException e) {
             log.warn("Assistant tool {} failed: {}", name, e.toString());
             return "{\"error\": \"That lookup failed.\"}";

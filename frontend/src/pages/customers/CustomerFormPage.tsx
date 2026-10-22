@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { customersApi, type CustomerInput } from '../../api/customers'
 import { formatPhone, isValidEmail, isValidState, isValidUsPhone, isValidZip } from '../../lib/format'
@@ -58,6 +58,29 @@ function validate(d: Draft): Errors {
 
 const blankToNull = (s: string) => (s.trim() ? s.trim() : null)
 
+const blankDraft = (): Draft => ({ name: '', phone: '', email: '', notes: '', properties: [emptyProperty()] })
+
+// A customer prepared elsewhere (the assistant), as a form draft
+function fromInput(input: Partial<CustomerInput>): Draft {
+  const p = input.properties?.[0]
+  return {
+    name: input.name ?? '',
+    phone: input.phone ?? '',
+    email: input.email ?? '',
+    notes: input.notes ?? '',
+    properties: [
+      {
+        ...emptyProperty(),
+        street: p?.street ?? '',
+        unit: p?.unit ?? '',
+        city: p?.city ?? '',
+        state: p?.state ?? 'MA',
+        zip: p?.zip ?? '',
+      },
+    ],
+  }
+}
+
 function toInput(d: Draft): CustomerInput {
   return {
     name: d.name.trim(),
@@ -81,9 +104,9 @@ export function CustomerFormPage() {
   const editingId = params.id ? Number(params.id) : null
   const navigate = useNavigate()
 
-  const [draft, setDraft] = useState<Draft | null>(
-    editingId ? null : { name: '', phone: '', email: '', notes: '', properties: [emptyProperty()] },
-  )
+  // Filled in by the assistant's "Edit" (S34) or "Describe it" (S35)
+  const prefill = (useLocation().state as { prefill?: Partial<CustomerInput> } | null)?.prefill
+  const [draft, setDraft] = useState<Draft | null>(editingId ? null : prefill ? fromInput(prefill) : blankDraft())
   const [errors, setErrors] = useState<Errors>({})
   const [submitted, setSubmitted] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)

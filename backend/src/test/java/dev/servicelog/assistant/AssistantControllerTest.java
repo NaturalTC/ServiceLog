@@ -171,6 +171,87 @@ class AssistantControllerTest {
     }
 
     @Test
+    void schedulingAJob_preparesACard_andBooksNothing() throws Exception {
+        scripted.add(toolCall("call_1", "propose_job", """
+                {"customer_id": 1, "property_id": null, "type": "TUNE_UP", "date": "2026-11-03",
+                 "start_time": "9:00", "duration_minutes": 90, "urgent": false,
+                 "notes": "Customer_1 prefers mornings, call Phone_1 first"}"""));
+        scripted.add(answer("A tune-up for Customer_1 on Tue, Nov 3 at 9:00 AM is ready for you to confirm."));
+
+        ask(null, "Book Kowalski for a tune-up Tuesday Nov 3 at 9, hour and a half, call 413-555-0108 first")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.proposals", hasSize(1)))
+                .andExpect(jsonPath("$.proposals[0].type").value("JOB"))
+                .andExpect(jsonPath("$.proposals[0].title").value("Tune-up"))
+                .andExpect(jsonPath("$.proposals[0].customerId").value(customerId))
+                .andExpect(jsonPath("$.proposals[0].payload.propertyId").isNumber())
+                .andExpect(jsonPath("$.proposals[0].payload.date").value("2026-11-03"))
+                .andExpect(jsonPath("$.proposals[0].payload.startTime").value("09:00"))
+                .andExpect(jsonPath("$.proposals[0].payload.durationMinutes").value(90))
+                .andExpect(jsonPath("$.proposals[0].payload.urgency").value("NORMAL"))
+                .andExpect(jsonPath("$.proposals[0].payload.notes")
+                        .value("David Kowalski prefers mornings, call 413-555-0108 first"))
+                .andExpect(jsonPath("$.proposals[0].details[0].value").value("David Kowalski"))
+                .andExpect(jsonPath("$.proposals[0].details[2].value").value("Tue, Nov 3 at 9:00 AM"))
+                .andExpect(jsonPath("$.proposals[0].details[3].value").value("1 hr 30 min"));
+
+        assertThat(jdbc.queryForObject("select count(*) from job", Integer.class)).isZero();
+        assertThat(sentToAi.get(1)).contains("NOT saved until confirmed");
+        assertNothingPrivateSent();
+    }
+
+    @Test
+    void aNewCustomer_isPreparedFromPlaceholders_withWhatsStillMissing() throws Exception {
+        scripted.add(toolCall("call_1", "propose_customer", """
+                {"name": "Person_1", "phone": "Phone_1", "email": null, "street": "Street_2", "unit": null,
+                 "town": "Westfield", "state": null, "zip": null, "notes": "Two oil burners"}"""));
+        scripted.add(answer("Customer Person_1 is ready to confirm; add the ZIP code."));
+
+        ask(null, "New customer John Lee, 413-555-0199, 12 Elm Street, Westfield, two oil burners")
+                .andExpect(jsonPath("$.proposals[0].type").value("CUSTOMER"))
+                .andExpect(jsonPath("$.proposals[0].payload.name").value("John Lee"))
+                .andExpect(jsonPath("$.proposals[0].payload.phone").value("413-555-0199"))
+                .andExpect(jsonPath("$.proposals[0].payload.properties[0].street").value("12 Elm Street"))
+                .andExpect(jsonPath("$.proposals[0].payload.properties[0].city").value("Westfield"))
+                .andExpect(jsonPath("$.proposals[0].payload.properties[0].state").value("MA"))
+                .andExpect(jsonPath("$.proposals[0].missing[0]").value("ZIP code"))
+                .andExpect(jsonPath("$.reply").value("Customer John Lee is ready to confirm; add the ZIP code."));
+
+        assertThat(jdbc.queryForObject("select count(*) from customer", Integer.class)).isEqualTo(1);
+        assertNothingPrivateSent();
+    }
+
+    @Test
+    void aServiceRecord_isPreparedForTheRightUnit() throws Exception {
+        scripted.add(toolCall("call_1", "propose_service_record", """
+                {"equipment_id": %d, "kind": "REPAIR", "service_date": null, "work_done": "Replaced the igniter",
+                 "parts_used": "Igniter", "notes": "Quote a new circulator.", "follow_up_needed": true,
+                 "follow_up_note": "Quote a new circulator"}""".formatted(boilerId)));
+        scripted.add(answer("Ready to confirm."));
+
+        ask(null, "Log a repair on the Kowalski boiler: replaced the igniter, quote a new circulator")
+                .andExpect(jsonPath("$.proposals[0].type").value("SERVICE_RECORD"))
+                .andExpect(jsonPath("$.proposals[0].equipmentId").value(boilerId))
+                .andExpect(jsonPath("$.proposals[0].payload.kind").value("REPAIR"))
+                .andExpect(jsonPath("$.proposals[0].payload.followUpNote").value("Quote a new circulator"))
+                // the same text in notes isn't repeated
+                .andExpect(jsonPath("$.proposals[0].payload.notes").doesNotExist())
+                .andExpect(jsonPath("$.proposals[0].details[1].value").value("David Kowalski · Easthampton"));
+        assertThat(jdbc.queryForObject("select count(*) from service_record", Integer.class)).isEqualTo(1);
+    }
+
+    @Test
+    void aProposalWithBadDetails_isSentBackToTheAiToFix() throws Exception {
+        scripted.add(toolCall("call_1", "propose_job", """
+                {"customer_id": 999, "property_id": null, "type": "TUNE_UP", "date": "2026-11-03",
+                 "start_time": "09:00", "duration_minutes": 60, "urgent": false, "notes": null}"""));
+        scripted.add(answer("I couldn't find that customer."));
+
+        ask(null, "Book customer 999").andExpect(jsonPath("$.proposals", hasSize(0)));
+        assertThat(sentToAi.get(1)).contains("No customer with that id");
+    }
+
+    @Test
     void aFailingLookup_isReportedToTheAi_notToTheOwner() throws Exception {
         scripted.add(toolCall("call_1", "get_service_history", "{\"equipment_id\": 999999, \"limit\": 3}"));
         scripted.add(answer("I couldn't find that unit."));

@@ -109,32 +109,56 @@ final class Pseudonyms {
         String result = replaceAll(EMAIL, text, this::email);
         result = replaceAll(PHONE, result, this::phone);
 
-        // Known customers and streets, longest first ("Pat Smith" before "Smith")
-        List<Map.Entry<String, String>> replacements = new ArrayList<>();
+        // 1. Known customers by full name
         Map<String, Integer> lastNameCounts = new HashMap<>();
         for (KnownCustomer c : known) {
             lastNameCounts.merge(lastName(c.name()).toLowerCase(Locale.ROOT), 1, Integer::sum);
         }
+        List<KnownCustomer> longestFirst = new ArrayList<>(known);
+        longestFirst.sort(Comparator.comparingInt((KnownCustomer c) -> c.name().length()).reversed());
+        for (KnownCustomer c : longestFirst) {
+            result = replaceWord(result, c.name(), customer(c.id(), c.name()));
+        }
+
+        // 2. Someone else with a known customer's surname ("John Lee" when Jennifer Lee is a
+        //    customer): the whole name is a different person, not that customer
         for (KnownCustomer c : known) {
-            String token = customer(c.id(), c.name());
-            replacements.add(Map.entry(c.name(), token));
             String last = lastName(c.name());
-            // Even a surname that's also a brand ("Smith") is swapped: hiding too much beats leaking
-            if (last.length() >= 3 && !last.equalsIgnoreCase(c.name())) {
-                // A surname shared by two customers can't say which one: a Person placeholder for the name
-                boolean unique = lastNameCounts.get(last.toLowerCase(Locale.ROOT)) == 1;
-                replacements.add(Map.entry(last, unique ? token : tokenFor(Kind.PERSON, normalise(last), last)));
+            if (last.length() < 3 || last.equalsIgnoreCase(c.name())) {
+                continue;
             }
-            for (String s : c.streets()) {
-                replacements.add(Map.entry(s, street(s)));
+            Matcher m = Pattern.compile("(?<![\\w])([A-Z][\\p{L}'’-]+)\\s+" + Pattern.quote(last) + "(?![\\w])",
+                    Pattern.CASE_INSENSITIVE).matcher(result);
+            StringBuilder out = new StringBuilder();
+            while (m.find()) {
+                String first = m.group(1);
+                boolean differentPerson = Character.isUpperCase(first.charAt(0))
+                        && !NOT_NAMES.contains(first.toLowerCase(Locale.ROOT)) && !TOKEN.matcher(first).matches();
+                m.appendReplacement(out, Matcher.quoteReplacement(differentPerson
+                        ? tokenFor(Kind.PERSON, normalise(m.group()), m.group()) : m.group()));
+            }
+            m.appendTail(out);
+            result = out.toString();
+        }
+
+        // 3. Surnames on their own, and known streets, longest first
+        List<Map.Entry<String, String>> replacements = new ArrayList<>();
+        for (KnownCustomer c : known) {
+            String last = lastName(c.name());
+            // Even a surname that's also a brand ("Smith") is swapped: hiding too much beats leaking.
+            // One shared by two customers can't say which: a Person placeholder for the name.
+            if (last.length() >= 3 && !last.equalsIgnoreCase(c.name())) {
+                boolean unique = lastNameCounts.get(last.toLowerCase(Locale.ROOT)) == 1;
+                replacements.add(Map.entry(last, unique ? customer(c.id(), c.name())
+                        : tokenFor(Kind.PERSON, normalise(last), last)));
+            }
+            for (String street : c.streets()) {
+                replacements.add(Map.entry(street, street(street)));
             }
         }
         replacements.sort(Comparator.comparingInt((Map.Entry<String, String> e) -> e.getKey().length()).reversed());
         for (Map.Entry<String, String> r : replacements) {
-            if (r.getKey() != null && r.getKey().trim().length() >= 3) {
-                result = Pattern.compile("(?i)(?<![\\w])" + Pattern.quote(r.getKey().trim()) + "(?![\\w])")
-                        .matcher(result).replaceAll(Matcher.quoteReplacement(r.getValue()));
-            }
+            result = replaceWord(result, r.getKey(), r.getValue());
         }
 
         // Details the app doesn't know yet (e.g. a new customer being described)
@@ -240,6 +264,14 @@ final class Pseudonyms {
         }
         m.appendTail(out);
         return out.toString();
+    }
+
+    private static String replaceWord(String text, String phrase, String token) {
+        if (phrase == null || phrase.trim().length() < 3) {
+            return text; // too short to replace safely ("Al" would hit "valve")
+        }
+        return Pattern.compile("(?i)(?<![\\w])" + Pattern.quote(phrase.trim()) + "(?![\\w])")
+                .matcher(text).replaceAll(Matcher.quoteReplacement(token));
     }
 
     private static String lastName(String name) {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
 import { jobsApi, overlappingJobs, type Job, type JobInput, type JobType, type JobTypeOption } from '../../api/jobs'
@@ -44,10 +44,26 @@ export function JobFormPage() {
 
   const [types, setTypes] = useState<JobTypeOption[]>([])
   const [customer, setCustomer] = useState<Customer | null>(null)
+  // Filled in by the assistant's "Edit" (S34): the job it prepared
+  const prefill = (useLocation().state as { prefill?: Partial<JobInput> } | null)?.prefill
   const [draft, setDraft] = useState<Draft | null>(
     editingId
       ? null
-      : { propertyId: null, ...defaultSlot(), durationMinutes: 60, type: presetType ?? '', urgent: false, notes: '' },
+      : {
+          propertyId: null,
+          ...defaultSlot(),
+          durationMinutes: 60,
+          type: presetType ?? '',
+          urgent: false,
+          notes: '',
+          ...(prefill && {
+            date: prefill.date ?? todayIso(),
+            startTime: prefill.startTime?.slice(0, 5) ?? '08:00',
+            durationMinutes: prefill.durationMinutes ?? 60,
+            urgent: prefill.urgency === 'URGENT',
+            notes: prefill.notes ?? '',
+          }),
+        },
   )
   const [conflicts, setConflicts] = useState<Job[] | null>(null)
   const [missing, setMissing] = useState<string[]>([])

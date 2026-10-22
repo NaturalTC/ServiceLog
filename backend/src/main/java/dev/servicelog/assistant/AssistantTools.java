@@ -366,7 +366,7 @@ public class AssistantTools {
         return value.isString() ? value.asString() : null;
     }
 
-    private static Map<String, Object> tool(String name, String description, Map<String, Object> properties,
+    static Map<String, Object> tool(String name, String description, Map<String, Object> properties,
                                             List<String> required) {
         return Map.of("type", "function", "function", Map.of(
                 "name", name,
@@ -379,15 +379,15 @@ public class AssistantTools {
                         "required", required)));
     }
 
-    private static Map<String, Object> nullableString(String description) {
+    static Map<String, Object> nullableString(String description) {
         return Map.of("type", List.of("string", "null"), "description", description);
     }
 
-    private static Map<String, Object> integer(String description) {
+    static Map<String, Object> integer(String description) {
         return Map.of("type", "integer", "description", description);
     }
 
-    private static Map<String, Object> dateString() {
+    static Map<String, Object> dateString() {
         return Map.of("type", "string", "description", "A date like 2026-10-22");
     }
 }

@@ -67,6 +67,17 @@ class PseudonymsTest {
     }
 
     @Test
+    void someoneElseWithACustomersSurname_isADifferentPerson() {
+        Pseudonyms p = new Pseudonyms();
+        List<KnownCustomer> known = List.of(new KnownCustomer(7, "Jennifer Lee", null, null, List.of()));
+        String scrubbed = p.scrub("New customer John Lee. Also call Jennifer Lee, and Lee's sister.", known);
+
+        assertThat(scrubbed).doesNotContain("John", "Lee").contains("Customer_7");
+        assertThat(p.rehydrate(scrubbed)).isEqualTo("New customer John Lee. Also call Jennifer Lee, and Jennifer Lee's sister.");
+        assertThat(p.customersIn(scrubbed)).containsExactly(7L);
+    }
+
+    @Test
     void customerPlaceholders_carryTheCustomersId() {
         Pseudonyms p = new Pseudonyms();
         assertThat(p.customer(14, "David Kowalski")).isEqualTo("Customer_14");
