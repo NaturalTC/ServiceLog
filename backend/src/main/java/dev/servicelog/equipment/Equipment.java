@@ -45,6 +45,18 @@ public class Equipment {
 
     private String notes;
 
+    @Column(name = "warranty_registered", nullable = false)
+    private boolean warrantyRegistered;
+
+    @Column(name = "warranty_registered_on")
+    private LocalDate warrantyRegisteredOn;
+
+    @Column(name = "warranty_ends_on")
+    private LocalDate warrantyEndsOn;
+
+    @Column(name = "extended_warranty_ends_on")
+    private LocalDate extendedWarrantyEndsOn;
+
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
 
@@ -71,6 +83,15 @@ public class Equipment {
         this.notes = notes;
     }
 
+    // A unit that isn't registered can't have a registration date
+    public void updateWarranty(boolean registered, LocalDate registeredOn, LocalDate endsOn,
+                               LocalDate extendedEndsOn) {
+        this.warrantyRegistered = registered;
+        this.warrantyRegisteredOn = registered ? registeredOn : null;
+        this.warrantyEndsOn = endsOn;
+        this.extendedWarrantyEndsOn = extendedEndsOn;
+    }
+
     @PreUpdate
     void touch() {
         updatedAt = Instant.now();
@@ -84,4 +105,8 @@ public class Equipment {
     public String getSerialNumber() { return serialNumber; }
     public LocalDate getInstallDate() { return installDate; }
     public String getNotes() { return notes; }
+    public boolean isWarrantyRegistered() { return warrantyRegistered; }
+    public LocalDate getWarrantyRegisteredOn() { return warrantyRegisteredOn; }
+    public LocalDate getWarrantyEndsOn() { return warrantyEndsOn; }
+    public LocalDate getExtendedWarrantyEndsOn() { return extendedWarrantyEndsOn; }
 }

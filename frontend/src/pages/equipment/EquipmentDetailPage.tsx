@@ -3,7 +3,12 @@ import { Link, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { equipmentApi, type EquipmentDetail } from '../../api/equipment'
 import { serviceRecordsApi, type ServiceRecord } from '../../api/serviceRecords'
-import { daysAgo, formatDate, formatInstallDate } from '../../lib/format'
+import { daysAgo, formatDate, formatInstallDate, todayIso } from '../../lib/format'
+
+// "Jun 15, 2033", or "Ended Jun 15, 2023" once it's past
+function warrantyEnd(isoDate: string): string {
+  return isoDate < todayIso() ? `Ended ${formatDate(isoDate)}` : formatDate(isoDate)
+}
 
 export function EquipmentDetailPage() {
   const id = Number(useParams().id)
@@ -77,6 +82,30 @@ export function EquipmentDetailPage() {
         <dd className="mono">{e.serialNumber ?? <span className="muted">Not recorded</span>}</dd>
         <dt>Installed</dt>
         <dd>{e.installDate ? formatInstallDate(e.installDate) : <span className="muted">Unknown</span>}</dd>
+        <dt>Warranty</dt>
+        <dd>
+          {e.warrantyRegistered ? (
+            e.warrantyRegisteredOn ? (
+              `Registered ${formatDate(e.warrantyRegisteredOn)}`
+            ) : (
+              'Registered'
+            )
+          ) : (
+            <span className="follow-up-tag">Not registered</span>
+          )}
+        </dd>
+        {e.warrantyEndsOn && (
+          <>
+            <dt>Warranty ends</dt>
+            <dd>{warrantyEnd(e.warrantyEndsOn)}</dd>
+          </>
+        )}
+        {e.extendedWarrantyEndsOn && (
+          <>
+            <dt>Extended warranty ends</dt>
+            <dd>{warrantyEnd(e.extendedWarrantyEndsOn)}</dd>
+          </>
+        )}
         {e.notes && (
           <>
             <dt>Notes</dt>

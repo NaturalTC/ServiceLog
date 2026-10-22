@@ -18,5 +18,10 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
     // Case-insensitive, matching the unique index on lower(serial_number)
     @EntityGraph(attributePaths = {"property", "property.customer"})
     Optional<Equipment> findFirstBySerialNumberIgnoreCase(String serialNumber);
-
+    // Installed units (install date known) not registered for warranty yet, newest install first
+    @Query("""
+            select e from Equipment e join fetch e.property p join fetch p.customer
+            where e.warrantyRegistered = false and e.installDate is not null
+            order by e.installDate desc, e.id desc""")
+    List<Equipment> findUnregisteredInstalls();
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
+import { equipmentApi } from '../../api/equipment'
 import { formatAddress, formatPhone } from '../../lib/format'
 import { useDebouncedValue } from '../../lib/useDebouncedValue'
 
@@ -31,6 +32,15 @@ export function CustomerListPage() {
     return () => controller.abort()
   }, [debouncedQuery])
 
+  // How many installed units still need their warranty registered (link shown only when some do)
+  const [unregistered, setUnregistered] = useState(0)
+  useEffect(() => {
+    equipmentApi
+      .unregistered()
+      .then((units) => setUnregistered(units.length))
+      .catch(() => setUnregistered(0))
+  }, [])
+
   const setQuery = (value: string) => setSearchParams(value ? { q: value } : {}, { replace: true })
   const searching = debouncedQuery !== ''
 
@@ -42,6 +52,14 @@ export function CustomerListPage() {
           + New
         </Link>
       </div>
+
+      {unregistered > 0 && (
+        <p className="notice">
+          <Link to="/warranty">
+            {unregistered} installed unit{unregistered === 1 ? '' : 's'} not registered for warranty
+          </Link>
+        </p>
+      )}
 
       <label htmlFor="customer-search" className="visually-hidden">
         Search customers

@@ -18,16 +18,35 @@ public final class EquipmentDtos {
             @Size(max = 100) String model,
             @Size(max = 100) String serialNumber,
             @PastOrPresent(message = "can't be in the future") LocalDate installDate,
-            @Size(max = 2000) String notes) {
+            @Size(max = 2000) String notes,
+            // Warranty (all optional; a missing "registered" means not registered)
+            Boolean warrantyRegistered,
+            @PastOrPresent(message = "can't be in the future") LocalDate warrantyRegisteredOn,
+            LocalDate warrantyEndsOn,
+            LocalDate extendedWarrantyEndsOn) {
+
+        boolean registered() {
+            return Boolean.TRUE.equals(warrantyRegistered);
+        }
     }
 
     public record EquipmentResponse(Long id, Long propertyId, EquipmentType type, String typeLabel, String brand,
-                                    String model, String serialNumber, LocalDate installDate, String notes) {
+                                    String model, String serialNumber, LocalDate installDate, String notes,
+                                    boolean warrantyRegistered, LocalDate warrantyRegisteredOn,
+                                    LocalDate warrantyEndsOn, LocalDate extendedWarrantyEndsOn) {
 
         static EquipmentResponse from(Equipment e) {
             return new EquipmentResponse(e.getId(), e.getProperty().getId(), e.getType(), e.getType().getLabel(),
-                    e.getBrand(), e.getModel(), e.getSerialNumber(), e.getInstallDate(), e.getNotes());
+                    e.getBrand(), e.getModel(), e.getSerialNumber(), e.getInstallDate(), e.getNotes(),
+                    e.isWarrantyRegistered(), e.getWarrantyRegisteredOn(), e.getWarrantyEndsOn(),
+                    e.getExtendedWarrantyEndsOn());
         }
+    }
+
+    // An installed unit whose warranty isn't registered yet, with what's needed to register it
+    public record UnregisteredUnit(Long equipmentId, String typeLabel, String brand, String model,
+                                   String serialNumber, LocalDate installDate, Long customerId,
+                                   String customerName, String address) {
     }
 
     // The equipment page also shows where it is and whose it is

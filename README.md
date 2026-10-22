@@ -20,7 +20,7 @@ backend/src/main/java/dev/servicelog/
 ├── ServicelogApplication.java   main class in the root package, so component scanning covers everything
 ├── auth/            owner login, email verification, password reset
 ├── customer/        customers, properties, phone numbers, customer search
-├── equipment/       equipment at a property (types, serial numbers)
+├── equipment/       equipment at a property (types, serial numbers, warranty)
 ├── servicerecord/   service visits on a piece of equipment, service history
 ├── job/             scheduling, rescheduling, double-booking check
 ├── tuneup/          tune-up due list, reminder emails, unsubscribe

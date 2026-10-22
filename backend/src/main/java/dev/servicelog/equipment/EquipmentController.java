@@ -4,6 +4,7 @@ import dev.servicelog.equipment.EquipmentDtos.EquipmentDetailResponse;
 import dev.servicelog.equipment.EquipmentDtos.EquipmentRequest;
 import dev.servicelog.equipment.EquipmentDtos.EquipmentResponse;
 import dev.servicelog.equipment.EquipmentDtos.EquipmentTypeOption;
+import dev.servicelog.equipment.EquipmentDtos.UnregisteredUnit;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,6 +45,12 @@ public class EquipmentController {
     @ResponseStatus(HttpStatus.CREATED)
     public EquipmentDetailResponse create(@PathVariable long propertyId, @Valid @RequestBody EquipmentRequest request) {
         return equipmentService.create(propertyId, request);
+    }
+
+    // Installed units whose warranty still has to be registered with the manufacturer
+    @GetMapping("/api/equipment/unregistered")
+    public List<UnregisteredUnit> unregistered() {
+        return equipmentService.unregisteredInstalls();
     }
 
     @GetMapping("/api/equipment/{id}")

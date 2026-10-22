@@ -231,6 +231,89 @@ class EquipmentControllerTest {
                 .andExpect(jsonPath("$.properties", hasSize(1)));
     }
 
+    @Test
+    void warranty_defaultsToNotRegistered() throws Exception {
+        send(post("/api/properties/" + oakStreet + "/equipment"), CONDENSER)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.equipment.warrantyRegistered").value(false))
+                .andExpect(jsonPath("$.equipment.warrantyRegisteredOn").value(nullValue()))
+                .andExpect(jsonPath("$.equipment.warrantyEndsOn").value(nullValue()))
+                .andExpect(jsonPath("$.equipment.extendedWarrantyEndsOn").value(nullValue()));
+    }
+
+    @Test
+    void warranty_detailsAreSavedAndEditable() throws Exception {
+        long id = create(oakStreet, withWarranty(true, "2023-06-20", "2033-06-15", "2035-06-15"));
+
+        mockMvc.perform(get("/api/equipment/" + id).header("Authorization", bearer))
+                .andExpect(jsonPath("$.equipment.warrantyRegistered").value(true))
+                .andExpect(jsonPath("$.equipment.warrantyRegisteredOn").value("2023-06-20"))
+                .andExpect(jsonPath("$.equipment.warrantyEndsOn").value("2033-06-15"))
+                .andExpect(jsonPath("$.equipment.extendedWarrantyEndsOn").value("2035-06-15"));
+
+        // Marking it not registered drops the registration date but keeps the end dates
+        send(put("/api/equipment/" + id), withWarranty(false, "2023-06-20", "2033-06-15", null))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.equipment.warrantyRegistered").value(false))
+                .andExpect(jsonPath("$.equipment.warrantyRegisteredOn").value(nullValue()))
+                .andExpect(jsonPath("$.equipment.warrantyEndsOn").value("2033-06-15"))
+                .andExpect(jsonPath("$.equipment.extendedWarrantyEndsOn").value(nullValue()));
+    }
+
+    @Test
+    void warranty_rejectsDatesThatCantBeRight() throws Exception {
+        String tomorrow = LocalDate.now().plusDays(1).toString();
+        send(post("/api/properties/" + oakStreet + "/equipment"), withWarranty(true, tomorrow, null, null))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("future")));
+        // Installed 2023-06-15
+        send(post("/api/properties/" + oakStreet + "/equipment"), withWarranty(true, "2023-06-01", null, null))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("registration date can't be before")));
+        send(post("/api/properties/" + oakStreet + "/equipment"), withWarranty(false, null, "2022-01-01", null))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("end date can't be before")));
+        send(post("/api/properties/" + oakStreet + "/equipment"),
+                withWarranty(false, null, "2033-06-15", "2030-01-01"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("Extended warranty can't end before")));
+    }
+
+    @Test
+    void unregistered_listsInstalledUnitsNotYetRegistered_newestFirst() throws Exception {
+        create(oakStreet, CONDENSER); // installed 2023-06-15, not registered
+        create(elmStreet, "{\"type\": \"BOILER\", \"brand\": \"Burnham\", \"installDate\": \"2025-09-02\"}");
+        create(elmStreet, withWarranty(true, "2023-06-20", null, null).replace("SN-123", "SN-456")); // registered
+        create(oakStreet, "{\"type\": \"OIL_BURNER\"}"); // install date unknown: not ours to register
+
+        mockMvc.perform(get("/api/equipment/unregistered").header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].typeLabel").value("Boiler"))
+                .andExpect(jsonPath("$[0].installDate").value("2025-09-02"))
+                .andExpect(jsonPath("$[0].customerName").value("Pat Smith"))
+                .andExpect(jsonPath("$[0].address").value("5 Elm St, 2B, Holyoke, MA 01040"))
+                .andExpect(jsonPath("$[1].serialNumber").value("SN-123"))
+                .andExpect(jsonPath("$[1].customerId").value(smith.getId()));
+    }
+
+    @Test
+    void unregistered_requiresLogin() throws Exception {
+        mockMvc.perform(get("/api/equipment/unregistered")).andExpect(status().isUnauthorized());
+    }
+
+    // The condenser (installed 2023-06-15) with warranty details; null leaves a date out
+    private static String withWarranty(boolean registered, String registeredOn, String endsOn, String extendedEndsOn) {
+        return CONDENSER.replace("\"notes\": \"\"", "\"notes\": \"\", \"warrantyRegistered\": " + registered
+                + ", \"warrantyRegisteredOn\": " + quoted(registeredOn)
+                + ", \"warrantyEndsOn\": " + quoted(endsOn)
+                + ", \"extendedWarrantyEndsOn\": " + quoted(extendedEndsOn));
+    }
+
+    private static String quoted(String value) {
+        return value == null ? "null" : "\"" + value + "\"";
+    }
+
     private long create(long propertyId, String json) throws Exception {
         String body = send(post("/api/properties/" + propertyId + "/equipment"), json)
                 .andExpect(status().isCreated())

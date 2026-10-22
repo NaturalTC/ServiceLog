@@ -21,6 +21,10 @@ export interface Equipment {
   serialNumber: string | null
   installDate: string | null // YYYY-MM-DD
   notes: string | null
+  warrantyRegistered: boolean
+  warrantyRegisteredOn: string | null
+  warrantyEndsOn: string | null
+  extendedWarrantyEndsOn: string | null
 }
 
 // The equipment page also shows where it is and whose it is
@@ -38,6 +42,23 @@ export interface EquipmentInput {
   serialNumber: string | null
   installDate: string | null
   notes: string | null
+  warrantyRegistered: boolean
+  warrantyRegisteredOn: string | null
+  warrantyEndsOn: string | null
+  extendedWarrantyEndsOn: string | null
+}
+
+// An installed unit whose warranty isn't registered with the manufacturer yet
+export interface UnregisteredUnit {
+  equipmentId: number
+  typeLabel: string
+  brand: string | null
+  model: string | null
+  serialNumber: string | null
+  installDate: string
+  customerId: number
+  customerName: string
+  address: string
 }
 
 export interface EquipmentTypeOption {
@@ -50,8 +71,25 @@ const json = (method: string, body: object): RequestInit => ({ method, body: JSO
 export const equipmentApi = {
   types: () => apiFetch<EquipmentTypeOption[]>('/api/equipment-types'),
   listForCustomer: (customerId: number) => apiFetch<Equipment[]>(`/api/customers/${customerId}/equipment`),
+  unregistered: () => apiFetch<UnregisteredUnit[]>('/api/equipment/unregistered'),
   get: (id: number) => apiFetch<EquipmentDetail>(`/api/equipment/${id}`),
   create: (propertyId: number, input: EquipmentInput) =>
     apiFetch<EquipmentDetail>(`/api/properties/${propertyId}/equipment`, json('POST', input)),
   update: (id: number, input: EquipmentInput) => apiFetch<EquipmentDetail>(`/api/equipment/${id}`, json('PUT', input)),
+}
+
+// What the form sends back for a unit as it is now (to change one thing and save)
+export function toInput(e: Equipment): EquipmentInput {
+  return {
+    type: e.type,
+    brand: e.brand,
+    model: e.model,
+    serialNumber: e.serialNumber,
+    installDate: e.installDate,
+    notes: e.notes,
+    warrantyRegistered: e.warrantyRegistered,
+    warrantyRegisteredOn: e.warrantyRegisteredOn,
+    warrantyEndsOn: e.warrantyEndsOn,
+    extendedWarrantyEndsOn: e.extendedWarrantyEndsOn,
+  }
 }

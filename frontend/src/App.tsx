@@ -18,6 +18,7 @@ import { LandingPage } from './pages/public/LandingPage'
 import { UnsubscribePage } from './pages/public/UnsubscribePage'
 import { MyDayPage } from './pages/today/MyDayPage'
 import { TuneUpsPage } from './pages/tuneups/TuneUpsPage'
+import { WarrantyPage } from './pages/warranty/WarrantyPage'
 import { ServiceRecordDetailPage } from './pages/service/ServiceRecordDetailPage'
 import { ServiceRecordFormPage } from './pages/service/ServiceRecordFormPage'
 
@@ -50,6 +51,7 @@ function App() {
         <Route path="/equipment/:id" element={<EquipmentDetailPage />} />
         <Route path="/equipment/:id/edit" element={<EquipmentFormPage />} />
         <Route path="/equipment/:equipmentId/service-records/new" element={<ServiceRecordFormPage />} />
+        <Route path="/warranty" element={<WarrantyPage />} />
         <Route path="/service-records/:id" element={<ServiceRecordDetailPage />} />
         <Route path="/service-records/:id/edit" element={<ServiceRecordFormPage />} />
       </Route>

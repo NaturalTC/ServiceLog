@@ -5,11 +5,14 @@ import dev.servicelog.customer.PropertyRepository;
 import dev.servicelog.equipment.EquipmentDtos.EquipmentDetailResponse;
 import dev.servicelog.equipment.EquipmentDtos.EquipmentRequest;
 import dev.servicelog.equipment.EquipmentDtos.EquipmentResponse;
+import dev.servicelog.equipment.EquipmentDtos.UnregisteredUnit;
 import dev.servicelog.exception.ConflictException;
+import dev.servicelog.exception.InvalidRequestException;
 import dev.servicelog.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -29,6 +32,15 @@ public class EquipmentService {
     }
 
     @Transactional(readOnly = true)
+    public List<UnregisteredUnit> unregisteredInstalls() {
+        return equipment.findUnregisteredInstalls().stream()
+                .map(e -> new UnregisteredUnit(e.getId(), e.getType().getLabel(), e.getBrand(), e.getModel(),
+                        e.getSerialNumber(), e.getInstallDate(), e.getProperty().getCustomer().getId(),
+                        e.getProperty().getCustomer().getName(), address(e.getProperty())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public EquipmentDetailResponse get(long id) {
         return detail(find(id));
     }
@@ -39,10 +51,12 @@ public class EquipmentService {
                 .orElseThrow(() -> new NotFoundException("Property not found"));
         String serial = clean(request.serialNumber());
         ensureSerialIsFree(serial, null);
+        checkWarrantyDates(request);
 
-        Equipment saved = equipment.save(new Equipment(property, request.type(), clean(request.brand()),
-                clean(request.model()), serial, request.installDate(), clean(request.notes())));
-        return detail(saved);
+        Equipment unit = new Equipment(property, request.type(), clean(request.brand()), clean(request.model()),
+                serial, request.installDate(), clean(request.notes()));
+        applyWarranty(unit, request);
+        return detail(equipment.save(unit));
     }
 
     @Transactional
@@ -50,10 +64,35 @@ public class EquipmentService {
         Equipment existing = find(id);
         String serial = clean(request.serialNumber());
         ensureSerialIsFree(serial, id);
+        checkWarrantyDates(request);
 
         existing.update(request.type(), clean(request.brand()), clean(request.model()), serial,
                 request.installDate(), clean(request.notes()));
+        applyWarranty(existing, request);
         return detail(equipment.saveAndFlush(existing));
+    }
+
+    private static void applyWarranty(Equipment unit, EquipmentRequest request) {
+        unit.updateWarranty(request.registered(), request.warrantyRegisteredOn(), request.warrantyEndsOn(),
+                request.extendedWarrantyEndsOn());
+    }
+
+    // Dates that can't be right, most likely a typo in the year
+    private static void checkWarrantyDates(EquipmentRequest request) {
+        LocalDate installed = request.installDate();
+        if (request.registered() && isBefore(request.warrantyRegisteredOn(), installed)) {
+            throw new InvalidRequestException("Warranty registration date can't be before the install date");
+        }
+        if (isBefore(request.warrantyEndsOn(), installed)) {
+            throw new InvalidRequestException("Warranty end date can't be before the install date");
+        }
+        if (isBefore(request.extendedWarrantyEndsOn(), request.warrantyEndsOn())) {
+            throw new InvalidRequestException("Extended warranty can't end before the regular warranty");
+        }
+    }
+
+    private static boolean isBefore(LocalDate date, LocalDate other) {
+        return date != null && other != null && date.isBefore(other);
     }
 
     // Checked here (not only by the database's unique index) so the owner gets a useful
@@ -76,10 +115,13 @@ public class EquipmentService {
 
     private static EquipmentDetailResponse detail(Equipment e) {
         Property p = e.getProperty();
-        String address = p.getStreet() + (p.getUnit() != null ? ", " + p.getUnit() : "") + ", " + p.getCity() + ", "
-                + p.getState() + " " + p.getZip();
         return new EquipmentDetailResponse(EquipmentResponse.from(e), p.getCustomer().getId(),
-                p.getCustomer().getName(), address);
+                p.getCustomer().getName(), address(p));
+    }
+
+    private static String address(Property p) {
+        return p.getStreet() + (p.getUnit() != null ? ", " + p.getUnit() : "") + ", " + p.getCity() + ", "
+                + p.getState() + " " + p.getZip();
     }
 
     private static String clean(String input) {

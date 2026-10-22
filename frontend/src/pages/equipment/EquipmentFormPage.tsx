@@ -21,6 +21,23 @@ interface Draft {
   serialNumber: string
   installDate: string
   notes: string
+  warrantyRegistered: boolean
+  warrantyRegisteredOn: string
+  warrantyEndsOn: string
+  extendedWarrantyEndsOn: string
+}
+
+const BLANK: Draft = {
+  type: '',
+  brand: '',
+  model: '',
+  serialNumber: '',
+  installDate: '',
+  notes: '',
+  warrantyRegistered: false,
+  warrantyRegisteredOn: '',
+  warrantyEndsOn: '',
+  extendedWarrantyEndsOn: '',
 }
 
 const blankToNull = (s: string) => (s.trim() ? s.trim() : null)
@@ -34,9 +51,7 @@ export function EquipmentFormPage() {
   const navigate = useNavigate()
 
   const [types, setTypes] = useState<EquipmentTypeOption[]>([])
-  const [draft, setDraft] = useState<Draft | null>(
-    editingId ? null : { type: '', brand: '', model: '', serialNumber: '', installDate: '', notes: '' },
-  )
+  const [draft, setDraft] = useState<Draft | null>(editingId ? null : BLANK)
   const [location, setLocation] = useState<{ customerId: number; customerName: string; address: string } | null>(
     null,
   )
@@ -63,6 +78,10 @@ export function EquipmentFormPage() {
           serialNumber: e.serialNumber ?? '',
           installDate: e.installDate ?? '',
           notes: e.notes ?? '',
+          warrantyRegistered: e.warrantyRegistered,
+          warrantyRegisteredOn: e.warrantyRegisteredOn ?? '',
+          warrantyEndsOn: e.warrantyEndsOn ?? '',
+          extendedWarrantyEndsOn: e.extendedWarrantyEndsOn ?? '',
         })
         setLocation({ customerId, customerName, address })
       })
@@ -81,7 +100,7 @@ export function EquipmentFormPage() {
     )
   }
 
-  const set = (field: keyof Draft, value: string) => {
+  const set = (field: keyof Draft, value: string | boolean) => {
     setDraft({ ...draft, [field]: value })
     if (field === 'type' && value) setTypeError(false)
   }
@@ -101,6 +120,10 @@ export function EquipmentFormPage() {
       serialNumber: blankToNull(draft.serialNumber),
       installDate: draft.installDate || null,
       notes: blankToNull(draft.notes),
+      warrantyRegistered: draft.warrantyRegistered,
+      warrantyRegisteredOn: draft.warrantyRegistered ? draft.warrantyRegisteredOn || null : null,
+      warrantyEndsOn: draft.warrantyEndsOn || null,
+      extendedWarrantyEndsOn: draft.extendedWarrantyEndsOn || null,
     }
     setSaving(true)
     try {
@@ -198,6 +221,61 @@ export function EquipmentFormPage() {
           value={draft.installDate}
           onChange={(e) => set('installDate', e.target.value)}
         />
+
+        <fieldset className="property">
+          <legend>Warranty</legend>
+          <label className="checkbox">
+            <input
+              type="checkbox"
+              checked={draft.warrantyRegistered}
+              onChange={(e) => {
+                const registered = e.target.checked
+                // Ticking it fills in today; the date can still be changed
+                setDraft({
+                  ...draft,
+                  warrantyRegistered: registered,
+                  warrantyRegisteredOn: registered ? draft.warrantyRegisteredOn || todayIso() : '',
+                })
+              }}
+            />
+            Registered with the manufacturer
+          </label>
+          {draft.warrantyRegistered && (
+            <>
+              <label htmlFor="registered-on">
+                Registration date <span className="optional">(optional)</span>
+              </label>
+              <input
+                id="registered-on"
+                type="date"
+                min={draft.installDate || undefined}
+                max={todayIso()}
+                value={draft.warrantyRegisteredOn}
+                onChange={(e) => set('warrantyRegisteredOn', e.target.value)}
+              />
+            </>
+          )}
+          <label htmlFor="warranty-ends">
+            Warranty ends <span className="optional">(optional)</span>
+          </label>
+          <input
+            id="warranty-ends"
+            type="date"
+            min={draft.installDate || undefined}
+            value={draft.warrantyEndsOn}
+            onChange={(e) => set('warrantyEndsOn', e.target.value)}
+          />
+          <label htmlFor="extended-ends">
+            Extended warranty ends <span className="optional">(optional)</span>
+          </label>
+          <input
+            id="extended-ends"
+            type="date"
+            min={draft.warrantyEndsOn || draft.installDate || undefined}
+            value={draft.extendedWarrantyEndsOn}
+            onChange={(e) => set('extendedWarrantyEndsOn', e.target.value)}
+          />
+        </fieldset>
 
         <label htmlFor="notes">
           Notes <span className="optional">(location, filter size, quirks…)</span>
