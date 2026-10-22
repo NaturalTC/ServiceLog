@@ -12,11 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -38,12 +42,15 @@ public class ReminderService {
     private final ReminderTemplate template;
     private final JavaMailSender mailSender;
     private final Clock clock;
+    private final UnsubscribeTokens unsubscribeTokens;
     private final String from;
+    private final String frontendUrl;
 
     public ReminderService(CustomerRepository customers, AppUserRepository users, TuneUpService tuneUps,
                            TuneUpReminderRepository reminders, ReminderTemplate template,
-                           JavaMailSender mailSender, Clock clock,
-                           @Value("${app.mail.from}") String from) {
+                           JavaMailSender mailSender, Clock clock, UnsubscribeTokens unsubscribeTokens,
+                           @Value("${app.mail.from}") String from,
+                           @Value("${app.frontend-url}") String frontendUrl) {
         this.customers = customers;
         this.users = users;
         this.tuneUps = tuneUps;
@@ -51,7 +58,9 @@ public class ReminderService {
         this.template = template;
         this.mailSender = mailSender;
         this.clock = clock;
+        this.unsubscribeTokens = unsubscribeTokens;
         this.from = from;
+        this.frontendUrl = frontendUrl;
     }
 
     public TuneUpReminder send(long customerId, long propertyId, boolean resend) {
@@ -63,6 +72,9 @@ public class ReminderService {
                 .orElseThrow(() -> new InvalidRequestException("That address doesn't belong to this customer"));
         if (customer.getEmail() == null) {
             throw new ConflictException("There's no email on file for " + customer.getName() + ".");
+        }
+        if (customer.getRemindersOptedOutAt() != null) {
+            throw new ConflictException(customer.getName() + " unsubscribed from reminder emails.");
         }
 
         List<DueUnit> due = tuneUps.due().units().stream()
@@ -81,18 +93,27 @@ public class ReminderService {
                     throw new RecentlyRemindedException(last.getSentAt());
                 });
 
-        ReminderTemplate.Email email = template.build(customer.getName(), due.get(0).address(), due);
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(from);
-        message.setTo(customer.getEmail());
-        // Replies go straight to the owner
-        users.findAll().stream().findFirst().ifPresent(owner -> message.setReplyTo(owner.getEmail()));
-        message.setSubject(email.subject());
-        message.setText(email.body());
+        String token = unsubscribeTokens.tokenFor(customerId);
+        String unsubscribePage = frontendUrl + "/unsubscribe?token=" + token;
+        ReminderTemplate.Email email = template.build(customer.getName(), due.get(0).address(), due, unsubscribePage);
 
         try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, StandardCharsets.UTF_8.name());
+            helper.setFrom(from);
+            helper.setTo(customer.getEmail());
+            // Replies go straight to the owner
+            String replyTo = users.findAll().stream().findFirst().map(owner -> owner.getEmail()).orElse(null);
+            if (replyTo != null) {
+                helper.setReplyTo(replyTo);
+            }
+            helper.setSubject(email.subject());
+            helper.setText(email.body());
+            // One-click unsubscribe from the mail app's own button (RFC 8058, expected by Gmail and Yahoo)
+            message.addHeader("List-Unsubscribe", "<" + frontendUrl + "/api/unsubscribe?token=" + token + ">");
+            message.addHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
             mailSender.send(message);
-        } catch (MailException e) {
+        } catch (MailException | MessagingException e) {
             log.error("Tune-up reminder to customer id={} failed", customerId, e);
             reminders.save(new TuneUpReminder(customerId, propertyId, customer.getEmail(), email.subject(),
                     email.body(), TuneUpReminder.Status.FAILED, truncate(e.getMessage()), now));

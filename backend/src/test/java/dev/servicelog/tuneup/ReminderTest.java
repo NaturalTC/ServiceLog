@@ -14,6 +14,8 @@ import dev.servicelog.security.JwtService;
 import dev.servicelog.support.DatabaseCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +23,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.MailSendException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -89,6 +90,8 @@ class ReminderTest {
     void setUp() {
         DatabaseCleaner.reset(jdbc);
         when(calendar.today()).thenReturn(FALL);
+        // The mock sender has to hand out real (empty) MIME messages for the service to fill in
+        when(mailSender.createMimeMessage()).thenAnswer(invocation -> new MimeMessage((Session) null));
         AppUser owner = new AppUser("owner@example.com", "x");
         owner.markEmailVerified();
         users.save(owner);
@@ -112,19 +115,19 @@ class ReminderTest {
                 .andExpect(jsonPath("$.subject").value("Time for your fall tune-up"))
                 .andExpect(jsonPath("$.sentAt", notNullValue()));
 
-        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender).send(captor.capture());
-        SimpleMailMessage email = captor.getValue();
-        assertEquals("pat@example.com", email.getTo()[0]);
-        assertEquals("owner@example.com", email.getReplyTo()); // replies reach the owner
+        MimeMessage email = captor.getValue();
+        assertEquals("pat@example.com", email.getAllRecipients()[0].toString());
+        assertEquals("owner@example.com", email.getReplyTo()[0].toString()); // replies reach the owner
         assertEquals("Time for your fall tune-up", email.getSubject());
-        String body = email.getText();
+        String body = (String) email.getContent();
         assertTrue(body.startsWith("Hi Pat,"));
         assertTrue(body.contains("12 Oak St, Springfield, MA 01103"));
         assertTrue(body.contains("Oil burner (Beckett)"));
         assertTrue(body.contains("Boiler (Burnham)"));
         assertTrue(body.contains("or call (413) 555-0000 to pick a time"));
-        assertTrue(body.trim().endsWith("Valley HVAC"));
+        assertTrue(body.contains("Thanks,\nValley HVAC"));
         assertEquals(1, reminders.count());
     }
 
@@ -141,7 +144,7 @@ class ReminderTest {
                                 noEmail.getId(), noEmail.getProperties().get(0).getId())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value(containsString("no email on file")));
-        verify(mailSender, never()).send(any(SimpleMailMessage.class));
+        verify(mailSender, never()).send(any(MimeMessage.class));
     }
 
     @Test
@@ -150,7 +153,7 @@ class ReminderTest {
 
         send(elm, false).andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value(containsString("Nothing at this address is due")));
-        verify(mailSender, never()).send(any(SimpleMailMessage.class));
+        verify(mailSender, never()).send(any(MimeMessage.class));
     }
 
     @Test
@@ -170,15 +173,15 @@ class ReminderTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("REMINDER_RECENTLY_SENT"))
                 .andExpect(jsonPath("$.lastSentAt", notNullValue()));
-        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+        verify(mailSender, times(1)).send(any(MimeMessage.class));
 
         send(oak.getId(), true).andExpect(status().isCreated());
-        verify(mailSender, times(2)).send(any(SimpleMailMessage.class));
+        verify(mailSender, times(2)).send(any(MimeMessage.class));
     }
 
     @Test
     void failedSend_isLogged_andReported() throws Exception {
-        doThrow(new MailSendException("SMTP down")).when(mailSender).send(any(SimpleMailMessage.class));
+        doThrow(new MailSendException("SMTP down")).when(mailSender).send(any(MimeMessage.class));
 
         send(oak.getId(), false)
                 .andExpect(status().isBadGateway())
@@ -191,10 +194,11 @@ class ReminderTest {
 
     @Test
     void failedSend_doesntCountAsRecent_soTheOwnerCanRetry() throws Exception {
-        doThrow(new MailSendException("SMTP down")).when(mailSender).send(any(SimpleMailMessage.class));
+        doThrow(new MailSendException("SMTP down")).when(mailSender).send(any(MimeMessage.class));
         send(oak.getId(), false).andExpect(status().isBadGateway());
 
         org.mockito.Mockito.reset(mailSender);
+        when(mailSender.createMimeMessage()).thenAnswer(invocation -> new MimeMessage((Session) null));
         send(oak.getId(), false).andExpect(status().isCreated());
     }
 

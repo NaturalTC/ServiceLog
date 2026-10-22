@@ -17,7 +17,8 @@ public final class TuneUpDtos {
                           Long customerId, String customerName, String customerPhone, String customerEmail,
                           Long propertyId, String address,
                           Long bookedJobId, LocalDate bookedDate, // a tune-up already scheduled there
-                          Instant lastReminderAt) { // the last reminder email sent to this address, if recent
+                          Instant lastReminderAt, // the last reminder email sent to this address, if recent
+                          boolean remindersOptedOut) { // the customer unsubscribed: call, don't email
     }
 
     public record DueResponse(LocalDate today, boolean heatingSeason, boolean coolingSeason, int intervalMonths,

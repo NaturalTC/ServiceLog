@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.time.Instant;
 import java.util.List;
 
 // Request and response bodies for /api/customers.
@@ -45,11 +46,11 @@ public final class CustomerDtos {
     }
 
     public record CustomerResponse(Long id, String name, String phone, String email, String notes,
-                                   List<PropertyResponse> properties) {
+                                   List<PropertyResponse> properties, Instant remindersOptedOutAt) {
 
         static CustomerResponse from(Customer c) {
             return new CustomerResponse(c.getId(), c.getName(), c.getPhone(), c.getEmail(), c.getNotes(),
-                    c.getProperties().stream().map(PropertyResponse::from).toList());
+                    c.getProperties().stream().map(PropertyResponse::from).toList(), c.getRemindersOptedOutAt());
         }
     }
 }

@@ -750,3 +750,8 @@ label.option input[type='checkbox'] {
     font-size: 0.95rem;
   }
 }
+
+.center-self {
+  align-self: center;
+  padding: 0 8px;
+}

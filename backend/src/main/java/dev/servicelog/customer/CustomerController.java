@@ -44,6 +44,11 @@ public class CustomerController {
         return customerService.create(request);
     }
 
+    @PostMapping("/{id}/reminders/resume")
+    public CustomerResponse resumeReminders(@PathVariable long id) {
+        return customerService.resumeReminders(id);
+    }
+
     @PutMapping("/{id}")
     public CustomerResponse update(@PathVariable long id, @Valid @RequestBody CustomerRequest request) {
         return customerService.update(id, request);

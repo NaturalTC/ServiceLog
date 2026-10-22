@@ -17,7 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 // Security rules for every request:
 // - Stateless: no server sessions; the JWT proves identity on each request
 // - CSRF off: tokens travel in the Authorization header, not cookies, so CSRF doesn't apply
-// - Only the login, email-link and health endpoints are public; everything else needs a valid token
+// - Only login, email-link (verify, reset, unsubscribe) and health endpoints are public;
+//   everything else needs a valid token
 // - No CORS config: the frontend is served from the same origin, so cross-origin calls are refused
 @Configuration
 @EnableWebSecurity
@@ -40,7 +41,8 @@ public class SecurityConfig {
                                 "/api/auth/verify-email",
                                 "/api/auth/resend-verification",
                                 "/api/auth/forgot-password",
-                                "/api/auth/reset-password").permitAll()
+                                "/api/auth/reset-password",
+                                "/api/unsubscribe").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated())
                 // Answer 401 (not logged in) instead of Spring's default 403 for missing tokens

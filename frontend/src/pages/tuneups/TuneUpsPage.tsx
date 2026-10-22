@@ -155,7 +155,9 @@ export function TuneUpsPage() {
                   Call {formatPhone(first.customerPhone)}
                 </a>
                 {!booked &&
-                  (first.customerEmail ? (
+                  (first.remindersOptedOut ? (
+                    <span className="muted center-self">Unsubscribed from emails</span>
+                  ) : first.customerEmail ? (
                     <button
                       type="button"
                       className="secondary"

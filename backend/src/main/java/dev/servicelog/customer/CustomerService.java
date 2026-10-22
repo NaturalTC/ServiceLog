@@ -109,6 +109,14 @@ public class CustomerService {
         return CustomerResponse.from(customers.saveAndFlush(customer));
     }
 
+    // When a customer who unsubscribed asks to get reminders again
+    @Transactional
+    public CustomerResponse resumeReminders(long id) {
+        Customer customer = find(id);
+        customer.resumeReminders();
+        return CustomerResponse.from(customers.saveAndFlush(customer));
+    }
+
     private Customer find(long id) {
         return customers.findWithPropertiesById(id)
                 .orElseThrow(() -> new NotFoundException("Customer not found"));

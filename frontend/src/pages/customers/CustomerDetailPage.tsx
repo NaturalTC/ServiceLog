@@ -31,6 +31,17 @@ export function CustomerDetailPage() {
       .catch((err) => setError(errorMessage(err)))
   }, [id])
 
+  async function resumeReminders() {
+    if (!customer) return
+    if (!window.confirm(`Only do this if ${customer.name} asked to get tune-up reminders again. Turn them back on?`))
+      return
+    try {
+      setCustomer(await customersApi.resumeReminders(customer.id))
+    } catch (err) {
+      setError(errorMessage(err))
+    }
+  }
+
   if (error) {
     return (
       <main>
@@ -124,9 +135,17 @@ export function CustomerDetailPage() {
         })}
       </ul>
 
-      {reminders.length > 0 && (
+      {(reminders.length > 0 || customer.remindersOptedOutAt) && (
         <>
           <h2>Reminder emails</h2>
+          {customer.remindersOptedOutAt && (
+            <div className="notice">
+              Unsubscribed from reminder emails on {formatDateTime(customer.remindersOptedOutAt)}.{' '}
+              <button type="button" className="link-button" onClick={resumeReminders}>
+                Turn back on
+              </button>
+            </div>
+          )}
           <ul className="card-list">
             {reminders.map((r) => (
               <li key={r.id} className="card">

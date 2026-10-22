@@ -19,6 +19,7 @@ export interface DueUnit {
   bookedJobId: number | null // a tune-up already scheduled at this address
   bookedDate: string | null
   lastReminderAt: string | null // ISO timestamp of the last reminder email to this address
+  remindersOptedOut: boolean // the customer unsubscribed: call, don't email
 }
 
 export interface Reminder {

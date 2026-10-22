@@ -21,7 +21,7 @@ public class ReminderTemplate {
     public record Email(String subject, String body) {
     }
 
-    public Email build(String customerName, String address, List<DueUnit> units) {
+    public Email build(String customerName, String address, List<DueUnit> units, String unsubscribeLink) {
         String season = units.get(0).season() == Season.HEATING ? "fall" : "spring";
         String firstName = customerName.trim().split("\\s+")[0];
         String equipment = units.stream()
@@ -43,7 +43,10 @@ public class ReminderTemplate {
 
                 Thanks,
                 %s
-                """.formatted(firstName, season, address, equipment, phone, business.name());
+
+                --
+                Don't want tune-up reminders? Unsubscribe: %s
+                """.formatted(firstName, season, address, equipment, phone, business.name(), unsubscribeLink);
         return new Email("Time for your " + season + " tune-up", body);
     }
 }

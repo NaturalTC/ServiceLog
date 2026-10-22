@@ -125,6 +125,7 @@ public class TuneUpService {
                 c.getId(), c.getName(), c.getPhone(), c.getEmail(), p.getId(), address,
                 booked == null ? null : booked.getId(),
                 booked == null ? null : booked.getScheduledDate(),
-                remindedByProperty.get(p.getId()));
+                remindedByProperty.get(p.getId()),
+                c.getRemindersOptedOutAt() != null);
     }
 }

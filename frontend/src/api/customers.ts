@@ -17,9 +17,10 @@ export interface Customer {
   email: string | null
   notes: string | null
   properties: Property[]
+  remindersOptedOutAt: string | null // when they unsubscribed from reminder emails
 }
 
-export type CustomerInput = Omit<Customer, 'id'>
+export type CustomerInput = Omit<Customer, 'id' | 'remindersOptedOutAt'>
 
 const json = (method: string, body: object): RequestInit => ({ method, body: JSON.stringify(body) })
 
@@ -31,4 +32,6 @@ export const customersApi = {
   get: (id: number) => apiFetch<Customer>(`/api/customers/${id}`),
   create: (input: CustomerInput) => apiFetch<Customer>('/api/customers', json('POST', input)),
   update: (id: number, input: CustomerInput) => apiFetch<Customer>(`/api/customers/${id}`, json('PUT', input)),
+  // Only when a customer who unsubscribed asks to get reminders again
+  resumeReminders: (id: number) => apiFetch<Customer>(`/api/customers/${id}/reminders/resume`, { method: 'POST' }),
 }

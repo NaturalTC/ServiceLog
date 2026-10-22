@@ -14,6 +14,7 @@ import { FinishJobPage } from './pages/jobs/FinishJobPage'
 import { JobDetailPage } from './pages/jobs/JobDetailPage'
 import { JobFormPage } from './pages/jobs/JobFormPage'
 import { JobListPage } from './pages/jobs/JobListPage'
+import { UnsubscribePage } from './pages/public/UnsubscribePage'
 import { MyDayPage } from './pages/today/MyDayPage'
 import { TuneUpsPage } from './pages/tuneups/TuneUpsPage'
 import { ServiceRecordDetailPage } from './pages/service/ServiceRecordDetailPage'
@@ -54,6 +55,8 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
+      {/* For customers, from reminder emails: no login */}
+      <Route path="/unsubscribe" element={<UnsubscribePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

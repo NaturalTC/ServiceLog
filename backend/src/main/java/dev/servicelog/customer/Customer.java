@@ -34,6 +34,10 @@ public class Customer {
 
     private String notes;
 
+    // Set when the customer unsubscribes from tune-up reminder emails (S12)
+    @Column(name = "reminders_opted_out_at")
+    private Instant remindersOptedOutAt;
+
     // Properties are saved and deleted together with their customer
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id")
@@ -60,6 +64,20 @@ public class Customer {
         this.notes = notes;
     }
 
+    // Returns false if they had already opted out (keeps the original date)
+    public boolean optOutOfReminders(Instant when) {
+        if (remindersOptedOutAt != null) {
+            return false;
+        }
+        remindersOptedOutAt = when;
+        return true;
+    }
+
+    // Only when the customer asks the owner to start reminders again
+    public void resumeReminders() {
+        remindersOptedOutAt = null;
+    }
+
     public void addProperty(Property property) {
         property.setCustomer(this);
         properties.add(property);
@@ -79,6 +97,7 @@ public class Customer {
     public String getPhone() { return phone; }
     public String getEmail() { return email; }
     public String getNotes() { return notes; }
+    public Instant getRemindersOptedOutAt() { return remindersOptedOutAt; }
     public List<Property> getProperties() { return Collections.unmodifiableList(properties); }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
