@@ -5,6 +5,8 @@ import dev.servicelog.customer.CustomerDtos.CustomerResponse;
 import dev.servicelog.customer.CustomerDtos.PropertyRequest;
 import dev.servicelog.exception.InvalidRequestException;
 import dev.servicelog.exception.NotFoundException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,9 @@ import java.util.stream.Collectors;
 @Service
 public class CustomerService {
 
+    // Search is for finding someone quickly; more results than this means "type more"
+    static final int MAX_SEARCH_RESULTS = 50;
+
     private final CustomerRepository customers;
 
     public CustomerService(CustomerRepository customers) {
@@ -28,6 +33,19 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public List<CustomerResponse> list() {
         return customers.findAllByOrderByNameAscIdAsc().stream().map(CustomerResponse::from).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CustomerResponse> search(String query) {
+        List<String> terms = CustomerSearch.terms(query);
+        if (terms.isEmpty()) {
+            return list();
+        }
+        var page = PageRequest.of(0, MAX_SEARCH_RESULTS, Sort.by("name", "id"));
+        // Properties load in batches (hibernate.default_batch_fetch_size), not one query per customer
+        return customers.findAll(CustomerSearch.matchingAll(terms), page).stream()
+                .map(CustomerResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)

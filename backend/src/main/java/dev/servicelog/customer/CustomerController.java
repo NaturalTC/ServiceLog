@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,9 +27,10 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
+    // With ?q=..., searches name, street and phone (up to 50 results); without it, lists everyone
     @GetMapping
-    public List<CustomerResponse> list() {
-        return customerService.list();
+    public List<CustomerResponse> list(@RequestParam(required = false) String q) {
+        return q == null || q.isBlank() ? customerService.list() : customerService.search(q);
     }
 
     @GetMapping("/{id}")

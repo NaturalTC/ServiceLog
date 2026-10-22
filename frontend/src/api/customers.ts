@@ -24,7 +24,10 @@ export type CustomerInput = Omit<Customer, 'id'>
 const json = (method: string, body: object): RequestInit => ({ method, body: JSON.stringify(body) })
 
 export const customersApi = {
-  list: () => apiFetch<Customer[]>('/api/customers'),
+  list: (signal?: AbortSignal) => apiFetch<Customer[]>('/api/customers', { signal }),
+  // Matches name, street or phone; every word must match. Returns up to 50 results.
+  search: (query: string, signal?: AbortSignal) =>
+    apiFetch<Customer[]>(`/api/customers?q=${encodeURIComponent(query)}`, { signal }),
   get: (id: number) => apiFetch<Customer>(`/api/customers/${id}`),
   create: (input: CustomerInput) => apiFetch<Customer>('/api/customers', json('POST', input)),
   update: (id: number, input: CustomerInput) => apiFetch<Customer>(`/api/customers/${id}`, json('PUT', input)),
