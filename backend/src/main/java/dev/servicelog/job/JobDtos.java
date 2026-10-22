@@ -35,6 +35,10 @@ public final class JobDtos {
                               String customerPhone) {
     }
 
+    // "My day": the business's today (not the server's or the phone's) and its jobs in time order
+    public record TodayResponse(LocalDate date, List<JobResponse> jobs) {
+    }
+
     // Returned with 409 when a job would overlap others, so the app can ask "book anyway?"
     public record OverlapResponse(String code, String message, List<JobResponse> conflicts) {
     }

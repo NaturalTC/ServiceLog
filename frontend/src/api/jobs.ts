@@ -32,6 +32,12 @@ export interface JobInput {
   allowOverlap?: boolean // set after the owner confirms a double booking
 }
 
+// "My day": the business's today and its jobs in time order
+export interface Today {
+  date: string
+  jobs: Job[]
+}
+
 export interface JobTypeOption {
   value: JobType
   label: string
@@ -49,6 +55,7 @@ const json = (method: string, body: object): RequestInit => ({ method, body: JSO
 
 export const jobsApi = {
   types: () => apiFetch<JobTypeOption[]>('/api/job-types'),
+  today: () => apiFetch<Today>('/api/jobs/today'),
   scheduled: (from: string, to: string) => apiFetch<Job[]>(`/api/jobs?from=${from}&to=${to}`),
   upcomingForCustomer: (customerId: number) => apiFetch<Job[]>(`/api/customers/${customerId}/jobs`),
   get: (id: number) => apiFetch<Job>(`/api/jobs/${id}`),

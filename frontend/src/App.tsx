@@ -13,6 +13,7 @@ import { EquipmentFormPage } from './pages/equipment/EquipmentFormPage'
 import { JobDetailPage } from './pages/jobs/JobDetailPage'
 import { JobFormPage } from './pages/jobs/JobFormPage'
 import { JobListPage } from './pages/jobs/JobListPage'
+import { MyDayPage } from './pages/today/MyDayPage'
 import { ServiceRecordDetailPage } from './pages/service/ServiceRecordDetailPage'
 import { ServiceRecordFormPage } from './pages/service/ServiceRecordFormPage'
 
@@ -26,8 +27,8 @@ function App() {
     <Routes>
       {/* Pages that need a login send you to /login */}
       <Route element={loggedIn ? <AppLayout /> : <Navigate to="/login" replace />}>
-        {/* Customers is the home screen until "My day" (S8) exists */}
-        <Route path="/" element={<Navigate to="/customers" replace />} />
+        {/* The home screen: today's jobs */}
+        <Route path="/" element={<MyDayPage />} />
         <Route path="/jobs" element={<JobListPage />} />
         <Route path="/jobs/new" element={<JobFormPage />} />
         <Route path="/jobs/:id" element={<JobDetailPage />} />

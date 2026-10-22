@@ -93,3 +93,14 @@ export function addDays(isoDate: string, days: number): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
+
+// Opens turn-by-turn directions to the address in the phone's maps app
+export function directionsUrl(address: string): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`
+}
+
+// Minutes since midnight for "HH:MM" or "HH:MM:SS"
+export function minutesOfDay(time: string): number {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}

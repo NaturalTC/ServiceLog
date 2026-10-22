@@ -46,6 +46,12 @@ public class JobService {
     }
 
     @Transactional(readOnly = true)
+    public JobDtos.TodayResponse today() {
+        LocalDate today = calendar.today();
+        return new JobDtos.TodayResponse(today, scheduled(today, today));
+    }
+
+    @Transactional(readOnly = true)
     public List<JobResponse> upcomingForCustomer(long customerId) {
         return jobs.findUpcomingForCustomer(customerId, calendar.today()).stream()
                 .map(JobService::toResponse)

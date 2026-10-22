@@ -45,6 +45,12 @@ public class JobController {
         return jobService.scheduled(from, to);
     }
 
+    // The home screen: today's scheduled jobs, in time order
+    @GetMapping("/api/jobs/today")
+    public JobDtos.TodayResponse today() {
+        return jobService.today();
+    }
+
     @GetMapping("/api/customers/{customerId}/jobs")
     public List<JobResponse> upcomingForCustomer(@PathVariable long customerId) {
         return jobService.upcomingForCustomer(customerId);

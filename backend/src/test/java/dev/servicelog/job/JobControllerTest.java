@@ -239,6 +239,36 @@ class JobControllerTest {
     }
 
     @Test
+    void today_returnsTodaysJobsInTimeOrder_withTheBusinessDate() throws Exception {
+        LocalDate today = LocalDate.now(ZoneId.of("America/New_York"));
+        long afternoon = create(job(oakStreet, today.toString(), "14:00", 60));
+        long morning = create(job(elmStreet, today.toString(), "08:00", 60));
+        create(job(oakStreet, today.plusDays(1).toString(), "07:00", 60)); // tomorrow
+        long cancelled = create(job(elmStreet, today.toString(), "10:00", 60));
+        send(post("/api/jobs/" + cancelled + "/cancel"), "").andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/jobs/today").header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.date").value(today.toString()))
+                .andExpect(jsonPath("$.jobs", hasSize(2)))
+                .andExpect(jsonPath("$.jobs[0].id").value(morning))
+                .andExpect(jsonPath("$.jobs[1].id").value(afternoon))
+                .andExpect(jsonPath("$.jobs[0].customerPhone").value("+14135551234"));
+    }
+
+    @Test
+    void today_withNothingScheduled_returnsAnEmptyList() throws Exception {
+        mockMvc.perform(get("/api/jobs/today").header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.jobs", hasSize(0)));
+    }
+
+    @Test
+    void today_requiresLogin() throws Exception {
+        mockMvc.perform(get("/api/jobs/today")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void list_rejectsBackwardsOrHugeRanges() throws Exception {
         mockMvc.perform(get("/api/jobs").param("from", "2030-01-15").param("to", "2030-01-10")
                 .header("Authorization", bearer)).andExpect(status().isBadRequest());

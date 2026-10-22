@@ -8,10 +8,13 @@ export function AppLayout() {
   return (
     <>
       <header className="app-header">
-        <NavLink to="/customers" className="brand">
+        <NavLink to="/" className="brand">
           ServiceLog
         </NavLink>
         <nav>
+          <NavLink to="/" end>
+            Today
+          </NavLink>
           <NavLink to="/jobs">Jobs</NavLink>
           <NavLink to="/customers">Customers</NavLink>
           <button type="button" className="link-button" onClick={logout}>

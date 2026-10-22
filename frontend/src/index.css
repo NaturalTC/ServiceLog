@@ -636,3 +636,74 @@ label.option {
 .overlap button {
   width: 100%;
 }
+
+/* --- My day --- */
+.no-margin {
+  margin: 0;
+}
+
+.empty-day {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.day-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.day-job {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.day-job.highlighted {
+  border: 2px solid var(--accent);
+}
+
+/* Jobs already over fade back so the rest of the day stands out */
+.day-job.finished {
+  opacity: 0.6;
+}
+
+.day-job-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.day-job .customer {
+  font-size: 1.15rem;
+}
+
+.day-job .tags {
+  display: flex;
+  gap: 6px;
+}
+
+.badge.now {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+/* Big thumb-sized buttons, side by side */
+.day-job-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.day-job-actions .button {
+  white-space: normal;
+  text-align: center;
+}
