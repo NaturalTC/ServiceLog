@@ -3,6 +3,7 @@ package dev.servicelog.exception;
 import dev.servicelog.auth.EmailNotVerifiedException;
 import dev.servicelog.auth.InvalidCredentialsException;
 import dev.servicelog.auth.InvalidTokenException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -41,6 +42,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidRequest(InvalidRequestException ex) {
         return build(HttpStatus.BAD_REQUEST, "VALIDATION", ex.getMessage());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex) {
+        return build(HttpStatus.CONFLICT, "CONFLICT", ex.getMessage());
+    }
+
+    // Backstop for the database's own constraints (e.g. two saves of the same serial number
+    // at the same moment, which the service-level check can't see)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        return build(HttpStatus.CONFLICT, "CONFLICT", "This change conflicts with data that already exists.");
     }
 
     // Malformed JSON or wrong types (e.g. text where a number belongs)

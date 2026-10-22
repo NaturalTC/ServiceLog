@@ -3,6 +3,7 @@ package dev.servicelog.customer;
 import dev.servicelog.customer.CustomerDtos.CustomerRequest;
 import dev.servicelog.customer.CustomerDtos.CustomerResponse;
 import dev.servicelog.customer.CustomerDtos.PropertyRequest;
+import dev.servicelog.exception.ConflictException;
 import dev.servicelog.exception.InvalidRequestException;
 import dev.servicelog.exception.NotFoundException;
 import org.springframework.data.domain.PageRequest;
@@ -25,9 +26,11 @@ public class CustomerService {
     static final int MAX_SEARCH_RESULTS = 50;
 
     private final CustomerRepository customers;
+    private final PropertyRepository properties;
 
-    public CustomerService(CustomerRepository customers) {
+    public CustomerService(CustomerRepository customers, PropertyRepository properties) {
         this.customers = customers;
+        this.properties = properties;
     }
 
     @Transactional(readOnly = true)
@@ -89,10 +92,15 @@ public class CustomerService {
                 kept.add(p.id());
             }
         }
-        existing.values().stream()
+        List<Property> removed = existing.values().stream()
                 .filter(property -> !kept.contains(property.getId()))
-                .toList()
-                .forEach(customer::removeProperty);
+                .toList();
+        // An address with equipment can't be dropped: its equipment and service history would go with it
+        if (!removed.isEmpty() && properties.anyHaveEquipment(removed.stream().map(Property::getId).toList())) {
+            throw new ConflictException(
+                    "An address you removed has equipment recorded. Remove or move the equipment first.");
+        }
+        removed.forEach(customer::removeProperty);
 
         return CustomerResponse.from(customers.saveAndFlush(customer));
     }

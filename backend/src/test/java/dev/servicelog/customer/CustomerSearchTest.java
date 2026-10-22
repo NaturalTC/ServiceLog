@@ -3,11 +3,13 @@ package dev.servicelog.customer;
 import dev.servicelog.auth.AppUser;
 import dev.servicelog.auth.AppUserRepository;
 import dev.servicelog.security.JwtService;
+import dev.servicelog.support.DatabaseCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -43,6 +45,9 @@ class CustomerSearchTest {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private JdbcTemplate jdbc;
+
     @MockitoBean
     private JavaMailSender mailSender;
 
@@ -50,8 +55,7 @@ class CustomerSearchTest {
 
     @BeforeEach
     void setUp() {
-        customers.deleteAll();
-        users.deleteAll();
+        DatabaseCleaner.reset(jdbc);
         AppUser owner = new AppUser("owner@example.com", "not-used-in-these-tests");
         owner.markEmailVerified();
         users.save(owner);

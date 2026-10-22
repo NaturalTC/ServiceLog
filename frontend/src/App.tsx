@@ -8,6 +8,8 @@ import { VerifyEmailPage } from './pages/VerifyEmailPage'
 import { CustomerDetailPage } from './pages/customers/CustomerDetailPage'
 import { CustomerFormPage } from './pages/customers/CustomerFormPage'
 import { CustomerListPage } from './pages/customers/CustomerListPage'
+import { EquipmentDetailPage } from './pages/equipment/EquipmentDetailPage'
+import { EquipmentFormPage } from './pages/equipment/EquipmentFormPage'
 
 function App() {
   const { status } = useAuth()
@@ -25,6 +27,9 @@ function App() {
         <Route path="/customers/new" element={<CustomerFormPage />} />
         <Route path="/customers/:id" element={<CustomerDetailPage />} />
         <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
+        <Route path="/properties/:propertyId/equipment/new" element={<EquipmentFormPage />} />
+        <Route path="/equipment/:id" element={<EquipmentDetailPage />} />
+        <Route path="/equipment/:id/edit" element={<EquipmentFormPage />} />
       </Route>
 
       <Route path="/login" element={loggedIn ? <Navigate to="/" replace /> : <LoginPage />} />
