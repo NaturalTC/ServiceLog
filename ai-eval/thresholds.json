@@ -1,0 +1,11 @@
+{
+  "_why": "Agreed bar for the AI service-note feature (S13). See docs/AI-EVALUATION.md for the reasoning. Precision bars are higher than recall bars: a missed part is an inconvenience the owner fixes in the form, an invented one is a false service record.",
+  "kind_accuracy": 0.90,
+  "follow_up_accuracy": 0.90,
+  "parts_precision": 0.95,
+  "parts_recall": 0.90,
+  "readings_precision": 0.95,
+  "readings_recall": 0.85,
+  "work_done_term_recall": 0.80,
+  "follow_up_note_term_recall": 0.75
+}

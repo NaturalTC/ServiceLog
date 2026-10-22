@@ -23,11 +23,13 @@ backend/src/main/java/dev/servicelog/
 ├── equipment/       equipment at a property (types, serial numbers)
 ├── servicerecord/   service visits on a piece of equipment, service history
 ├── job/             scheduling, rescheduling, double-booking check
+├── tuneup/          tune-up due list, reminder emails, unsubscribe
 ├── security/        JWT filter and Spring Security configuration (shared)
 ├── config/          app-wide beans: clock, async email, business time zone (shared)
 └── exception/       shared exceptions and the JSON error handler
 backend/src/main/resources/db/migration/   Flyway migrations (V1, V2, ...)
 scripts/seed-demo-data.py                  fills an empty database with fake demo data
+ai-eval/                                   test set and scorer for the AI service-note feature
 frontend/scripts/                          app icons and landing-page screenshots
 frontend/src/
 ├── api/             typed API clients, one per feature
@@ -99,6 +101,11 @@ python3 scripts/seed-demo-data.py --url http://localhost:8082 --email demo@examp
 The landing-page screenshots come from that data via `frontend/scripts/capture-screenshots.mjs`
 (Playwright; instructions at the top of the file). Point a dev server at another backend with
 `API_TARGET=http://localhost:8082 npm run dev`.
+
+## AI evaluation
+Before the AI service-note feature ships, it must clear a measured accuracy bar on 36
+synthetic service notes, including traps such as parts mentioned but not used. See
+[docs/AI-EVALUATION.md](docs/AI-EVALUATION.md).
 
 ## Tests
 ```bash

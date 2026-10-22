@@ -13,3 +13,6 @@ frontend/dist/
 .vscode/
 .DS_Store
 settings.local.json
+
+# Python
+__pycache__/

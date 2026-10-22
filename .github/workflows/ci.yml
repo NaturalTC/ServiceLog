@@ -49,6 +49,21 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+  ai-eval:
+    # Tests for the AI evaluation scorer, plus the keyword baseline as a smoke test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-eval
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v
+      - run: python evaluate.py --baseline
   docker:
     # Builds both production images, so a broken Dockerfile shows up before deploy day
     runs-on: ubuntu-latest

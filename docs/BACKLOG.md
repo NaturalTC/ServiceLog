@@ -133,9 +133,9 @@ than estimated. Re-plan every sprint from actual velocity.
   service record), with prompts that include only the context the task needs.
 - **Human in the loop:** AI only drafts. The owner reviews and confirms every record and
   every customer message before it is saved or sent.
-- **Measure before shipping (S14):** a fixed evaluation set of synthetic notes, with
-  field-level accuracy (work done, parts, readings, follow-up) tracked in CI or a script.
-  Ship when accuracy meets an agreed threshold; re-run the set on every prompt change.
+- **Measure before shipping (S14, done):** 36 synthetic notes with traps, field-level
+  scoring with hallucinated parts counted separately, and an agreed bar enforced by
+  `ai-eval/evaluate.py --check`. See [AI-EVALUATION.md](AI-EVALUATION.md).
 - **Privacy:** never send customer names, addresses or phone numbers to the AI provider;
   send only the note text and equipment details. The owner agrees to this before S13 ships.
 - **Cost guardrails:** cap requests per day; log token usage.
