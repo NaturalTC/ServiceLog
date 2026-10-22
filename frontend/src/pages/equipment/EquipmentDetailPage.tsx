@@ -43,6 +43,12 @@ export function EquipmentDetailPage() {
         <Link to={`/customers/${customerId}`}>{customerName}</Link> · {address}
       </p>
 
+      <div className="actions">
+        <Link to={`/equipment/${e.id}/service-records/new`} className="button">
+          + Add service record
+        </Link>
+      </div>
+
       <dl className="details">
         <dt>Brand and model</dt>
         <dd>{makeModel || <span className="muted">Not recorded</span>}</dd>

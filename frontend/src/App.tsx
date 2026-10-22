@@ -10,6 +10,8 @@ import { CustomerFormPage } from './pages/customers/CustomerFormPage'
 import { CustomerListPage } from './pages/customers/CustomerListPage'
 import { EquipmentDetailPage } from './pages/equipment/EquipmentDetailPage'
 import { EquipmentFormPage } from './pages/equipment/EquipmentFormPage'
+import { ServiceRecordDetailPage } from './pages/service/ServiceRecordDetailPage'
+import { ServiceRecordFormPage } from './pages/service/ServiceRecordFormPage'
 
 function App() {
   const { status } = useAuth()
@@ -30,6 +32,9 @@ function App() {
         <Route path="/properties/:propertyId/equipment/new" element={<EquipmentFormPage />} />
         <Route path="/equipment/:id" element={<EquipmentDetailPage />} />
         <Route path="/equipment/:id/edit" element={<EquipmentFormPage />} />
+        <Route path="/equipment/:equipmentId/service-records/new" element={<ServiceRecordFormPage />} />
+        <Route path="/service-records/:id" element={<ServiceRecordDetailPage />} />
+        <Route path="/service-records/:id/edit" element={<ServiceRecordFormPage />} />
       </Route>
 
       <Route path="/login" element={loggedIn ? <Navigate to="/" replace /> : <LoginPage />} />
