@@ -28,3 +28,4 @@ plan, Definition of Done and AI approach are in **[BACKLOG.md](BACKLOG.md)**.
 | Iteration 1 (sprints 1-4) | Customer & equipment log, My Day, tune-up reminders, AI service notes, deployed |
 | Trial | One month of real use by the owner; results measured |
 | Iteration 2+ | Push notifications, automatic reminders, offline mode, photos, more AI |
+| Beyond v1 | Quotes and invoices with QuickBooks sync, AI assistant, growth features: see [VISION.md](VISION.md) |

@@ -6,7 +6,8 @@ ServiceLog is a mobile-first field service management app built with and for a
 solo HVAC technician: today's jobs at a glance, each customer's equipment and service
 history on site, and automatic seasonal tune-up reminders to past customers.
 
-**Status:** early development. See the [project plan](docs/PLAN.md) and [backlog](docs/BACKLOG.md).
+**Status:** early development. See the [project plan](docs/PLAN.md), [backlog](docs/BACKLOG.md) and
+[product vision](docs/VISION.md).
 
 ## Stack
 React + TypeScript (Vite, PWA) · Spring Boot (Java 21) · PostgreSQL + Flyway ·

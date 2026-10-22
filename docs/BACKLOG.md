@@ -48,6 +48,13 @@
 | E4 | AI assistance | Less typing in the field; smarter follow-ups |
 | E5 | Field-ready app | Installable, works offline, secure |
 | E6 | Deploy & trial | Real usage and measurable results |
+| E7 | Quotes & invoices (v2) | Get paid faster; syncs with QuickBooks instead of replacing it |
+| E8 | AI assistant (v3) | Job plans and quote drafts from a description and photos |
+| E9 | Growth (v4) | Customer intake link, price lookup, directory, income and expenses |
+| E10 | Free trade calculators | Small public tools: useful on their own and good for the landing page |
+
+E7-E10 are the longer-term direction in [VISION.md](VISION.md). They don't have detailed stories
+yet; those get written when a phase starts, from what the owner says he needs.
 
 ---
 
@@ -92,9 +99,15 @@
 | S26 | As the owner, I'm reminded when an estimate is about 4 months old so I can re-price it before the customer accepts. | E3 | 3 |
 | S27 | As the owner, I can track stock of my most-used install materials and see what's running low. | E1 | 5 |
 
+### Later phases (see VISION.md)
+- **E7 (v2):** quotes and PDF invoices built from service records, synced with QuickBooks
+  (the owner already uses it for billing, so we connect to it rather than replace it).
+- **E8 (v3):** AI job planning, photo analysis and AI-drafted quotes, reviewed before sending.
+- **E9 (v4):** customer intake link, material price lookup, directory listing, income and expenses.
+- **E10 (any time):** public calculators (HVAC sizing estimate, hourly rate, profit margin, markup).
+
 ### Won't have (for now)
-Invoices, payments and customer billing (the owner already uses QuickBooks for these),
-payroll and employees (he now works alone), text-message reminders, dispatch.
+Payroll and employees (the owner works alone), text-message reminders, dispatch.
 Revisit only if the owner asks.
 
 ---
