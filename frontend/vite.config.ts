@@ -37,7 +37,8 @@ export default defineConfig({
       workbox: {
         // Cache only the app's own files. API responses (customer data) are never cached;
         // working offline is a separate story (S21).
-        globPatterns: ['**/*.{js,css,html,png,webp,svg,ico,webmanifest}'],
+        // Only the Latin font file: the other alphabets load on demand if ever needed
+        globPatterns: ['**/*.{js,css,html,png,webp,svg,ico,webmanifest}', 'assets/inter-latin-wght-normal-*.woff2'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/actuator\//],
         runtimeCaching: [],

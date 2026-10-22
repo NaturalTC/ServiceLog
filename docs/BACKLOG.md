@@ -99,6 +99,14 @@ yet; those get written when a phase starts, from what the owner says he needs.
 | S26 | As the owner, I'm reminded when an estimate is about 4 months old so I can re-price it before the customer accepts. | E3 | 3 |
 | S27 | As the owner, I can track stock of my most-used install materials and see what's running low. | E1 | 5 |
 
+### UI polish (sprint 5, before the trial)
+| ID | Story | Epic | Pts |
+|---|---|---|---|
+| S28 | As the owner, every screen looks clean and consistent (one design system, light and dark). | E5 | 3 |
+| S29 | As the owner, navigation feels like a phone app (tab icons, slim header, safe areas). | E5 | 2 |
+| S30 | As the owner, every screen uses the new look, with the most important thing first. | E5 | 5 |
+| S31 | As a visitor, the landing page matches the app and shows current screenshots. | E5 | 3 |
+
 ### Later phases (see VISION.md)
 - **E7 (v2):** quotes and PDF invoices built from service records, synced with QuickBooks
   (the owner already uses it for billing, so we connect to it rather than replace it).
@@ -121,6 +129,7 @@ Revisit only if the owner asks.
 | 3 | "Customers come back for tune-ups" | S10, S11, S12, S16 | 17 |
 | (3 or 4, if capacity) | Warranty tracking | S24 | 3 |
 | 4 | "Less typing in the field" (AI) | S14, S13 | 13 |
+| 5 | "Looks like a real product": UI polish before the trial | S28, S29, S30, S31 | 13 |
 | - | **Trial starts:** owner uses it on real jobs for a month | | |
 
 Sprint 2 is light on purpose: S8 is the first real mobile UI and is likely to take longer
