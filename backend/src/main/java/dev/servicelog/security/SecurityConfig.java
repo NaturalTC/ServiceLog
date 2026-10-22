@@ -1,6 +1,7 @@
 package dev.servicelog.security;
 
 import dev.servicelog.sync.IdempotencyFilter;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -48,6 +49,9 @@ public class SecurityConfig {
                                 "/api/auth/reset-password",
                                 "/api/unsubscribe").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        // Spring's error page (e.g. a 404 for an unknown path). The original request was already
+                        // checked; without this, a logged-in 404 came back as 401 and the app logged the owner out
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         // Photo files: signed, expiring links instead of the login token (see PhotoLinks)
                         .requestMatchers(HttpMethod.GET, "/api/photos/*/full", "/api/photos/*/thumb").permitAll()
                         .anyRequest().authenticated())
