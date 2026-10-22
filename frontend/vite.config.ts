@@ -1,14 +1,52 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
+
+const backend = {
+  '/api': 'http://localhost:8080',
+  '/actuator': 'http://localhost:8080',
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Makes the app installable on a phone's home screen (web app manifest + service worker)
+    VitePWA({
+      registerType: 'autoUpdate', // a new version takes over on the next app open
+      includeAssets: ['icons/apple-touch-icon.png', 'icons/favicon-32.png'],
+      manifest: {
+        name: 'ServiceLog',
+        short_name: 'ServiceLog',
+        description: 'HVAC service history and tune-up reminders for one-person shops.',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone', // full screen, no browser bar
+        orientation: 'portrait',
+        background_color: '#ffffff',
+        theme_color: '#0b57d0',
+        icons: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        // Cache only the app's own files. API responses (customer data) are never cached;
+        // working offline is a separate story (S21).
+        globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/actuator\//],
+        runtimeCaching: [],
+      },
+    }),
+  ],
   server: {
     // Forward API calls to Spring Boot during development
-    proxy: {
-      '/api': 'http://localhost:8080',
-      '/actuator': 'http://localhost:8080',
-    },
+    proxy: backend,
+  },
+  preview: {
+    // Same for `npm run preview`, which serves the production build (where the service worker runs)
+    proxy: backend,
   },
 })
