@@ -8,9 +8,13 @@
     <meta name="apple-mobile-web-app-title" content="ServiceLog" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#0b57d0" />
+    <!-- Browser bar and status bar blend into the page, light or dark -->
+    <meta name="theme-color" content="#f7f7f8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="description" content="HVAC service history and tune-up reminders for one-person shops." />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover: draw under the notch and home bar; the layout pads itself with safe-area insets -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>ServiceLog</title>
   </head>
   <body>

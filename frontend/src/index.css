@@ -892,19 +892,52 @@ a.day-job-main:hover {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding: 4px 16px;
+  padding: 4px 8px 4px 16px;
   padding-top: max(4px, env(safe-area-inset-top));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(8px, env(safe-area-inset-right));
   /* Solid, not blurred: a backdrop filter here would pin the fixed tab bar inside the header */
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
 .app-header .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
   font-weight: 700;
   font-size: 1.1rem;
   letter-spacing: -0.01em;
   color: var(--text);
   text-decoration: none;
+}
+
+.app-header .brand img {
+  border-radius: 7px;
+}
+
+/* A quiet round button for secondary actions in the header */
+button.icon-button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 10px;
+  gap: 6px;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+button.icon-button:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.wide-only {
+  display: none;
 }
 
 /* Phones: tabs fixed to the bottom of the screen, above the home indicator */
@@ -916,58 +949,115 @@ a.day-job-main:hover {
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  padding: 6px max(4px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(4px, env(safe-area-inset-left));
   background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .tabs a {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   min-height: 56px;
-  font-size: 0.9rem;
+  padding-bottom: 4px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--muted);
   text-decoration: none;
 }
 
+/* The current tab: icon in a soft pill, like a native tab bar */
+.tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 30px;
+  border-radius: 999px;
+  transition: background-color 0.15s;
+}
+
 .tabs a.active {
   color: var(--accent);
-  box-shadow: inset 0 3px 0 var(--accent);
+}
+
+.tabs a.active .tab-icon {
+  background: var(--accent-soft);
 }
 
 /* Room for the tab bar so it never covers the last item or the sticky Save bar */
 .app-content {
-  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
 }
 
 .app-content .sticky-actions {
-  bottom: calc(57px + env(safe-area-inset-bottom));
+  bottom: calc(69px + env(safe-area-inset-bottom));
 }
 
-/* Wide screens: tabs move into the top bar */
+/* Wide screens: one floating bar at the top with the brand, tabs and Log out */
 @media (min-width: 720px) {
+  .app-header {
+    top: 12px;
+    max-width: 960px;
+    margin: 12px auto 0;
+    padding: 6px 8px 6px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+  }
+
   .tabs {
     position: static;
     display: flex;
-    gap: 4px;
-    border-top: none;
-    padding-bottom: 0;
+    gap: 2px;
+    padding: 0;
     background: transparent;
     backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-top: none;
   }
 
   .tabs a {
-    min-height: 44px;
-    padding: 0 12px;
-    font-size: 1rem;
+    flex-direction: row;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .tabs a:hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  .tab-icon {
+    width: auto;
+    height: auto;
+  }
+
+  .tab-icon svg {
+    width: 18px;
+    height: 18px;
   }
 
   .tabs a.active {
-    box-shadow: inset 0 -3px 0 var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+
+  .tabs a.active .tab-icon {
+    background: none;
+  }
+
+  .wide-only {
+    display: inline;
   }
 
   .app-content {

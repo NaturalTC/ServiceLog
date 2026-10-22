@@ -1,28 +1,45 @@
+import { BriefcaseBusiness, CalendarCheck, LogOut, Users, Wrench } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
 import { useAuth } from '../auth/authContext'
 
 // Shown on every page after login: a slim top bar, and a tab bar at the bottom of the
 // screen where a thumb can reach it (like a native phone app). On wide screens the tabs
-// sit in the top bar instead.
+// sit in a floating bar at the top instead.
+const TABS = [
+  { to: '/', label: 'Today', icon: CalendarCheck, end: true },
+  { to: '/jobs', label: 'Jobs', icon: BriefcaseBusiness, end: false },
+  { to: '/tune-ups', label: 'Tune-ups', icon: Wrench, end: false },
+  { to: '/customers', label: 'Customers', icon: Users, end: false },
+]
+
 export function AppLayout() {
   const { logout } = useAuth()
+
+  // Out of the way in the corner, and confirmed, so it's never tapped by accident on a job
+  function confirmLogout() {
+    if (window.confirm('Log out of ServiceLog?')) logout()
+  }
 
   return (
     <>
       <header className="app-header">
         <NavLink to="/" className="brand">
+          <img src="/icons/favicon-32.png" alt="" width="24" height="24" />
           ServiceLog
         </NavLink>
         <nav className="tabs" aria-label="Main">
-          <NavLink to="/" end>
-            Today
-          </NavLink>
-          <NavLink to="/jobs">Jobs</NavLink>
-          <NavLink to="/tune-ups">Tune-ups</NavLink>
-          <NavLink to="/customers">Customers</NavLink>
+          {TABS.map(({ to, label, icon: Icon, end }) => (
+            <NavLink key={to} to={to} end={end}>
+              <span className="tab-icon">
+                <Icon size={22} strokeWidth={2} aria-hidden="true" />
+              </span>
+              {label}
+            </NavLink>
+          ))}
         </nav>
-        <button type="button" className="link-button" onClick={logout}>
-          Log out
+        <button type="button" className="icon-button" onClick={confirmLogout} aria-label="Log out">
+          <LogOut size={20} aria-hidden="true" />
+          <span className="wide-only">Log out</span>
         </button>
       </header>
       <div className="app-content">
