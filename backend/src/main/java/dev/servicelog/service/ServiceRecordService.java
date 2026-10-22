@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class ServiceRecordService {
@@ -35,6 +36,17 @@ public class ServiceRecordService {
                 request.kind(), request.workDone().trim(), clean(request.partsUsed()), clean(request.notes()),
                 request.needsFollowUp(), clean(request.followUpNote())));
         return detail(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ServiceRecordResponse> history(long equipmentId) {
+        // 404 for a unit that doesn't exist, rather than an empty history
+        if (!equipment.existsById(equipmentId)) {
+            throw new NotFoundException("Equipment not found");
+        }
+        return records.findByEquipmentIdOrderByServiceDateDescIdDesc(equipmentId).stream()
+                .map(ServiceRecordResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)

@@ -204,6 +204,52 @@ class ServiceRecordControllerTest {
         send(put("/api/service-records/999999"), TUNE_UP).andExpect(status().isNotFound());
     }
 
+    @Test
+    void history_listsNewestFirst_withSameDayVisitsLatestFirst() throws Exception {
+        long oldest = create(record("2024-10-05", "TUNE_UP", "2024 tune-up"));
+        long newest = create(record("2026-10-01", "REPAIR", "Replaced igniter"));
+        long sameDayEarlier = create(record("2025-10-03", "TUNE_UP", "2025 tune-up"));
+        long sameDayLater = create(record("2025-10-03", "REPAIR", "Came back same day: pump"));
+
+        mockMvc.perform(get("/api/equipment/" + burner.getId() + "/service-records").header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[0].id").value(newest))
+                .andExpect(jsonPath("$[1].id").value(sameDayLater))
+                .andExpect(jsonPath("$[2].id").value(sameDayEarlier))
+                .andExpect(jsonPath("$[3].id").value(oldest))
+                .andExpect(jsonPath("$[0].kindLabel").value("Repair"));
+    }
+
+    @Test
+    void history_onlyIncludesThisUnitsRecords() throws Exception {
+        create(TUNE_UP);
+        Equipment otherUnit = equipmentRepository.save(new Equipment(smith.getProperties().get(0),
+                EquipmentType.WATER_HEATER, null, null, null, null, null));
+
+        mockMvc.perform(get("/api/equipment/" + otherUnit.getId() + "/service-records").header("Authorization", bearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void history_forUnknownEquipment_returns404() throws Exception {
+        mockMvc.perform(get("/api/equipment/999999/service-records").header("Authorization", bearer))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void history_requiresLogin() throws Exception {
+        mockMvc.perform(get("/api/equipment/" + burner.getId() + "/service-records"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private static String record(String date, String kind, String workDone) {
+        return """
+                {"serviceDate": "%s", "kind": "%s", "workDone": "%s"}
+                """.formatted(date, kind, workDone);
+    }
+
     private long create(String json) throws Exception {
         String body = send(post("/api/equipment/" + burner.getId() + "/service-records"), json)
                 .andExpect(status().isCreated())

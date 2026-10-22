@@ -55,3 +55,17 @@ export function formatDate(isoDate: string): string {
     year: 'numeric',
   })
 }
+
+// "2026-10-21" -> "today", "yesterday", "12 days ago", "3 months ago", "2 years ago"
+export function daysAgo(isoDate: string, today = new Date()): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  const then = new Date(year, month - 1, day)
+  const now = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const days = Math.round((now.getTime() - then.getTime()) / 86_400_000)
+  if (days <= 0) return 'today'
+  if (days === 1) return 'yesterday'
+  if (days < 60) return `${days} days ago`
+  const months = Math.floor(days / 30.44)
+  if (months < 24) return `${months} months ago`
+  return `${Math.floor(days / 365.25)} years ago`
+}

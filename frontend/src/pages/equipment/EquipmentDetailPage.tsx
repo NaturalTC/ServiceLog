@@ -2,17 +2,21 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { equipmentApi, type EquipmentDetail } from '../../api/equipment'
-import { formatInstallDate } from '../../lib/format'
+import { serviceRecordsApi, type ServiceRecord } from '../../api/serviceRecords'
+import { daysAgo, formatDate, formatInstallDate } from '../../lib/format'
 
 export function EquipmentDetailPage() {
   const id = Number(useParams().id)
   const [detail, setDetail] = useState<EquipmentDetail | null>(null)
+  const [history, setHistory] = useState<ServiceRecord[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    equipmentApi
-      .get(id)
-      .then(setDetail)
+    Promise.all([equipmentApi.get(id), serviceRecordsApi.history(id)])
+      .then(([d, h]) => {
+        setDetail(d)
+        setHistory(h)
+      })
       .catch((err) => setError(errorMessage(err)))
   }, [id])
 
@@ -30,6 +34,9 @@ export function EquipmentDetailPage() {
 
   const { equipment: e, customerId, customerName, address } = detail
   const makeModel = [e.brand, e.model].filter(Boolean).join(' ')
+  // History comes back newest first, so the first entry is the last visit
+  const lastService = history[0]
+  const lastTuneUp = history.find((r) => r.kind === 'TUNE_UP')
 
   return (
     <main>
@@ -42,6 +49,20 @@ export function EquipmentDetailPage() {
       <p className="muted">
         <Link to={`/customers/${customerId}`}>{customerName}</Link> · {address}
       </p>
+
+      {/* What the owner wants to know first on site: when was this last looked at? */}
+      <div className="summary">
+        <div>
+          <span className="muted">Last service</span>
+          <strong>{lastService ? formatDate(lastService.serviceDate) : 'Never recorded'}</strong>
+          {lastService && <span className="muted">{daysAgo(lastService.serviceDate)}</span>}
+        </div>
+        <div>
+          <span className="muted">Last tune-up</span>
+          <strong>{lastTuneUp ? formatDate(lastTuneUp.serviceDate) : 'Never recorded'}</strong>
+          {lastTuneUp && <span className="muted">{daysAgo(lastTuneUp.serviceDate)}</span>}
+        </div>
+      </div>
 
       <div className="actions">
         <Link to={`/equipment/${e.id}/service-records/new`} className="button">
@@ -63,6 +84,25 @@ export function EquipmentDetailPage() {
           </>
         )}
       </dl>
+
+      <h2>Service history</h2>
+      {history.length === 0 && <p className="empty">No service recorded yet.</p>}
+      <ul className="card-list">
+        {history.map((r) => (
+          <li key={r.id}>
+            <Link to={`/service-records/${r.id}`} className="card">
+              <span className="card-row">
+                <strong>{formatDate(r.serviceDate)}</strong>
+                <span className="badge">{r.kindLabel}</span>
+              </span>
+              <span className="clamp">{r.workDone}</span>
+              {r.followUpNeeded && (
+                <span className="follow-up-tag">Follow-up needed{r.followUpNote ? `: ${r.followUpNote}` : ''}</span>
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
 
       <p className="links">
         <Link to={`/customers/${customerId}`}>Back to {customerName}</Link>

@@ -43,6 +43,8 @@ const json = (method: string, body: object): RequestInit => ({ method, body: JSO
 
 export const serviceRecordsApi = {
   kinds: () => apiFetch<ServiceKindOption[]>('/api/service-kinds'),
+  // A unit's full history, newest first
+  history: (equipmentId: number) => apiFetch<ServiceRecord[]>(`/api/equipment/${equipmentId}/service-records`),
   get: (id: number) => apiFetch<ServiceRecordDetail>(`/api/service-records/${id}`),
   create: (equipmentId: number, input: ServiceRecordInput) =>
     apiFetch<ServiceRecordDetail>(`/api/equipment/${equipmentId}/service-records`, json('POST', input)),

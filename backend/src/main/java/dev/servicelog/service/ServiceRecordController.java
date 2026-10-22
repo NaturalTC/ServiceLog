@@ -3,6 +3,7 @@ package dev.servicelog.service;
 import dev.servicelog.service.ServiceRecordDtos.ServiceKindOption;
 import dev.servicelog.service.ServiceRecordDtos.ServiceRecordDetailResponse;
 import dev.servicelog.service.ServiceRecordDtos.ServiceRecordRequest;
+import dev.servicelog.service.ServiceRecordDtos.ServiceRecordResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,12 @@ public class ServiceRecordController {
     public ServiceRecordDetailResponse create(@PathVariable long equipmentId,
                                               @Valid @RequestBody ServiceRecordRequest request) {
         return serviceRecords.create(equipmentId, request);
+    }
+
+    // A unit's full service history, newest first
+    @GetMapping("/api/equipment/{equipmentId}/service-records")
+    public List<ServiceRecordResponse> history(@PathVariable long equipmentId) {
+        return serviceRecords.history(equipmentId);
     }
 
     @GetMapping("/api/service-records/{id}")
