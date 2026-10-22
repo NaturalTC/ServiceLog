@@ -148,55 +148,6 @@ a {
   padding: 12px 8px;
 }
 
-/* --- App shell --- */
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-
-.app-header .brand {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--text);
-  text-decoration: none;
-}
-
-.app-header nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.app-header nav a,
-.link-button {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 10px;
-  color: var(--accent);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.app-header nav a.active {
-  text-decoration: underline;
-}
-
-button.link-button {
-  background: none;
-  border: none;
-  min-height: 44px;
-  font-size: 1rem;
-}
-
 /* --- Pages --- */
 .page-title {
   display: flex;
@@ -273,7 +224,8 @@ a.button.secondary {
   font-size: 0.9rem;
 }
 
-.card a {
+/* Plain text links in cards get a bigger tap area; button-style links keep their own padding */
+.card a:not(.button) {
   align-self: flex-start;
   padding: 8px 0;
 }
@@ -704,7 +656,7 @@ label.option {
 }
 
 .day-job-actions .button {
-  white-space: normal;
+  white-space: nowrap;
   text-align: center;
 }
 
@@ -733,25 +685,294 @@ label.option input[type='checkbox'] {
   flex-shrink: 0;
 }
 
-/* --- Navigation: five items have to fit on a phone --- */
-.app-header {
-  flex-wrap: wrap;
-}
-
-.app-header nav {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-@media (max-width: 420px) {
-  .app-header nav a,
-  .link-button {
-    padding: 0 6px;
-    font-size: 0.95rem;
-  }
-}
-
 .center-self {
   align-self: center;
   padding: 0 8px;
+}
+
+/* --- App shell: top bar + bottom tab bar on phones --- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px;
+  padding-top: max(4px, env(safe-area-inset-top));
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-header .brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+button.link-button {
+  background: none;
+  border: none;
+  font-size: 1rem;
+}
+
+/* Phones: tabs fixed to the bottom of the screen, above the home indicator */
+.tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tabs a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.tabs a.active {
+  color: var(--accent);
+  box-shadow: inset 0 3px 0 var(--accent);
+}
+
+/* Room for the tab bar so it never covers the last item or the sticky Save bar */
+.app-content {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
+.app-content .sticky-actions {
+  bottom: calc(57px + env(safe-area-inset-bottom));
+}
+
+/* Wide screens: tabs move into the top bar */
+@media (min-width: 720px) {
+  .tabs {
+    position: static;
+    display: flex;
+    gap: 4px;
+    border-top: none;
+    padding-bottom: 0;
+    background: transparent;
+  }
+
+  .tabs a {
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 1rem;
+  }
+
+  .tabs a.active {
+    box-shadow: inset 0 -3px 0 var(--accent);
+  }
+
+  .app-content {
+    padding-bottom: 0;
+  }
+
+  .app-content .sticky-actions {
+    bottom: 0;
+  }
+}
+
+/* --- Landing page --- */
+.landing {
+  --landing-max: 1080px;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+    var(--bg);
+}
+
+.landing > * {
+  max-width: var(--landing-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.landing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.landing-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.landing-brand img {
+  border-radius: 7px;
+}
+
+.landing-hero {
+  text-align: center;
+  padding-top: 40px;
+  padding-bottom: 24px;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px;
+  padding: 6px 14px;
+  margin: 0 0 20px;
+}
+
+.landing-hero h1 {
+  font-size: clamp(2.2rem, 7vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
+}
+
+.landing-hero h1 span {
+  color: var(--accent);
+}
+
+.lead {
+  font-size: clamp(1.05rem, 2.4vw, 1.25rem);
+  color: var(--muted);
+  max-width: 640px;
+  margin: 0 auto 28px;
+}
+
+.landing-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.landing-cta .button {
+  min-width: 160px;
+}
+
+/* Phone mockups: a row on wide screens, a swipeable strip on phones */
+.landing-phones {
+  display: flex;
+  gap: 24px;
+  /* Start at the left edge so every phone can be swiped to; centered only when all fit */
+  justify-content: flex-start;
+  padding-top: 32px;
+  padding-bottom: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.phone {
+  flex: 0 0 auto;
+  width: min(230px, 70vw);
+  margin: 0;
+  padding: 10px;
+  border-radius: 36px;
+  background: #1a1a1a;
+  box-shadow: 0 20px 40px rgb(0 0 0 / 0.18);
+  scroll-snap-align: center;
+}
+
+.phone img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 27px;
+}
+
+@media (min-width: 1040px) {
+  .landing-phones {
+    justify-content: center;
+  }
+}
+
+.landing-caption {
+  text-align: center;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.landing-features,
+.landing-built {
+  padding-top: 48px;
+}
+
+.landing-features h2,
+.landing-built h2 {
+  font-size: 1.6rem;
+  text-align: center;
+  margin: 0 0 24px;
+}
+
+.landing-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.landing-features li {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  background: var(--bg);
+}
+
+.landing-features h3 {
+  font-size: 1.1rem;
+  margin: 0 0 6px;
+}
+
+.landing-features p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.landing-built {
+  text-align: center;
+}
+
+.landing-built p {
+  max-width: 620px;
+  margin: 0 auto 20px;
+  color: var(--muted);
+}
+
+.landing-footer {
+  text-align: center;
+  padding-top: 48px;
+  padding-bottom: 32px;
+  font-size: 0.9rem;
 }

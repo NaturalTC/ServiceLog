@@ -1,7 +1,9 @@
 import { NavLink, Outlet } from 'react-router'
 import { useAuth } from '../auth/authContext'
 
-// Header shown on every page after login
+// Shown on every page after login: a slim top bar, and a tab bar at the bottom of the
+// screen where a thumb can reach it (like a native phone app). On wide screens the tabs
+// sit in the top bar instead.
 export function AppLayout() {
   const { logout } = useAuth()
 
@@ -11,19 +13,21 @@ export function AppLayout() {
         <NavLink to="/" className="brand">
           ServiceLog
         </NavLink>
-        <nav>
+        <nav className="tabs" aria-label="Main">
           <NavLink to="/" end>
             Today
           </NavLink>
           <NavLink to="/jobs">Jobs</NavLink>
           <NavLink to="/tune-ups">Tune-ups</NavLink>
           <NavLink to="/customers">Customers</NavLink>
-          <button type="button" className="link-button" onClick={logout}>
-            Log out
-          </button>
         </nav>
+        <button type="button" className="link-button" onClick={logout}>
+          Log out
+        </button>
       </header>
-      <Outlet />
+      <div className="app-content">
+        <Outlet />
+      </div>
     </>
   )
 }

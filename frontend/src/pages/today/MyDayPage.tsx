@@ -157,9 +157,9 @@ export function MyDayPage() {
                   <a
                     href={`tel:${job.customerPhone}`}
                     className="button secondary"
-                    aria-label={`Call ${job.customerName}`}
+                    aria-label={`Call ${job.customerName} at ${formatPhone(job.customerPhone)}`}
                   >
-                    Call {formatPhone(job.customerPhone)}
+                    Call
                   </a>
                   <a
                     href={directionsUrl(job.address)}

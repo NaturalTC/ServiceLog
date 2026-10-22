@@ -2,9 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Where the Spring Boot API runs. Override with API_TARGET, e.g. to point a second dev
+// server at a backend on another port: API_TARGET=http://localhost:8081 npm run dev
+const apiTarget = process.env.API_TARGET ?? 'http://localhost:8080'
 const backend = {
-  '/api': 'http://localhost:8080',
-  '/actuator': 'http://localhost:8080',
+  '/api': apiTarget,
+  '/actuator': apiTarget,
 }
 
 // https://vite.dev/config/
@@ -34,7 +37,7 @@ export default defineConfig({
       workbox: {
         // Cache only the app's own files. API responses (customer data) are never cached;
         // working offline is a separate story (S21).
-        globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,png,webp,svg,ico,webmanifest}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/actuator\//],
         runtimeCaching: [],

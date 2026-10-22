@@ -92,6 +92,8 @@ export function LoginPage() {
       </form>
       <p className="links">
         <Link to="/forgot-password">Forgot password?</Link>
+        <br />
+        <Link to="/">About ServiceLog</Link>
       </p>
     </main>
   )

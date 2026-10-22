@@ -14,6 +14,7 @@ import { FinishJobPage } from './pages/jobs/FinishJobPage'
 import { JobDetailPage } from './pages/jobs/JobDetailPage'
 import { JobFormPage } from './pages/jobs/JobFormPage'
 import { JobListPage } from './pages/jobs/JobListPage'
+import { LandingPage } from './pages/public/LandingPage'
 import { UnsubscribePage } from './pages/public/UnsubscribePage'
 import { MyDayPage } from './pages/today/MyDayPage'
 import { TuneUpsPage } from './pages/tuneups/TuneUpsPage'
@@ -28,10 +29,13 @@ function App() {
 
   return (
     <Routes>
+      {/* "/" is the app's home (My day) when logged in, and the public landing page otherwise */}
+      <Route path="/" element={loggedIn ? <AppLayout /> : <LandingPage />}>
+        <Route index element={<MyDayPage />} />
+      </Route>
+
       {/* Pages that need a login send you to /login */}
       <Route element={loggedIn ? <AppLayout /> : <Navigate to="/login" replace />}>
-        {/* The home screen: today's jobs */}
-        <Route path="/" element={<MyDayPage />} />
         <Route path="/jobs" element={<JobListPage />} />
         <Route path="/jobs/new" element={<JobFormPage />} />
         <Route path="/jobs/:id" element={<JobDetailPage />} />
