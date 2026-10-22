@@ -15,6 +15,7 @@ import { JobDetailPage } from './pages/jobs/JobDetailPage'
 import { JobFormPage } from './pages/jobs/JobFormPage'
 import { JobListPage } from './pages/jobs/JobListPage'
 import { MyDayPage } from './pages/today/MyDayPage'
+import { TuneUpsPage } from './pages/tuneups/TuneUpsPage'
 import { ServiceRecordDetailPage } from './pages/service/ServiceRecordDetailPage'
 import { ServiceRecordFormPage } from './pages/service/ServiceRecordFormPage'
 
@@ -35,6 +36,7 @@ function App() {
         <Route path="/jobs/:id" element={<JobDetailPage />} />
         <Route path="/jobs/:id/edit" element={<JobFormPage />} />
         <Route path="/jobs/:id/finish" element={<FinishJobPage />} />
+        <Route path="/tune-ups" element={<TuneUpsPage />} />
         <Route path="/customers" element={<CustomerListPage />} />
         <Route path="/customers/new" element={<CustomerFormPage />} />
         <Route path="/customers/:id" element={<CustomerDetailPage />} />

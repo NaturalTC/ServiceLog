@@ -732,3 +732,21 @@ label.option input[type='checkbox'] {
   min-height: 0;
   flex-shrink: 0;
 }
+
+/* --- Navigation: five items have to fit on a phone --- */
+.app-header {
+  flex-wrap: wrap;
+}
+
+.app-header nav {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 420px) {
+  .app-header nav a,
+  .link-button {
+    padding: 0 6px;
+    font-size: 0.95rem;
+  }
+}

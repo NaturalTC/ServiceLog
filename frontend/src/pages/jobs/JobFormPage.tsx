@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
@@ -34,13 +34,19 @@ function defaultSlot(): { date: string; startTime: string } {
 export function JobFormPage() {
   const params = useParams()
   const editingId = params.id ? Number(params.id) : null
-  const presetCustomerId = useSearchParams()[0].get('customerId')
+  const [searchParams] = useSearchParams()
+  const presetCustomerId = searchParams.get('customerId')
+  // Optional presets, e.g. from the tune-up list: ?propertyId=12&type=TUNE_UP
+  const presetPropertyId = searchParams.get('propertyId')
+  const presetType = searchParams.get('type') as JobType | null
   const navigate = useNavigate()
 
   const [types, setTypes] = useState<JobTypeOption[]>([])
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [draft, setDraft] = useState<Draft | null>(
-    editingId ? null : { propertyId: null, ...defaultSlot(), durationMinutes: 60, type: '', urgent: false, notes: '' },
+    editingId
+      ? null
+      : { propertyId: null, ...defaultSlot(), durationMinutes: 60, type: presetType ?? '', urgent: false, notes: '' },
   )
   const [conflicts, setConflicts] = useState<Job[] | null>(null)
   const [missing, setMissing] = useState<string[]>([])
@@ -59,11 +65,16 @@ export function JobFormPage() {
       .catch((err) => setServerError(errorMessage(err)))
   }, [])
 
-  const chooseCustomer = (c: Customer) => {
-    setCustomer(c)
-    // One address: pick it automatically
-    setDraft((d) => d && { ...d, propertyId: c.properties.length === 1 ? c.properties[0].id : null })
-  }
+  const chooseCustomer = useCallback(
+    (c: Customer) => {
+      setCustomer(c)
+      // Use the preset address if it's one of theirs; with only one address, pick it automatically
+      const preset = c.properties.find((p) => String(p.id) === presetPropertyId)
+      const propertyId = preset?.id ?? (c.properties.length === 1 ? c.properties[0].id : null)
+      setDraft((d) => d && { ...d, propertyId })
+    },
+    [presetPropertyId],
+  )
 
   useEffect(() => {
     if (editingId || !presetCustomerId) return
@@ -71,7 +82,7 @@ export function JobFormPage() {
       .get(Number(presetCustomerId))
       .then(chooseCustomer)
       .catch((err) => setServerError(errorMessage(err)))
-  }, [editingId, presetCustomerId])
+  }, [editingId, presetCustomerId, chooseCustomer])
 
   useEffect(() => {
     if (!editingId) return
