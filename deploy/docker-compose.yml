@@ -40,6 +40,8 @@ services:
       FRONTEND_URL: https://${DOMAIN:?set DOMAIN in .env}
       BUSINESS_NAME: ${BUSINESS_NAME:-}
       BUSINESS_PHONE: ${BUSINESS_PHONE:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-gpt-5.4-mini}
       # Trust Caddy's X-Forwarded-For, so the login rate limit sees real client addresses
       SERVER_FORWARD_HEADERS_STRATEGY: framework
     # No ports: Caddy forwards /api here

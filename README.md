@@ -24,6 +24,7 @@ backend/src/main/java/dev/servicelog/
 ├── servicerecord/   service visits on a piece of equipment, service history
 ├── job/             scheduling, rescheduling, double-booking check
 ├── tuneup/          tune-up due list, reminder emails, unsubscribe
+├── ai/              AI drafts of service records (OpenAI), privacy redaction, cost limit
 ├── security/        JWT filter and Spring Security configuration (shared)
 ├── config/          app-wide beans: clock, async email, business time zone (shared)
 └── exception/       shared exceptions and the JSON error handler
@@ -102,9 +103,14 @@ The landing-page screenshots come from that data via `frontend/scripts/capture-s
 (Playwright; instructions at the top of the file). Point a dev server at another backend with
 `API_TARGET=http://localhost:8082 npm run dev`.
 
-## AI evaluation
-Before the AI service-note feature ships, it must clear a measured accuracy bar on 36
-synthetic service notes, including traps such as parts mentioned but not used. See
+## AI service notes
+On the service record form, the owner types or dictates what he did ("annual on the burner,
+new nozzle and filter, CO 10") and AI fills in the form for him to check before saving.
+Customer names, addresses, phones and emails are removed before anything is sent, and the
+feature is off unless `OPENAI_API_KEY` is set.
+
+It shipped only after clearing a measured accuracy bar on 36 synthetic notes (with traps
+such as parts mentioned but not used) plus a 12-note holdout set: zero invented parts. See
 [docs/AI-EVALUATION.md](docs/AI-EVALUATION.md).
 
 ## Tests

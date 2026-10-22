@@ -34,6 +34,16 @@ export interface ServiceRecordInput {
   followUpNote: string | null
 }
 
+// An AI draft of a service record from a free-text note (S13); the owner reviews it before saving
+export interface NoteDraft {
+  kind: ServiceKind
+  workDone: string
+  partsUsed: string[]
+  readings: { name: string; value: number; unit: string }[]
+  followUpNeeded: boolean
+  followUpNote: string | null
+}
+
 export interface ServiceKindOption {
   value: ServiceKind
   label: string
@@ -46,6 +56,8 @@ export const serviceRecordsApi = {
   // A unit's full history, newest first
   history: (equipmentId: number) => apiFetch<ServiceRecord[]>(`/api/equipment/${equipmentId}/service-records`),
   get: (id: number) => apiFetch<ServiceRecordDetail>(`/api/service-records/${id}`),
+  draftFromNote: (equipmentId: number, note: string) =>
+    apiFetch<NoteDraft>(`/api/equipment/${equipmentId}/service-records/draft`, json('POST', { note })),
   create: (equipmentId: number, input: ServiceRecordInput) =>
     apiFetch<ServiceRecordDetail>(`/api/equipment/${equipmentId}/service-records`, json('POST', input)),
   update: (id: number, input: ServiceRecordInput) =>

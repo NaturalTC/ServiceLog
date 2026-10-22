@@ -4,6 +4,7 @@ import { errorMessage } from '../../api/client'
 import { equipmentApi } from '../../api/equipment'
 import {
   serviceRecordsApi,
+  type NoteDraft,
   type ServiceKind,
   type ServiceKindOption,
   type ServiceRecordInput,
@@ -25,6 +26,10 @@ interface Draft {
 }
 
 const blankToNull = (s: string) => (s.trim() ? s.trim() : null)
+
+// "CO 12 ppm; Draft -0.02 in wc": readings go in the record's notes
+const formatReadings = (readings: NoteDraft['readings']) =>
+  readings.map((r) => `${r.name} ${r.value}${r.unit ? ` ${r.unit}` : ''}`).join('; ')
 
 export function ServiceRecordFormPage() {
   const params = useParams()
@@ -50,6 +55,10 @@ export function ServiceRecordFormPage() {
         },
   )
   const [workDoneError, setWorkDoneError] = useState(false)
+  // "Fill in with AI": the owner's own words in, a draft of the form out
+  const [quickNote, setQuickNote] = useState('')
+  const [drafting, setDrafting] = useState(false)
+  const [aiMessage, setAiMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [serverError, setServerError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -109,6 +118,31 @@ export function ServiceRecordFormPage() {
     if (field === 'workDone' && String(value).trim()) setWorkDoneError(false)
   }
 
+  // Pre-fills the form from the note. Nothing is saved until the owner checks it and taps Save.
+  async function fillWithAi() {
+    if (!draft || !equipmentId || !quickNote.trim()) return
+    setDrafting(true)
+    setAiMessage(null)
+    try {
+      const ai = await serviceRecordsApi.draftFromNote(equipmentId, quickNote.trim())
+      const readings = formatReadings(ai.readings)
+      setDraft({
+        ...draft,
+        kind: ai.kind,
+        workDone: ai.workDone,
+        partsUsed: ai.partsUsed.join(', '),
+        notes: [readings, draft.notes.trim()].filter(Boolean).join('\n'),
+        followUpNeeded: ai.followUpNeeded,
+        followUpNote: ai.followUpNote ?? '',
+      })
+      setWorkDoneError(false)
+      setAiMessage({ text: 'Filled in by AI. Check every field before saving.', ok: true })
+    } catch (err) {
+      setAiMessage({ text: errorMessage(err), ok: false })
+    }
+    setDrafting(false)
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (!draft) return
@@ -149,6 +183,34 @@ export function ServiceRecordFormPage() {
         </p>
       )}
 
+      {!editingId && (
+        <section className="ai-box" aria-labelledby="ai-title">
+          <h2 id="ai-title">Describe the visit</h2>
+          <p className="muted no-margin">
+            Type or dictate it (tap the microphone on your keyboard) and AI fills in the form below. You check it before
+            saving.
+          </p>
+          <label htmlFor="quick-note" className="visually-hidden">
+            What you did
+          </label>
+          <textarea
+            id="quick-note"
+            rows={3}
+            placeholder="e.g. annual on the burner, new nozzle and filter, CO 10"
+            value={quickNote}
+            onChange={(e) => setQuickNote(e.target.value)}
+          />
+          <button type="button" className="secondary" onClick={fillWithAi} disabled={drafting || !quickNote.trim()}>
+            {drafting ? 'Filling in…' : 'Fill in with AI'}
+          </button>
+          {aiMessage && (
+            <p className={aiMessage.ok ? 'notice no-margin' : 'error no-margin'} role="status">
+              {aiMessage.text}
+            </p>
+          )}
+        </section>
+      )}
+
       <form onSubmit={handleSubmit} noValidate className="customer-form">
         <fieldset className="choice-group">
           <legend>Kind of visit</legend>
@@ -181,7 +243,6 @@ export function ServiceRecordFormPage() {
         <textarea
           id="work-done"
           rows={4}
-          autoFocus={!editingId}
           value={draft.workDone}
           onChange={(e) => set('workDone', e.target.value)}
           aria-invalid={workDoneError}

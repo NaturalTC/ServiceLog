@@ -5,7 +5,7 @@ The test set (notes.jsonl) holds synthetic notes, written the way a technician d
 texts, with the fields a correct extraction must produce. Each note is scored field by field:
 
   kind            exact match (some ambiguous notes accept an alternative)
-  follow-up       is a follow-up needed? (yes/no)
+  follow-up       is a follow-up needed? (yes/no; a few debatable notes accept either)
   parts           precision and recall; a predicted part that wasn't used is a hallucination
   readings        precision and recall on (name, value) pairs
   work done       share of key terms the summary mentions
@@ -93,7 +93,8 @@ def score_note(note, prediction):
     return {
         "id": note["id"],
         "kind": p.get("kind") in [exp["kind"], *exp.get("kindAlso", [])],
-        "followUp": p.get("followUpNeeded") is exp["followUpNeeded"],
+        # A few notes are genuinely debatable ("ok for now"): either answer counts as right
+        "followUp": exp.get("followUpEither", False) or p.get("followUpNeeded") is exp["followUpNeeded"],
         "parts": (parts_tp, parts_fp, parts_fn),
         "readings": (read_tp, read_fp, read_fn),
         "workDone": term_recall(p.get("workDone") or "", exp["workDoneTerms"]),

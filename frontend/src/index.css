@@ -976,3 +976,19 @@ button.link-button {
   padding-bottom: 32px;
   font-size: 0.9rem;
 }
+
+/* --- AI draft box on the service record form --- */
+.ai-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px dashed var(--accent);
+  border-radius: 12px;
+}
+
+.ai-box h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}

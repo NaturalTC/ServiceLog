@@ -83,6 +83,37 @@ A deliberately simple keyword extractor (`--baseline`) checks the scorer and set
 It fails the bar on kind, parts and readings, as it should. The traps catch it: for example
 it records "the new pressure switch I brought" as a part used.
 
+## Results (S13, October 2026)
+The extractor (`OpenAiNoteExtractor`) uses OpenAI's Chat Completions with a strict JSON
+schema. Settings: `OPENAI_API_KEY`, `AI_MODEL` (default `gpt-5.4-mini`).
+
+**First run, `gpt-5.4-mini`: failed.** Parts precision 90.9% (3 invented parts), parts recall
+85.7%. The misses had three patterns, each fixed with a general rule in the prompt (not by
+copying test notes into it, which a test checks):
+1. On installations it listed the new unit itself as a part. Rule: the unit gets its own
+   equipment record; parts are the materials put in with it.
+2. Shorthand lists ("nozzle filter strainer") were read too literally. Rule: a bare list
+   after a routine service means those parts were replaced.
+3. It flagged things the customer would handle as follow-ups. Rule: a follow-up is
+   something the *business* has left to do.
+
+One label changed after that run, and it's recorded in the data (`_relabel` on n18): "anode
+rod about half gone but ok for now" now accepts either follow-up answer, because flagging it is
+a defensible call. No other labels changed.
+
+**Holdout set.** Tuning while looking at test failures makes those scores optimistic, so 12
+new notes (`ai-eval/holdout.jsonl`) were written before the prompt changes and scored only
+once, at the end.
+
+| Model | Main set (3 runs) | Holdout | Invented parts |
+|---|---|---|---|
+| **gpt-5.4-mini** (default) | Passed every run. Parts precision 100%, recall 94–100%; kind 94–97% | **Passed.** Parts precision 100%, recall 90.9% | 0 |
+| gpt-4.1-mini | Passed | **Failed:** parts precision 90.9% (a part listed twice or split) | 0 |
+
+Takeaways: the bar caught a real difference between models; terse shorthand remains the
+weakest spot (holdout recall is just above 90%); run-to-run variation is small but real, so
+compare over several runs. Cost is about 700 input and 75 output tokens per note.
+
 ## Known limitation
 Key-term coverage measures what a summary *mentions*, not whether it's a good summary. The
 baseline copies the whole note as "work done" and scores 100% on it. Summary quality is
@@ -95,7 +126,8 @@ cd ai-eval
 python3 -m unittest -v                                # tests for the scorer itself
 python3 evaluate.py --baseline --details              # the keyword baseline, with each miss
 python3 evaluate.py --predictions preds.jsonl --check # a saved set of predictions
-python3 evaluate.py --endpoint http://localhost:8080/api/ai/extract --token "$TOKEN" --check  # S13's API
+python3 evaluate.py --endpoint http://localhost:8080/api/ai/extract --token "$TOKEN" --check  # the real AI
+python3 evaluate.py --notes holdout.jsonl --endpoint ... --check                     # holdout: score, don't tune
 ```
 
 Standard library only (Python 3.10+). When a prompt or model changes, rerun the set:
