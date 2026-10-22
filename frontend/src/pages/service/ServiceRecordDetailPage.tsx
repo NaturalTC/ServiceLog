@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { serviceRecordsApi, type ServiceRecordDetail } from '../../api/serviceRecords'
 import { formatDate } from '../../lib/format'
 import { Loading } from '../../components/Loading'
+import { PhotoGallery } from '../../components/Photos'
 
 export function ServiceRecordDetailPage() {
   const id = Number(useParams().id)
   const [detail, setDetail] = useState<ServiceRecordDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // e.g. "Saved, but the photos didn't upload" from the form
+  const notice = (useLocation().state as { notice?: string } | null)?.notice
 
   useEffect(() => {
     serviceRecordsApi
@@ -44,6 +47,11 @@ export function ServiceRecordDetailPage() {
         <br />
         <Link to={`/customers/${customerId}`}>{customerName}</Link> · {address}
       </p>
+      {notice && (
+        <p className="error" role="alert">
+          {notice}
+        </p>
+      )}
 
       {r.followUpNeeded && (
         <p className="follow-up" role="status">
@@ -64,6 +72,8 @@ export function ServiceRecordDetailPage() {
           </>
         )}
       </dl>
+
+      <PhotoGallery recordId={r.id} />
 
       <p className="links">
         <Link to={`/equipment/${r.equipmentId}`}>Back to {equipmentLabel}</Link>

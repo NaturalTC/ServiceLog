@@ -110,6 +110,13 @@ somewhere other than the server (for example an S3 bucket):
 30 2 * * * cd /opt/servicelog && docker compose exec -T db pg_dump -U servicelog servicelog | gzip > /opt/servicelog/backups/servicelog-$(date +\%F).sql.gz
 ```
 
+Photos on service records live in the `photos-data` volume. Copy them too, for example
+nightly with:
+
+```bash
+35 2 * * * cd /opt/servicelog && docker compose exec -T backend tar -C /data -cz photos > /opt/servicelog/backups/photos-$(date +\%F).tar.gz
+```
+
 Then copy `/opt/servicelog/backups` off the server (for example `aws s3 sync`) and keep a
 few weeks of history. Restore with
 `gunzip -c backup.sql.gz | docker compose exec -T db psql -U servicelog servicelog`.

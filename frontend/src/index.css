@@ -341,7 +341,8 @@ form button,
 
 /* --- Buttons --- */
 button,
-a.button {
+a.button,
+label.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -362,7 +363,8 @@ a.button {
 }
 
 button:hover,
-a.button:hover {
+a.button:hover,
+label.button:hover {
   background: var(--accent-hover);
   text-decoration: none;
 }
@@ -380,14 +382,16 @@ button:disabled {
 
 /* Outline: everything that isn't the main action */
 button.secondary,
-a.button.secondary {
+a.button.secondary,
+label.button.secondary {
   background: var(--surface);
   color: var(--text);
   border-color: var(--border-strong);
 }
 
 button.secondary:hover,
-a.button.secondary:hover {
+a.button.secondary:hover,
+label.button.secondary:hover {
   background: var(--surface-2);
 }
 
@@ -1719,4 +1723,129 @@ main.auth form button[type='submit'] {
     background: var(--surface);
     border: 1px solid var(--border);
   }
+}
+
+/* --- Photos --- */
+.photo-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.photo-grid li {
+  position: relative;
+  aspect-ratio: 1;
+}
+
+button.photo-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+button.photo-thumb:hover {
+  background: var(--surface-2);
+}
+
+.photo-thumb img,
+.photo-thumb-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+/* Remove a picked photo before saving */
+button.photo-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-height: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  color: #ffffff;
+}
+
+/* A label that looks like a button and opens the camera or photo library */
+label.file-button {
+  margin: 0;
+  align-self: flex-start;
+  cursor: pointer;
+}
+
+label.file-button input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+label.file-button:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+label.file-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pending-photos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.label-text {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* Full-size viewer */
+dialog.photo-viewer {
+  width: min(960px, 100vw - 24px);
+  max-height: calc(100vh - 24px);
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+dialog.photo-viewer::backdrop {
+  background: rgb(0 0 0 / 0.75);
+}
+
+dialog.photo-viewer img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 120px);
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.photo-viewer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
 }

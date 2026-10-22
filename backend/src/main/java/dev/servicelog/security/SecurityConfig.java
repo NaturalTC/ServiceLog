@@ -44,6 +44,8 @@ public class SecurityConfig {
                                 "/api/auth/reset-password",
                                 "/api/unsubscribe").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        // Photo files: signed, expiring links instead of the login token (see PhotoLinks)
+                        .requestMatchers(HttpMethod.GET, "/api/photos/*/full", "/api/photos/*/thumb").permitAll()
                         .anyRequest().authenticated())
                 // Answer 401 (not logged in) instead of Spring's default 403 for missing tokens
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

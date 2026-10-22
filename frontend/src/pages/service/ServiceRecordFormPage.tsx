@@ -12,6 +12,9 @@ import {
 } from '../../api/serviceRecords'
 import { todayIso } from '../../lib/format'
 import { Loading } from '../../components/Loading'
+import { PendingPhotos } from '../../components/Photos'
+import { photosApi } from '../../api/photos'
+import { shrinkPhoto } from '../../lib/photos'
 
 // One form for "add service record" (/equipment/:equipmentId/service-records/new) and
 // "edit" (/service-records/:id/edit). Built to fill in on site: the date is already today,
@@ -63,6 +66,8 @@ export function ServiceRecordFormPage() {
   const [aiMessage, setAiMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [serverError, setServerError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  // Photos picked while adding a record; uploaded right after it's saved
+  const [photos, setPhotos] = useState<File[]>([])
 
   useEffect(() => {
     serviceRecordsApi
@@ -167,7 +172,17 @@ export function ServiceRecordFormPage() {
       const saved = editingId
         ? await serviceRecordsApi.update(editingId, input)
         : await serviceRecordsApi.create(equipmentId!, input)
-      navigate(`/service-records/${saved.record.id}`, { replace: true })
+      // Photos go up once the record exists. If that fails the record is still saved, and
+      // its page has "Add photos" to try again.
+      let notice: string | undefined
+      if (photos.length > 0) {
+        try {
+          await photosApi.upload(saved.record.id, await Promise.all(photos.map(shrinkPhoto)))
+        } catch (err) {
+          notice = `Saved, but the photos didn't upload: ${errorMessage(err)} Add them again below.`
+        }
+      }
+      navigate(`/service-records/${saved.record.id}`, { replace: true, state: notice ? { notice } : undefined })
     } catch (err) {
       setServerError(errorMessage(err))
       setSaving(false)
@@ -297,6 +312,8 @@ export function ServiceRecordFormPage() {
             />
           </>
         )}
+
+        {!editingId && <PendingPhotos files={photos} onChange={setPhotos} />}
 
         {serverError && (
           <p className="error" role="alert">

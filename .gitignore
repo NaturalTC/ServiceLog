@@ -1,5 +1,8 @@
 # Backend
 backend/target/
+# Photos uploaded while running locally (servicelog.photos.dir); real ones may show customers' homes
+backend/data/
+data/
 # Frontend
 node_modules/
 frontend/dist/

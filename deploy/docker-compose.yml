@@ -44,6 +44,9 @@ services:
       AI_MODEL: ${AI_MODEL:-gpt-5.4-mini}
       # Trust Caddy's X-Forwarded-For, so the login rate limit sees real client addresses
       SERVER_FORWARD_HEADERS_STRATEGY: framework
+      PHOTOS_DIR: /data/photos
+    volumes:
+      - photos-data:/data/photos   # service record photos: back these up along with the database
     # No ports: Caddy forwards /api here
 
   web:
@@ -63,5 +66,6 @@ services:
 
 volumes:
   db-data:
+  photos-data:
   caddy-data:
   caddy-config:

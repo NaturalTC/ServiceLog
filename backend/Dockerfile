@@ -11,7 +11,9 @@ COPY src src
 RUN ./mvnw -B -q package -DskipTests
 
 FROM eclipse-temurin:21-jre-noble
-RUN useradd --system --uid 1001 servicelog
+RUN useradd --system --uid 1001 servicelog \
+    # Photo storage; production mounts a volume here, which keeps this owner
+    && mkdir -p /data/photos && chown servicelog /data/photos
 WORKDIR /app
 COPY --from=build /app/target/servicelog-*.jar app.jar
 USER servicelog
