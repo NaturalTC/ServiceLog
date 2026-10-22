@@ -560,3 +560,79 @@ label.checkbox input {
   border-radius: 6px;
   align-self: flex-start;
 }
+
+/* --- Jobs --- */
+.badge.urgent {
+  background: var(--error);
+  color: var(--bg);
+  border-color: var(--error);
+}
+
+.actions.spaced {
+  margin-top: 16px;
+}
+
+button.danger {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.row.even {
+  grid-template-columns: 1fr 1fr;
+}
+
+.picked {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.pick-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pick-list button {
+  width: 100%;
+  text-align: left;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-weight: 400;
+  margin: 0;
+}
+
+.overlap {
+  padding: 12px;
+  border: 2px solid var(--error);
+  border-radius: 8px;
+}
+
+.overlap ul {
+  margin: 8px 0 12px;
+  padding-left: 20px;
+}
+
+.overlap button {
+  width: 100%;
+}

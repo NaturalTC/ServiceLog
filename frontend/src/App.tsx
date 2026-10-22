@@ -10,6 +10,9 @@ import { CustomerFormPage } from './pages/customers/CustomerFormPage'
 import { CustomerListPage } from './pages/customers/CustomerListPage'
 import { EquipmentDetailPage } from './pages/equipment/EquipmentDetailPage'
 import { EquipmentFormPage } from './pages/equipment/EquipmentFormPage'
+import { JobDetailPage } from './pages/jobs/JobDetailPage'
+import { JobFormPage } from './pages/jobs/JobFormPage'
+import { JobListPage } from './pages/jobs/JobListPage'
 import { ServiceRecordDetailPage } from './pages/service/ServiceRecordDetailPage'
 import { ServiceRecordFormPage } from './pages/service/ServiceRecordFormPage'
 
@@ -25,6 +28,10 @@ function App() {
       <Route element={loggedIn ? <AppLayout /> : <Navigate to="/login" replace />}>
         {/* Customers is the home screen until "My day" (S8) exists */}
         <Route path="/" element={<Navigate to="/customers" replace />} />
+        <Route path="/jobs" element={<JobListPage />} />
+        <Route path="/jobs/new" element={<JobFormPage />} />
+        <Route path="/jobs/:id" element={<JobDetailPage />} />
+        <Route path="/jobs/:id/edit" element={<JobFormPage />} />
         <Route path="/customers" element={<CustomerListPage />} />
         <Route path="/customers/new" element={<CustomerFormPage />} />
         <Route path="/customers/:id" element={<CustomerDetailPage />} />

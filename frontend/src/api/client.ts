@@ -7,11 +7,14 @@ export class ApiError extends Error {
   readonly status: number
   // Machine-readable reason from the API, e.g. "EMAIL_NOT_VERIFIED" or "INVALID_TOKEN"
   readonly code: string | null
+  // The full error body, for errors that carry extra data (e.g. the jobs a booking overlaps)
+  readonly body: unknown
 
-  constructor(status: number, message: string, code: string | null = null) {
+  constructor(status: number, message: string, code: string | null = null, body: unknown = null) {
     super(message)
     this.status = status
     this.code = code
+    this.body = body
   }
 }
 
@@ -53,7 +56,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   if (!res.ok) {
     const body = await res.json().catch(() => null)
-    throw new ApiError(res.status, body?.message ?? `Request failed (${res.status})`, body?.code ?? null)
+    throw new ApiError(res.status, body?.message ?? `Request failed (${res.status})`, body?.code ?? null, body)
   }
 
   return res.json() as Promise<T>

@@ -3,19 +3,22 @@ import { Link, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
 import { equipmentApi, type Equipment } from '../../api/equipment'
-import { formatAddress, formatPhone, mapsUrl } from '../../lib/format'
+import { jobsApi, type Job } from '../../api/jobs'
+import { formatAddress, formatDate, formatPhone, formatTime, mapsUrl } from '../../lib/format'
 
 export function CustomerDetailPage() {
   const id = Number(useParams().id)
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [equipment, setEquipment] = useState<Equipment[]>([])
+  const [jobs, setJobs] = useState<Job[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([customersApi.get(id), equipmentApi.listForCustomer(id)])
-      .then(([c, e]) => {
+    Promise.all([customersApi.get(id), equipmentApi.listForCustomer(id), jobsApi.upcomingForCustomer(id)])
+      .then(([c, e, j]) => {
         setCustomer(c)
         setEquipment(e)
+        setJobs(j)
       })
       .catch((err) => setError(errorMessage(err)))
   }, [id])
@@ -53,6 +56,29 @@ export function CustomerDetailPage() {
       </div>
 
       {customer.notes && <p className="notes">{customer.notes}</p>}
+
+      <h2>Upcoming jobs</h2>
+      {jobs.length === 0 && <p className="muted">Nothing scheduled.</p>}
+      <ul className="card-list">
+        {jobs.map((j) => (
+          <li key={j.id}>
+            <Link to={`/jobs/${j.id}`} className="card">
+              <strong>
+                {formatDate(j.date)} · {formatTime(j.startTime)}
+              </strong>
+              <span>
+                {j.typeLabel}
+                {j.urgency === 'URGENT' && ' · Urgent'}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <div className="actions spaced">
+        <Link to={`/jobs/new?customerId=${customer.id}`} className="button">
+          + Schedule job
+        </Link>
+      </div>
 
       <h2>Properties</h2>
       <ul className="card-list">

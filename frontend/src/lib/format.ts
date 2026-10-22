@@ -69,3 +69,27 @@ export function daysAgo(isoDate: string, today = new Date()): string {
   if (months < 24) return `${months} months ago`
   return `${Math.floor(days / 365.25)} years ago`
 }
+
+// "09:30:00" or "09:30" -> "9:30 AM"
+export function formatTime(time: string): string {
+  const [h, m] = time.split(':').map(Number)
+  const suffix = h < 12 ? 'AM' : 'PM'
+  const hour = h % 12 === 0 ? 12 : h % 12
+  return `${hour}:${String(m).padStart(2, '0')} ${suffix}`
+}
+
+// 90 -> "1 hr 30 min", 60 -> "1 hr", 45 -> "45 min"
+export function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h === 0) return `${m} min`
+  return m === 0 ? `${h} hr` : `${h} hr ${m} min`
+}
+
+// A YYYY-MM-DD date `days` after the given one, computed on local dates
+export function addDays(isoDate: string, days: number): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  const d = new Date(year, month - 1, day + days)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}

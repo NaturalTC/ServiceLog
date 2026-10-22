@@ -96,9 +96,13 @@ public class CustomerService {
                 .filter(property -> !kept.contains(property.getId()))
                 .toList();
         // An address with equipment can't be dropped: its equipment and service history would go with it
-        if (!removed.isEmpty() && properties.anyHaveEquipment(removed.stream().map(Property::getId).toList())) {
+        List<Long> removedIds = removed.stream().map(Property::getId).toList();
+        if (!removed.isEmpty() && properties.anyHaveEquipment(removedIds)) {
             throw new ConflictException(
                     "An address you removed has equipment recorded. Remove or move the equipment first.");
+        }
+        if (!removed.isEmpty() && properties.anyHaveJobs(removedIds)) {
+            throw new ConflictException("An address you removed has jobs scheduled or on record.");
         }
         removed.forEach(customer::removeProperty);
 
