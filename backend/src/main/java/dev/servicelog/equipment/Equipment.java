@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name = "equipment")
@@ -57,6 +58,9 @@ public class Equipment {
     @Column(name = "extended_warranty_ends_on")
     private LocalDate extendedWarrantyEndsOn;
 
+    @Column(name = "warranty_offer_made_on")
+    private LocalDate warrantyOfferMadeOn;
+
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
 
@@ -86,10 +90,26 @@ public class Equipment {
     // A unit that isn't registered can't have a registration date
     public void updateWarranty(boolean registered, LocalDate registeredOn, LocalDate endsOn,
                                LocalDate extendedEndsOn) {
+        // New end dates (e.g. a renewal) mean any earlier offer no longer applies
+        if (!Objects.equals(endsOn, warrantyEndsOn) || !Objects.equals(extendedEndsOn, extendedWarrantyEndsOn)) {
+            this.warrantyOfferMadeOn = null;
+        }
         this.warrantyRegistered = registered;
         this.warrantyRegisteredOn = registered ? registeredOn : null;
         this.warrantyEndsOn = endsOn;
         this.extendedWarrantyEndsOn = extendedEndsOn;
+    }
+
+    public void markWarrantyOffered(LocalDate on) {
+        this.warrantyOfferMadeOn = on;
+    }
+
+    // The last day the unit is covered: the extended warranty if there is one
+    public LocalDate getCoverEndsOn() {
+        if (extendedWarrantyEndsOn != null && (warrantyEndsOn == null || extendedWarrantyEndsOn.isAfter(warrantyEndsOn))) {
+            return extendedWarrantyEndsOn;
+        }
+        return warrantyEndsOn;
     }
 
     @PreUpdate
@@ -109,4 +129,5 @@ public class Equipment {
     public LocalDate getWarrantyRegisteredOn() { return warrantyRegisteredOn; }
     public LocalDate getWarrantyEndsOn() { return warrantyEndsOn; }
     public LocalDate getExtendedWarrantyEndsOn() { return extendedWarrantyEndsOn; }
+    public LocalDate getWarrantyOfferMadeOn() { return warrantyOfferMadeOn; }
 }

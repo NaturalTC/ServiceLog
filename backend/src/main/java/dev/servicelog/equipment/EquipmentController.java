@@ -4,9 +4,11 @@ import dev.servicelog.equipment.EquipmentDtos.EquipmentDetailResponse;
 import dev.servicelog.equipment.EquipmentDtos.EquipmentRequest;
 import dev.servicelog.equipment.EquipmentDtos.EquipmentResponse;
 import dev.servicelog.equipment.EquipmentDtos.EquipmentTypeOption;
+import dev.servicelog.equipment.EquipmentDtos.ExpiringWarranties;
 import dev.servicelog.equipment.EquipmentDtos.UnregisteredUnit;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,9 +25,11 @@ import java.util.List;
 public class EquipmentController {
 
     private final EquipmentService equipmentService;
+    private final WarrantyService warrantyService;
 
-    public EquipmentController(EquipmentService equipmentService) {
+    public EquipmentController(EquipmentService equipmentService, WarrantyService warrantyService) {
         this.equipmentService = equipmentService;
+        this.warrantyService = warrantyService;
     }
 
     @GetMapping("/api/equipment-types")
@@ -51,6 +55,25 @@ public class EquipmentController {
     @GetMapping("/api/equipment/unregistered")
     public List<UnregisteredUnit> unregistered() {
         return equipmentService.unregisteredInstalls();
+    }
+
+    // Units whose warranty cover ends soon, to offer an extended warranty or a renewal
+    @GetMapping("/api/equipment/warranty-ending")
+    public ExpiringWarranties warrantyEnding() {
+        return warrantyService.endingSoon();
+    }
+
+    // "I've offered it": moves the unit down the list (DELETE undoes it)
+    @PutMapping("/api/equipment/{id}/warranty-offer")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void markWarrantyOffered(@PathVariable long id) {
+        warrantyService.markOffered(id, true);
+    }
+
+    @DeleteMapping("/api/equipment/{id}/warranty-offer")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unmarkWarrantyOffered(@PathVariable long id) {
+        warrantyService.markOffered(id, false);
     }
 
     @GetMapping("/api/equipment/{id}")

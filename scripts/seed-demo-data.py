@@ -193,13 +193,16 @@ def main():
             "name": name, "phone": f"413-555-{last4}", "email": f"{first}@example.com", "properties": properties})
     print(f"customers: {len(customers)}")
 
-    # Equipment and service history
-    units = records = 0
+    # Equipment, warranty details and service history
+    units = records = recent = 0
     for name, index, unit_list in EQUIPMENT:
         property_id = customers[name]["properties"][index]["id"]
         for u in unit_list:
             created = api.call("POST", f"/api/properties/{property_id}/equipment", u)["equipment"]
             units += 1
+            if created["installDate"] and created["installDate"] >= "2019-01-01":
+                api.call("PUT", f"/api/equipment/{created['id']}", {**u, **warranty(today, created, recent)})
+                recent += 1
             for body in history(rng, today, created):
                 api.call("POST", f"/api/equipment/{created['id']}/service-records", body)
                 records += 1
@@ -221,6 +224,27 @@ def main():
         "followUpNote": "Boiler is over 20 years old - send a replacement quote"})
     api.call("POST", f"/api/jobs/{job_ids[1]}/start")
     print(f"jobs today: {len(TODAY_JOBS)} (first done, second in progress)")
+
+
+def warranty(today, equipment, n):
+    """Warranty details for the n-th recent install: most registered with a 10-year warranty,
+    every fourth one not registered yet, and three whose cover ends soon (S24, S25)."""
+    installed = dt.date.fromisoformat(equipment["installDate"])
+    registered = n % 4 != 3
+    details = {
+        "warrantyRegistered": registered,
+        "warrantyRegisteredOn": (installed + dt.timedelta(days=10)).isoformat() if registered else None,
+        "warrantyEndsOn": installed.replace(year=installed.year + 10).isoformat(),
+        "extendedWarrantyEndsOn": None,
+    }
+    soon = {
+        0: {"warrantyEndsOn": today + dt.timedelta(days=21)},  # offer an extended warranty
+        2: {"warrantyEndsOn": today + dt.timedelta(days=74)},
+        4: {"warrantyEndsOn": max(installed, today - dt.timedelta(days=400)),  # extended one ending: renew
+            "extendedWarrantyEndsOn": today + dt.timedelta(days=45)},
+    }.get(n, {})
+    details.update({k: v.isoformat() for k, v in soon.items()})
+    return details
 
 
 def history(rng, today, equipment):

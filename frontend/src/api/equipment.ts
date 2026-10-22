@@ -66,12 +66,38 @@ export interface EquipmentTypeOption {
   label: string
 }
 
+// A unit whose warranty cover ends soon: a chance to offer an extended warranty or a renewal
+export interface ExpiringWarranty {
+  equipmentId: number
+  typeLabel: string
+  brand: string | null
+  model: string | null
+  serialNumber: string | null
+  offer: 'EXTENDED_WARRANTY' | 'RENEWAL'
+  endsOn: string
+  daysLeft: number
+  offeredOn: string | null
+  customerId: number
+  customerName: string
+  customerPhone: string
+  customerEmail: string | null
+  address: string
+}
+
+export interface ExpiringWarranties {
+  windowDays: number
+  units: ExpiringWarranty[]
+}
+
 const json = (method: string, body: object): RequestInit => ({ method, body: JSON.stringify(body) })
 
 export const equipmentApi = {
   types: () => apiFetch<EquipmentTypeOption[]>('/api/equipment-types'),
   listForCustomer: (customerId: number) => apiFetch<Equipment[]>(`/api/customers/${customerId}/equipment`),
   unregistered: () => apiFetch<UnregisteredUnit[]>('/api/equipment/unregistered'),
+  warrantyEnding: () => apiFetch<ExpiringWarranties>('/api/equipment/warranty-ending'),
+  markOffered: (id: number, offered: boolean) =>
+    apiFetch<void>(`/api/equipment/${id}/warranty-offer`, { method: offered ? 'PUT' : 'DELETE' }),
   get: (id: number) => apiFetch<EquipmentDetail>(`/api/equipment/${id}`),
   create: (propertyId: number, input: EquipmentInput) =>
     apiFetch<EquipmentDetail>(`/api/properties/${propertyId}/equipment`, json('POST', input)),

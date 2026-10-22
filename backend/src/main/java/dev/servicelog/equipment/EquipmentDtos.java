@@ -5,6 +5,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public final class EquipmentDtos {
 
@@ -56,5 +57,22 @@ public final class EquipmentDtos {
 
     // For the equipment form's type picker
     public record EquipmentTypeOption(EquipmentType value, String label) {
+    }
+
+    // A unit whose cover ends soon: an opportunity to offer an extended warranty or a renewal
+    public record ExpiringWarranty(Long equipmentId, String typeLabel, String brand, String model,
+                                   String serialNumber, Offer offer, LocalDate endsOn, long daysLeft,
+                                   LocalDate offeredOn, Long customerId, String customerName,
+                                   String customerPhone, String customerEmail, String address) {
+    }
+
+    public enum Offer {
+        // Only the regular warranty: offer an extended one
+        EXTENDED_WARRANTY,
+        // The extended warranty is the one ending: offer to renew it
+        RENEWAL
+    }
+
+    public record ExpiringWarranties(int windowDays, List<ExpiringWarranty> units) {
     }
 }

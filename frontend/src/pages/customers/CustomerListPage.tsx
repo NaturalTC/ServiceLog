@@ -56,7 +56,7 @@ export function CustomerListPage() {
       </div>
 
       {unregistered > 0 && (
-        <Link to="/warranty" className="banner warning">
+        <Link to="/warranty#register" className="banner warning">
           <ShieldAlert size={20} aria-hidden="true" />
           <span>
             {unregistered} installed unit{unregistered === 1 ? '' : 's'} not registered for warranty

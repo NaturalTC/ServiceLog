@@ -1638,6 +1638,11 @@ main .skeleton-list {
   margin: 12px 0 2px;
 }
 
+/* Handled items (e.g. warranty offered) fade back; their buttons stay usable */
+.card.finished > :not(.actions, button) {
+  opacity: 0.6;
+}
+
 .card a.card-title {
   padding: 4px 0 0;
   font-size: 1.05rem;

@@ -1,7 +1,8 @@
-import { CalendarCheck, CircleCheck, Navigation, Phone, Play, Undo2 } from 'lucide-react'
+import { CalendarCheck, ChevronRight, CircleCheck, Navigation, Phone, Play, ShieldAlert, Undo2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { errorMessage } from '../../api/client'
+import { equipmentApi } from '../../api/equipment'
 import { jobsApi, type Job, type Today } from '../../api/jobs'
 import {
   directionsUrl,
@@ -66,6 +67,15 @@ export function MyDayPage() {
 
   const [starting, setStarting] = useState<number | null>(null)
 
+  // Warranties ending soon that haven't been offered yet: a reminder, not part of the day's work
+  const [warrantiesEnding, setWarrantiesEnding] = useState(0)
+  useEffect(() => {
+    equipmentApi
+      .warrantyEnding()
+      .then((list) => setWarrantiesEnding(list.units.filter((u) => !u.offeredOn).length))
+      .catch(() => setWarrantiesEnding(0))
+  }, [])
+
   // Start a job, or undo an accidental start; then reload the day
   async function changeStatus(jobId: number, action: 'start' | 'undoStart') {
     setStarting(jobId)
@@ -108,6 +118,16 @@ export function MyDayPage() {
           + Job
         </Link>
       </div>
+
+      {warrantiesEnding > 0 && (
+        <Link to="/warranty" className="banner warning">
+          <ShieldAlert size={20} aria-hidden="true" />
+          <span>
+            {warrantiesEnding} warrant{warrantiesEnding === 1 ? 'y' : 'ies'} ending soon: offer an extension
+          </span>
+          <ChevronRight size={18} aria-hidden="true" />
+        </Link>
+      )}
 
       {/* The day at a glance */}
       {jobs.length > 0 && (
