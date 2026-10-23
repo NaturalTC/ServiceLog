@@ -266,7 +266,7 @@ function CustomerResult({ customer }: { customer: CustomerCard }) {
             href={directionsUrl(customer.address)}
             target="_blank"
             rel="noreferrer"
-            className="button secondary"
+            className="button go"
             aria-label={`Directions to ${customer.name}`}
           >
             <NavigationArrow size={16} aria-hidden="true" />

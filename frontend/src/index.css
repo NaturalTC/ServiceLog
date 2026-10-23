@@ -41,6 +41,11 @@
   --call-hover: #19693a;
   --call-text: #ffffff;
 
+  /* Directions and email reminders: blue */
+  --go: #1f5fbf;
+  --go-hover: #1a50a3;
+  --go-text: #ffffff;
+
   /* The floating tab bar */
   --tabbar: #0f2e33;
   --tabbar-text: #c9d6d8;
@@ -96,6 +101,10 @@
     --call: #4cc983;
     --call-hover: #6ad597;
     --call-text: #0b1a1d;
+
+    --go: #7db3ff;
+    --go-hover: #9cc5ff;
+    --go-text: #0b1a1d;
 
     --tabbar: #1a3237;
     --tabbar-text: #b9cdd0;
@@ -450,6 +459,22 @@ a.button.call {
 a.button.call:hover {
   background: var(--call-hover);
   border-color: var(--call-hover);
+}
+
+/* Directions and email reminders: always blue */
+a.button.go,
+button.go {
+  background: var(--go);
+  border-color: var(--go);
+  color: var(--go-text);
+}
+a.button.go:hover,
+button.go:hover {
+  background: var(--go-hover);
+  border-color: var(--go-hover);
+}
+a.icon-link.go {
+  color: var(--go);
 }
 
 a.button.signal {
@@ -2593,7 +2618,7 @@ button.stop-ahead strong {
 }
 
 .swipe-drive {
-  color: var(--link);
+  color: var(--go);
 }
 
 .swipe-top {

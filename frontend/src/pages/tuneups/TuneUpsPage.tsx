@@ -176,7 +176,7 @@ export function TuneUpsPage() {
                   ) : first.customerEmail ? (
                     <button
                       type="button"
-                      className="secondary"
+                      className="go"
                       onClick={() => emailReminder(key, first)}
                       disabled={sending === key}
                     >

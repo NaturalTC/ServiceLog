@@ -159,7 +159,7 @@ export function JobDetailPage() {
           <Phone size={18} aria-hidden="true" />
           Call {formatPhone(job.customerPhone)}
         </a>
-        <a href={mapsUrl(job.address)} target="_blank" rel="noreferrer" className="button secondary">
+        <a href={mapsUrl(job.address)} target="_blank" rel="noreferrer" className="button go">
           <NavigationArrow size={18} aria-hidden="true" />
           Directions
         </a>

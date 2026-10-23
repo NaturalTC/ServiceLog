@@ -290,7 +290,7 @@ export function MyDayPage() {
                       href={directionsUrl(job.address)}
                       target="_blank"
                       rel="noreferrer"
-                      className="button secondary"
+                      className="button go"
                       aria-label={`Directions to ${job.address}`}
                     >
                       <NavigationArrow size={20} aria-hidden="true" />

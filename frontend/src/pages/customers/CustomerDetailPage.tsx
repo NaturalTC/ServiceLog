@@ -120,7 +120,7 @@ export function CustomerDetailPage() {
             <li key={p.id} className="card">
               <strong>{address}</strong>
               {p.notes && <span className="muted">{p.notes}</span>}
-              <a href={mapsUrl(address)} target="_blank" rel="noreferrer" className="icon-link">
+              <a href={mapsUrl(address)} target="_blank" rel="noreferrer" className="icon-link go">
                 <MapPin size={16} aria-hidden="true" />
                 Directions
               </a>
