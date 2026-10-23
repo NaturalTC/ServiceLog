@@ -378,6 +378,9 @@ public class AssistantTools {
         out.put("property_id", pr.getId());
         out.put("street", p.street(street));
         out.put("town", pr.getCity());
+        // Access notes (gate codes, dogs, "call before arriving"): what the technician needs on site.
+        // Scrubbed like other free text (found missing by the S37 evaluation)
+        out.put("access_notes", p.scrub(pr.getNotes(), List.of()));
         return out;
     }
 

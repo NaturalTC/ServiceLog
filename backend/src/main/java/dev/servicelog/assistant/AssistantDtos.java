@@ -18,9 +18,10 @@ public final class AssistantDtos {
 
     // The answer with real details back in, a card for each customer it mentions, and
     // anything it prepared for the owner to confirm
-    // suggestions: the answer is troubleshooting advice, shown labelled "Suggestions, not a diagnosis"
+    // suggestions: the answer is troubleshooting advice, shown labelled "Suggestions, not a diagnosis".
+    // lookups: which tools the AI used, by name (for the evaluation in ai-eval/assistant; nothing personal)
     public record AssistantReply(String conversationId, String reply, List<CustomerCard> customers,
-                                 List<Proposal> proposals, boolean suggestions) {
+                                 List<Proposal> proposals, boolean suggestions, List<String> lookups) {
     }
 
     // Something prepared for the owner to confirm (S34). type: JOB, CUSTOMER or SERVICE_RECORD.

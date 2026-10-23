@@ -9,6 +9,7 @@ import org.springframework.web.client.RestClient;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.http.HttpClient;
+import java.nio.file.Path;
 import java.time.Duration;
 
 // AI drafts are optional: without OPENAI_API_KEY the feature is simply off, and the app
@@ -35,13 +36,16 @@ public class AiConfig {
     public ChatModel chatModel(@Value("${servicelog.ai.openai-api-key:}") String apiKey,
                                @Value("${servicelog.ai.model}") String model,
                                @Value("${servicelog.ai.base-url}") String baseUrl,
-                               @Value("${servicelog.ai.assistant-timeout-seconds:60}") int timeoutSeconds) {
+                               @Value("${servicelog.ai.assistant-timeout-seconds:60}") int timeoutSeconds,
+                               @Value("${servicelog.ai.audit-file:}") String auditFile,
+                               JsonMapper jsonMapper) {
         if (apiKey.isBlank()) {
             return request -> {
                 throw new AiUnavailableException("The AI assistant isn't set up on this server.");
             };
         }
-        return new OpenAiChatModel(openAi(apiKey, baseUrl, timeoutSeconds), model);
+        ChatModel openAi = new OpenAiChatModel(openAi(apiKey, baseUrl, timeoutSeconds), model);
+        return auditFile.isBlank() ? openAi : new AuditedChatModel(openAi, Path.of(auditFile), jsonMapper);
     }
 
     private static RestClient openAi(String apiKey, String baseUrl, int timeoutSeconds) {

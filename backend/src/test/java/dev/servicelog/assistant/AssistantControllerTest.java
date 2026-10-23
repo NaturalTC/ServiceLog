@@ -130,7 +130,9 @@ class AssistantControllerTest {
                 .andExpect(jsonPath("$.customers", hasSize(1)))
                 .andExpect(jsonPath("$.customers[0].id").value(customerId))
                 .andExpect(jsonPath("$.customers[0].phone").value("+14135550108"))
-                .andExpect(jsonPath("$.customers[0].address").value("64 Pleasant St, Easthampton, MA 01027"));
+                .andExpect(jsonPath("$.customers[0].address").value("64 Pleasant St, Easthampton, MA 01027"))
+                .andExpect(jsonPath("$.lookups[0]").value("find_customers"))
+                .andExpect(jsonPath("$.lookups[1]").value("get_service_history"));
 
         assertThat(sentToAi).hasSize(3);
         assertNothingPrivateSent();

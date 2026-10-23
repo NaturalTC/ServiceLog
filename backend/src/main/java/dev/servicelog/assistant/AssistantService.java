@@ -124,6 +124,7 @@ public class AssistantService {
             List<KnownCustomer> known = tools.knownCustomers();
             List<Proposal> cards = new ArrayList<>();
             boolean suggestions = false;
+            List<String> lookups = new ArrayList<>();
             String question = chat.pseudonyms.scrub(message, known);
             // Placeholders only, so safe to log when debugging the assistant
             log.debug("Assistant question: {}", question);
@@ -139,7 +140,9 @@ public class AssistantService {
                 if (calls.isArray() && !calls.isEmpty()) {
                     chat.messages.add(assistantToolCalls(answer));
                     for (JsonNode call : calls) {
-                        suggestions |= "troubleshooting_context".equals(call.path("function").path("name").asString());
+                        String tool = call.path("function").path("name").asString();
+                        lookups.add(tool);
+                        suggestions |= "troubleshooting_context".equals(tool);
                         log.debug("Assistant lookup: {} {}", call.path("function").path("name").asString(),
                                 call.path("function").path("arguments").asString());
                         chat.messages.add(Map.of("role", "tool", "tool_call_id", call.path("id").asString(),
@@ -151,12 +154,12 @@ public class AssistantService {
                 chat.messages.add(Map.of("role", "assistant", "content", text));
                 trimHistory(chat);
                 return new AssistantReply(chat.id, chat.pseudonyms.rehydrate(text),
-                        tools.cards(chat.pseudonyms.customersIn(text)), cards, suggestions);
+                        tools.cards(chat.pseudonyms.customersIn(text)), cards, suggestions, lookups);
             }
             trimHistory(chat);
             return new AssistantReply(chat.id,
                     "I couldn't finish looking that up. Try a narrower question, like one customer or one week.",
-                    List.of(), cards, false);
+                    List.of(), cards, false, lookups);
         }
     }
 
