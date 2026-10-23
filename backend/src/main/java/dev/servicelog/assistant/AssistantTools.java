@@ -19,6 +19,7 @@ import dev.servicelog.servicerecord.ServiceRecord;
 import dev.servicelog.servicerecord.ServiceRecordRepository;
 import dev.servicelog.tuneup.TuneUpDtos.DueUnit;
 import dev.servicelog.tuneup.TuneUpService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
@@ -125,6 +126,11 @@ public class AssistantTools {
                 tool("warranties_ending",
                         "Equipment whose warranty or extended warranty ends in the next 90 days.",
                         Map.of("town", nullableString("Only this town; null for all")), List.of("town")),
+                tool("troubleshooting_context",
+                        "For a symptom on one unit: its model, install date and full service history, plus "
+                                + "repairs on the owner's other units of the same type (same_model marks the same "
+                                + "brand and model). Use before suggesting causes.",
+                        Map.of("equipment_id", integer("The equipment's id")), List.of("equipment_id")),
                 tool("open_follow_ups",
                         "Follow-ups noted on service visits in the last 12 months (quotes to send, parts on "
                                 + "order, return visits), newest first.",
@@ -145,6 +151,7 @@ public class AssistantTools {
             case "tune_ups_due" -> tuneUpsDue(text(args, "town"), p);
             case "warranties_ending" -> warrantiesEnding(text(args, "town"), p);
             case "open_follow_ups" -> openFollowUps(p, known);
+            case "troubleshooting_context" -> troubleshooting(args.path("equipment_id").asLong(), p, known);
             default -> Map.of("error", "Unknown tool " + name);
         };
     }
@@ -302,6 +309,34 @@ public class AssistantTools {
             out.put("already_offered_on", w.offeredOn());
             return out;
         }).toList());
+    }
+
+    private Object troubleshooting(long equipmentId, Pseudonyms p, List<KnownCustomer> known) {
+        Object history = serviceHistory(equipmentId, 15, p, known);
+        Optional<Equipment> found = equipment.findDetailedById(equipmentId);
+        if (found.isEmpty()) {
+            return history; // the "no equipment" error
+        }
+        Equipment unit = found.get();
+        List<Map<String, Object>> others = records
+                .findRepairsOnOtherUnitsOfType(unit.getType(), equipmentId, PageRequest.of(0, 25)).stream()
+                .map(r -> {
+                    Equipment e = r.getEquipment();
+                    Map<String, Object> repair = new LinkedHashMap<>();
+                    repair.put("date", r.getServiceDate());
+                    repair.put("same_model", Objects.equals(lower(e.getBrand()), lower(unit.getBrand()))
+                            && Objects.equals(lower(e.getModel()), lower(unit.getModel())) && e.getModel() != null);
+                    repair.put("equipment", e.getType().getLabel() + brandModel(e.getBrand(), e.getModel()));
+                    repair.put("installed", e.getInstallDate());
+                    repair.put("work_done", p.scrub(r.getWorkDone(), known));
+                    repair.put("parts_used", p.scrub(r.getPartsUsed(), known));
+                    return repair;
+                }).toList();
+        return Map.of("unit", history, "repairs_on_other_units_of_this_type", others);
+    }
+
+    private static String lower(String s) {
+        return s == null ? null : s.trim().toLowerCase(Locale.ROOT);
     }
 
     private Object openFollowUps(Pseudonyms p, List<KnownCustomer> known) {

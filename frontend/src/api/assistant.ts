@@ -31,6 +31,8 @@ export interface AssistantReply {
   reply: string
   customers: CustomerCard[]
   proposals: Proposal[]
+  // Troubleshooting advice: shown labelled "Suggestions, not a diagnosis"
+  suggestions: boolean
 }
 
 export const assistantApi = {

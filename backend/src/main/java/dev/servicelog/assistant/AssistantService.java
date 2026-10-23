@@ -64,6 +64,20 @@ public class AssistantService {
               minutes. In a service record, a follow-up goes in the follow-up fields only, not in notes too.
             - You can't change or delete existing records; for that, say which screen in the app does it.
 
+            Troubleshooting (a symptom on a unit, e.g. "burner locks out", "no heat", "short cycling"):
+            - Find the unit, then call troubleshooting_context for it before suggesting anything.
+            - Safety first. For a gas or oil smell, smoke, a CO alarm or high CO readings, scorching, or water
+              near electrical parts, start with what to do now (shut the unit off, ventilate, get people out
+              if it's gas or CO, call the gas company) before any troubleshooting.
+            - Then the likely causes, most likely first, using the model, its age and its own history, and
+              what failed on the owner's other units of this type (say so when it's the same model). For
+              each: what to check and the reading or result that points to it. Then parts that commonly
+              fail on this kind of unit.
+            - Never suggest bypassing, jumping or disabling a safety control (limit switches, rollout or
+              flame sensors, pressure switches, low-water cutoffs, cad cells), and nothing against code.
+            - These are suggestions for a qualified technician, not a diagnosis; keep it to what he can
+              check on site. Keep it to about ten lines.
+
             Privacy placeholders:
             - Customers' names, phone numbers, emails and street addresses are replaced with placeholders
               such as Customer_14, Person_1, Phone_3, Email_1, Street_4. The owner sees the real details.
@@ -109,6 +123,7 @@ public class AssistantService {
         synchronized (chat) {
             List<KnownCustomer> known = tools.knownCustomers();
             List<Proposal> cards = new ArrayList<>();
+            boolean suggestions = false;
             String question = chat.pseudonyms.scrub(message, known);
             // Placeholders only, so safe to log when debugging the assistant
             log.debug("Assistant question: {}", question);
@@ -124,6 +139,7 @@ public class AssistantService {
                 if (calls.isArray() && !calls.isEmpty()) {
                     chat.messages.add(assistantToolCalls(answer));
                     for (JsonNode call : calls) {
+                        suggestions |= "troubleshooting_context".equals(call.path("function").path("name").asString());
                         log.debug("Assistant lookup: {} {}", call.path("function").path("name").asString(),
                                 call.path("function").path("arguments").asString());
                         chat.messages.add(Map.of("role", "tool", "tool_call_id", call.path("id").asString(),
@@ -135,12 +151,12 @@ public class AssistantService {
                 chat.messages.add(Map.of("role", "assistant", "content", text));
                 trimHistory(chat);
                 return new AssistantReply(chat.id, chat.pseudonyms.rehydrate(text),
-                        tools.cards(chat.pseudonyms.customersIn(text)), cards);
+                        tools.cards(chat.pseudonyms.customersIn(text)), cards, suggestions);
             }
             trimHistory(chat);
             return new AssistantReply(chat.id,
                     "I couldn't finish looking that up. Try a narrower question, like one customer or one week.",
-                    List.of(), cards);
+                    List.of(), cards, false);
         }
     }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { Stethoscope } from 'lucide-react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { equipmentApi, type EquipmentDetail } from '../../api/equipment'
 import { serviceRecordsApi, type ServiceRecord } from '../../api/serviceRecords'
@@ -15,6 +16,7 @@ function warrantyEnd(isoDate: string): string {
 
 export function EquipmentDetailPage() {
   const id = Number(useParams().id)
+  const navigate = useNavigate()
   const [detail, setDetail] = useState<EquipmentDetail | null>(null)
   const [history, setHistory] = useState<ServiceRecord[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -88,6 +90,18 @@ export function EquipmentDetailPage() {
         <Link to={`/equipment/${e.id}/service-records/new`} className="button">
           + Add service record
         </Link>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() =>
+            navigate('/assistant', {
+              state: { ask: `Help me troubleshoot unit #${e.id} (${[e.typeLabel, makeModel].filter(Boolean).join(', ')}): ` },
+            })
+          }
+        >
+          <Stethoscope size={18} aria-hidden="true" />
+          Troubleshoot
+        </button>
       </div>
 
       <dl className="details">

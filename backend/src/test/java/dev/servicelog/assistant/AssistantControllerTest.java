@@ -252,6 +252,36 @@ class AssistantControllerTest {
     }
 
     @Test
+    void troubleshooting_usesOtherUnitsOfTheSameModel_andIsLabelledAsSuggestions() throws Exception {
+        Customer doe = new Customer("Jane Doe", "+14135550177", null, null);
+        doe.addProperty(new Property("9 Cedar Ln", null, "Agawam", "MA", "01001", null));
+        long doeProperty = customers.save(doe).getProperties().get(0).getId();
+        long doeBoiler = id(api(post("/api/properties/" + doeProperty + "/equipment"),
+                "{\"type\": \"BOILER\", \"brand\": \"Weil-McLain\", \"model\": \"WGO-4\"}"), "$.equipment.id");
+        api(post("/api/equipment/" + doeBoiler + "/service-records"), """
+                {"serviceDate": "2026-09-01", "kind": "REPAIR", "workDone": "Jane Doe's boiler: replaced the low water cutoff",
+                 "partsUsed": "LWCO probe"}""");
+
+        scripted.add(toolCall("call_1", "troubleshooting_context", "{\"equipment_id\": " + boilerId + "}"));
+        scripted.add(answer("Shut it off first if you smell oil. Likely causes: the low water cutoff (failed on "
+                + "another WGO-4), then the nozzle."));
+
+        ask(null, "Help me troubleshoot unit #" + boilerId + ": boiler locks out")
+                .andExpect(jsonPath("$.suggestions").value(true));
+
+        String context = sentToAi.get(1);
+        assertThat(context).contains("same_model\\\":true", "LWCO probe", "Nozzle 0.75 80B")
+                .doesNotContain("Jane", "Doe", "Cedar");
+        assertNothingPrivateSent();
+    }
+
+    @Test
+    void ordinaryAnswers_arentLabelledAsSuggestions() throws Exception {
+        scripted.add(answer("Nothing scheduled."));
+        ask(null, "Anything today?").andExpect(jsonPath("$.suggestions").value(false));
+    }
+
+    @Test
     void aFailingLookup_isReportedToTheAi_notToTheOwner() throws Exception {
         scripted.add(toolCall("call_1", "get_service_history", "{\"equipment_id\": 999999, \"limit\": 3}"));
         scripted.add(answer("I couldn't find that unit."));

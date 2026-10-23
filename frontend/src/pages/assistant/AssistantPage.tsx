@@ -1,6 +1,6 @@
-import { ArrowUp, Navigation, Phone, Sparkles, SquarePen, UserRound } from 'lucide-react'
+import { ArrowUp, Lightbulb, Navigation, Phone, Sparkles, SquarePen, UserRound } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { assistantApi, type CustomerCard, type Proposal } from '../../api/assistant'
 import { ApiError, errorMessage, OfflineError } from '../../api/client'
 import { ProposalCard } from '../../components/ProposalCard'
@@ -16,6 +16,7 @@ interface Message {
   text: string
   customers?: CustomerCard[]
   proposals?: Proposal[]
+  suggestions?: boolean
 }
 
 interface Chat {
@@ -46,7 +47,9 @@ function loadChat(): Chat {
 
 export function AssistantPage() {
   const [chat, setChat] = useState<Chat>(loadChat)
-  const [input, setInput] = useState('')
+  // "Troubleshoot" on a unit's page opens the chat with the question started (S23)
+  const started = (useLocation().state as { ask?: string } | null)?.ask
+  const [input, setInput] = useState(started ?? '')
   const [thinking, setThinking] = useState(false)
   const end = useRef<HTMLDivElement>(null)
   const box = useRef<HTMLTextAreaElement>(null)
@@ -73,7 +76,13 @@ export function AssistantPage() {
         conversationId: reply.conversationId,
         messages: [
           ...asked.messages,
-          { role: 'assistant', text: reply.reply, customers: reply.customers, proposals: reply.proposals },
+          {
+            role: 'assistant',
+            text: reply.reply,
+            customers: reply.customers,
+            proposals: reply.proposals,
+            suggestions: reply.suggestions,
+          },
         ],
       })
     } catch (err) {
@@ -166,6 +175,12 @@ export function AssistantPage() {
               </span>
             )}
             <div className="message-body">
+              {m.suggestions && (
+                <span className="suggestions-label">
+                  <Lightbulb size={14} aria-hidden="true" />
+                  Suggestions to check, not a diagnosis
+                </span>
+              )}
               <div className="bubble">
                 {m.role === 'user' ? <p>{m.text}</p> : <RichText text={m.text} />}
               </div>
@@ -199,6 +214,7 @@ export function AssistantPage() {
         <textarea
           id="ask"
           ref={box}
+          autoFocus={Boolean(started)}
           rows={1}
           placeholder="Ask about a customer, job or unit"
           value={input}
