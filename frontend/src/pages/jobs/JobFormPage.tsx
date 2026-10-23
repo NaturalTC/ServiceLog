@@ -43,6 +43,8 @@ export function JobFormPage() {
   // Optional presets, e.g. from the tune-up list: ?propertyId=12&type=TUNE_UP
   const presetPropertyId = searchParams.get('propertyId')
   const presetType = searchParams.get('type') as JobType | null
+  // From the month view: ?date=2026-11-04 (a past day falls back to the usual slot)
+  const presetDate = searchParams.get('date')
   const navigate = useNavigate()
 
   const [types, setTypes] = useState<JobTypeOption[]>([])
@@ -55,6 +57,7 @@ export function JobFormPage() {
       : {
           propertyId: null,
           ...defaultSlot(),
+          ...(presetDate && presetDate > todayIso() && { date: presetDate, startTime: '08:00' }),
           durationMinutes: 60,
           type: presetType ?? '',
           urgent: false,

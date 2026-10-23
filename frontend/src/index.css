@@ -2952,3 +2952,217 @@ fieldset.property {
     scroll-behavior: auto !important;
   }
 }
+
+/* --- Jobs: List / Month switch, and the month calendar --- */
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin: 4px 0 16px;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.segmented button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.segmented button:hover {
+  background: transparent;
+  color: var(--text);
+}
+
+.segmented button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgb(15 46 51 / 0.12);
+}
+
+.month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.month-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  text-transform: none;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button.month-arrow {
+  width: 44px;
+  min-height: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+button.month-arrow:hover {
+  background: var(--border);
+}
+
+button.month-today {
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  padding: 10px 6px 8px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(15 46 51 / 0.06), 0 8px 24px rgb(15 46 51 / 0.05);
+}
+
+.month-weekday {
+  padding-bottom: 6px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+button.month-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 56px;
+  padding: 4px 0 6px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+}
+
+button.month-day:hover {
+  background: var(--surface-2);
+}
+
+button.month-day:active {
+  transform: none;
+}
+
+.month-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+}
+
+button.month-day.outside {
+  color: var(--border-strong);
+}
+
+button.month-day.past:not(.today) .month-num {
+  color: var(--muted);
+}
+
+button.month-day.outside .month-num {
+  color: var(--border-strong);
+}
+
+button.month-day.today .month-num {
+  background: var(--signal);
+  color: var(--signal-text);
+}
+
+button.month-day[aria-pressed='true'] .month-num {
+  background: var(--dark);
+  color: var(--dark-text);
+}
+
+button.month-day[aria-pressed='true'].today .month-num {
+  box-shadow: 0 0 0 3px var(--signal);
+}
+
+.month-marks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 8px;
+}
+
+.month-marks i,
+.month-legend i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--text);
+}
+
+.month-marks b {
+  font-size: 0.62rem;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.month-marks i.urgent,
+.month-legend i.urgent {
+  background: var(--error);
+}
+
+.month-marks i.install,
+.month-legend i.install {
+  background: var(--go);
+}
+
+.month-marks i.done,
+.month-legend i.done {
+  background: var(--border-strong);
+}
+
+button.month-day.outside .month-marks {
+  opacity: 0.45;
+}
+
+.month-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 10px 4px 4px;
+  font-size: 0.82rem;
+}
+
+.month-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+a.month-add {
+  width: 100%;
+  margin-top: 14px;
+}

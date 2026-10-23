@@ -1,17 +1,52 @@
+import { CalendarBlank, ListBullets } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { jobsApi, type Job } from '../../api/jobs'
-import { addDays, formatDate, formatDuration, formatTime, todayIso } from '../../lib/format'
+import { addDays, formatDate, todayIso } from '../../lib/format'
 import { Loading } from '../../components/Loading'
-import { Pill } from '../../components/ui/Pill'
-import { Row } from '../../components/ui/Row'
 import { SectionHeading } from '../../components/ui/SectionHeading'
+import { JobRows } from './JobRows'
+import { MonthView } from './MonthView'
 
 const DAYS_AHEAD = 13 // today plus the next two weeks
 
-// The upcoming schedule, grouped by day. ("My day", the focused today view, is S8.)
+// The schedule: the next two weeks as a list, or a month at a glance (?view=month).
+// The choice is in the address, so Back from a job returns to the same view.
 export function JobListPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const month = searchParams.get('view') === 'month'
+
+  function show(view: 'list' | 'month') {
+    setSearchParams(view === 'month' ? { view: 'month' } : {}, { replace: true })
+  }
+
+  return (
+    <main>
+      <div className="page-title">
+        <h1>Jobs</h1>
+        <Link to="/jobs/new" className="button">
+          + Schedule
+        </Link>
+      </div>
+
+      <div className="segmented" role="group" aria-label="Show jobs as">
+        <button type="button" aria-pressed={!month} onClick={() => show('list')}>
+          <ListBullets size={18} aria-hidden="true" />
+          List
+        </button>
+        <button type="button" aria-pressed={month} onClick={() => show('month')}>
+          <CalendarBlank size={18} aria-hidden="true" />
+          Month
+        </button>
+      </div>
+
+      {month ? <MonthView /> : <UpcomingList />}
+    </main>
+  )
+}
+
+function UpcomingList() {
   const [jobs, setJobs] = useState<Job[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -27,15 +62,8 @@ export function JobListPage() {
   jobs?.forEach((job) => byDay.set(job.date, [...(byDay.get(job.date) ?? []), job]))
 
   return (
-    <main>
-      <div className="page-title">
-        <h1>Jobs</h1>
-        <Link to="/jobs/new" className="button">
-          + Schedule
-        </Link>
-      </div>
+    <>
       <p className="muted">Next two weeks</p>
-
       {error && (
         <p className="error" role="alert">
           {error}
@@ -49,36 +77,9 @@ export function JobListPage() {
           <SectionHeading count={dayJobs.length}>
             {day === todayIso() ? `Today · ${formatDate(day)}` : formatDate(day)}
           </SectionHeading>
-          <ul className="rows">
-            {dayJobs.map((job) => (
-              <li key={job.id}>
-                <Row
-                  to={`/jobs/${job.id}`}
-                  title={
-                    <>
-                      <span className="time">{formatTime(job.startTime)}</span> · {job.customerName}
-                    </>
-                  }
-                  sub={`${job.typeLabel} · ${formatDuration(job.durationMinutes)} · ${townOf(job.address)}`}
-                  end={
-                    <>
-                      {job.status === 'DONE' && <Pill tone="done">Done</Pill>}
-                      {job.status === 'IN_PROGRESS' && <Pill tone="now">In progress</Pill>}
-                      {job.urgency === 'URGENT' && job.status !== 'DONE' && <Pill tone="urgent">Urgent</Pill>}
-                    </>
-                  }
-                />
-              </li>
-            ))}
-          </ul>
+          <JobRows jobs={dayJobs} />
         </section>
       ))}
-    </main>
+    </>
   )
-}
-
-// "250 State St, Apt 5B, Springfield, MA 01103" -> "Springfield"
-function townOf(address: string): string {
-  const parts = address.split(', ')
-  return parts.length >= 2 ? parts[parts.length - 2] : address
 }
