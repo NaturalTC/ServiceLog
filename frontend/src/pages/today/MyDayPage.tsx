@@ -1,4 +1,15 @@
-import { ArrowCounterClockwise, CalendarCheck, CaretRight, CheckCircle, NavigationArrow, Phone, Play, ShieldWarning } from '@phosphor-icons/react'
+import {
+  ArrowCounterClockwise,
+  CaretRight,
+  Check,
+  CheckCircle,
+  MapTrifold,
+  NavigationArrow,
+  Phone,
+  Play,
+  Plus,
+  ShieldWarning,
+} from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { errorMessage, OfflineError } from '../../api/client'
@@ -13,10 +24,15 @@ import {
   minutesOfDay,
 } from '../../lib/format'
 import { Loading } from '../../components/Loading'
+import { SwipeRow } from '../../components/SwipeRow'
+import { EmptyState } from '../../components/ui/EmptyState'
+import { Pill } from '../../components/ui/Pill'
 import { saveTodayForOffline } from '../../lib/prefetch'
 import { pendingStatus, syncQueue, useSyncQueue } from '../../lib/syncQueue'
 
-// The home screen: today's jobs in time order, each with one-tap Call and Navigate.
+// The home screen: the day as a route of stops (S39). Done stops are checked and small,
+// the current one is the big card with Call, Drive and Start/Finish, the ones ahead are
+// outlined and can be swiped (right to call, left to drive).
 // "Today" comes from the server (the business's time zone), not the phone's clock.
 
 function nowMinutes(): number {
@@ -24,8 +40,9 @@ function nowMinutes(): number {
   return now.getHours() * 60 + now.getMinutes()
 }
 
-// The job happening now, or else the next one still to come (finished jobs don't count)
-function currentOrNext(jobs: Job[], minute: number): { id: number; label: 'Now' | 'Next' } | null {
+// The job happening now, or else the next one still to come, or else the first one that
+// was missed (finished jobs don't count). That one gets the big card.
+function currentOrNext(jobs: Job[], minute: number): { id: number; label: 'Now' | 'Next' | 'Late' } | null {
   jobs = jobs.filter((j) => j.status !== 'DONE')
   const inProgress = jobs.find((j) => j.status === 'IN_PROGRESS')
   if (inProgress) return { id: inProgress.id, label: 'Now' }
@@ -35,7 +52,9 @@ function currentOrNext(jobs: Job[], minute: number): { id: number; label: 'Now' 
   })
   if (now) return { id: now.id, label: 'Now' }
   const next = jobs.find((j) => minutesOfDay(j.startTime) > minute)
-  return next ? { id: next.id, label: 'Next' } : null
+  if (next) return { id: next.id, label: 'Next' }
+  const missed = jobs[0]
+  return missed ? { id: missed.id, label: 'Late' } : null
 }
 
 export function MyDayPage() {
@@ -134,24 +153,45 @@ export function MyDayPage() {
     return status ? { ...j, status, unsynced: true } : { ...j, unsynced: false }
   })
   const highlight = currentOrNext(jobs, minute)
-  const remaining = jobs.filter((j) => j.status !== 'DONE').length
-  const nextJob = jobs.find((j) => j.id === highlight?.id)
+  const done = jobs.filter((j) => j.status === 'DONE').length
+  const toGo = jobs.length - done - (highlight?.label === 'Now' ? 1 : 0)
+  const late = (job: Job) =>
+    job.status === 'SCHEDULED' && minutesOfDay(job.startTime) + job.durationMinutes <= minute
 
   return (
-    <main>
-      <div className="page-title">
+    <main className="my-day">
+      <header className="route-header">
         <div>
-          <h1>My day</h1>
           <p className="muted no-margin">{formatDate(today.date)}</p>
+          <h1>
+            {jobs.length === 0 ? 'No stops today' : `${jobs.length} stop${jobs.length === 1 ? '' : 's'} today`}
+          </h1>
         </div>
-        <Link to="/jobs/new" className="button secondary">
-          + Job
+        <Link to="/jobs/new" className="button secondary icon-only" aria-label="Schedule a job">
+          <Plus size={22} weight="bold" aria-hidden="true" />
         </Link>
-      </div>
+      </header>
+
+      {/* The day at a glance: one segment per stop */}
+      {jobs.length > 0 && (
+        <div className="day-progress">
+          <div className="segments" role="img" aria-label={`${done} of ${jobs.length} stops done`}>
+            {jobs.map((j) => (
+              <span
+                key={j.id}
+                className={j.status === 'DONE' ? 'seg done' : highlight?.id === j.id && highlight.label === 'Now' ? 'seg now' : 'seg'}
+              />
+            ))}
+          </div>
+          <span className="progress-text">
+            {done} done{highlight?.label === 'Now' ? ' · 1 now' : ''} · {toGo} to go
+          </span>
+        </div>
+      )}
 
       {warrantiesEnding > 0 && (
         <Link to="/warranty" className="banner warning">
-          <ShieldWarning size={20} aria-hidden="true" />
+          <ShieldWarning size={22} aria-hidden="true" />
           <span>
             {warrantiesEnding} warrant{warrantiesEnding === 1 ? 'y' : 'ies'} ending soon: offer an extension
           </span>
@@ -159,121 +199,140 @@ export function MyDayPage() {
         </Link>
       )}
 
-      {/* The day at a glance */}
-      {jobs.length > 0 && (
-        <div className="stats">
-          <div>
-            <span className="stat-label">Jobs today</span>
-            <strong className="stat-value">{jobs.length}</strong>
-          </div>
-          <div>
-            <span className="stat-label">Left</span>
-            <strong className="stat-value">{remaining}</strong>
-          </div>
-          <div>
-            <span className="stat-label">{highlight?.label ?? 'Next'}</span>
-            <strong className="stat-value time">
-              {nextJob ? formatTime(nextJob.startTime) : '—'}
-            </strong>
-          </div>
-        </div>
-      )}
-
       {jobs.length === 0 && (
-        <div className="empty-day">
-          <CalendarCheck size={32} className="empty-icon" aria-hidden="true" />
-          <p>Nothing scheduled today.</p>
-          <div className="actions">
-            <Link to="/jobs/new" className="button">
-              Schedule a job
-            </Link>
-            <Link to="/jobs" className="button secondary">
-              See upcoming
-            </Link>
-          </div>
-        </div>
+        <EmptyState
+          icon={MapTrifold}
+          action={
+            <div className="actions">
+              <Link to="/jobs/new" className="button">
+                Schedule a job
+              </Link>
+              <Link to="/jobs" className="button secondary">
+                See upcoming
+              </Link>
+            </div>
+          }
+        >
+          Nothing scheduled today.
+        </EmptyState>
       )}
 
-      <ol className="day-list">
-        {jobs.map((job) => {
-          const start = minutesOfDay(job.startTime)
-          const done = job.status === 'DONE'
-          const finished = done || (start + job.durationMinutes <= minute && job.status !== 'IN_PROGRESS')
-          const tag = highlight?.id === job.id ? highlight.label : null
+      <ol className="route" aria-label="Today's stops">
+        {jobs.map((job, i) => {
+          const isDone = job.status === 'DONE'
+          const isCurrent = highlight?.id === job.id
+          const last = i === jobs.length - 1
+          const town = townOf(job.address)
+          const marker = isDone ? 'done' : isCurrent ? 'current' : 'ahead'
+          const line = isDone ? 'solid' : 'dashed'
           return (
-            <li key={job.id} className={`day-job${tag ? ' highlighted' : ''}${finished ? ' finished' : ''}`}>
-              <Link to={`/jobs/${job.id}`} className="day-job-main">
-                <span className="card-row">
-                  <strong className="time">
-                    {formatTime(job.startTime)}
-                    <span className="muted"> · {formatDuration(job.durationMinutes)}</span>
-                  </strong>
-                  <span className="tags">
-                    {job.unsynced && <span className="badge">Waiting to sync</span>}
-                    {done && <span className="badge done">Done</span>}
-                    {tag && <span className="badge now">{tag}</span>}
-                    {job.urgency === 'URGENT' && !done && <span className="badge urgent">Urgent</span>}
+            <li key={job.id} className={`stop ${marker}`}>
+              <span className="rail" aria-hidden="true">
+                <span className="marker">{isDone && <Check size={13} weight="bold" />}</span>
+                {!last && <span className={`line ${line}`} />}
+              </span>
+
+              {isDone && (
+                <Link to={`/jobs/${job.id}`} className="stop-done">
+                  <span className="time">{formatTime(job.startTime)} · done</span>
+                  <span>
+                    {job.customerName} · {town}
                   </span>
-                </span>
-                <strong className="customer">{job.customerName}</strong>
-                <span>{job.typeLabel}</span>
-                <span className="muted">{job.address}</span>
-                {job.notes && <span className="clamp muted">{job.notes}</span>}
-              </Link>
-              {!done && (
-                <div className="day-job-actions">
-                  <a
-                    href={`tel:${job.customerPhone}`}
-                    className="button secondary"
-                    aria-label={`Call ${job.customerName} at ${formatPhone(job.customerPhone)}`}
-                  >
-                    <Phone size={18} aria-hidden="true" />
-                    Call
-                  </a>
-                  <a
-                    href={directionsUrl(job.address)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="button"
-                    aria-label={`Navigate to ${job.address}`}
-                  >
-                    <NavigationArrow size={18} aria-hidden="true" />
-                    Navigate
-                  </a>
-                  {/* Start first; once started, the same spot becomes Finish */}
-                  {job.status === 'SCHEDULED' ? (
+                  {job.unsynced && <Pill>Waiting to sync</Pill>}
+                </Link>
+              )}
+
+              {isCurrent && !isDone && (
+                <div className="stop-current">
+                  <div className="stop-tags">
+                    <Pill tone={highlight?.label === 'Late' ? 'warning' : 'now'}>
+                      <span className="time">{formatTime(job.startTime)}</span> · {highlight?.label.toLowerCase()}
+                    </Pill>
+                    {job.urgency === 'URGENT' && <Pill tone="urgent">Urgent</Pill>}
+                    {job.unsynced && <Pill>Waiting to sync</Pill>}
+                  </div>
+                  <Link to={`/jobs/${job.id}`} className="stop-name">
+                    {job.customerName}
+                  </Link>
+                  <p className="stop-what">
+                    {job.typeLabel} · {formatDuration(job.durationMinutes)}
+                    {job.notes && <span className="clamp"> · {job.notes}</span>}
+                  </p>
+                  <p className="stop-where">{job.address}</p>
+                  <div className="stop-actions">
+                    <a
+                      href={`tel:${job.customerPhone}`}
+                      className="button secondary"
+                      aria-label={`Call ${job.customerName} at ${formatPhone(job.customerPhone)}`}
+                    >
+                      <Phone size={20} aria-hidden="true" />
+                      Call
+                    </a>
+                    <a
+                      href={directionsUrl(job.address)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="button secondary"
+                      aria-label={`Directions to ${job.address}`}
+                    >
+                      <NavigationArrow size={20} aria-hidden="true" />
+                      Drive
+                    </a>
+                    {/* Start first; once started, the same spot becomes Finish */}
+                    {job.status === 'SCHEDULED' ? (
+                      <button type="button" onClick={() => changeStatus(job, 'start')} disabled={starting === job.id}>
+                        <Play size={20} weight="fill" aria-hidden="true" />
+                        {starting === job.id ? 'Starting…' : 'Start'}
+                      </button>
+                    ) : (
+                      <Link to={`/jobs/${job.id}/finish`} className="button">
+                        <CheckCircle size={20} weight="fill" aria-hidden="true" />
+                        Finish
+                      </Link>
+                    )}
+                  </div>
+                  {job.status === 'IN_PROGRESS' && (
                     <button
                       type="button"
-                      className="secondary span-2"
-                      onClick={() => changeStatus(job, 'start')}
+                      className="link-button undo-start"
+                      onClick={() => changeStatus(job, 'undoStart')}
                       disabled={starting === job.id}
                     >
-                      <Play size={18} aria-hidden="true" />
-                      {starting === job.id ? 'Starting…' : 'Start job'}
+                      <ArrowCounterClockwise size={18} aria-hidden="true" />
+                      Started by mistake? Undo
                     </button>
-                  ) : (
-                    <>
-                      <Link to={`/jobs/${job.id}/finish`} className="button span-2">
-                        <CheckCircle size={18} aria-hidden="true" />
-                        Finish job
-                      </Link>
-                      <button
-                        type="button"
-                        className="link-button span-2"
-                        onClick={() => changeStatus(job, 'undoStart')}
-                        disabled={starting === job.id}
-                      >
-                        <ArrowCounterClockwise size={16} aria-hidden="true" />
-                        Undo start
-                      </button>
-                    </>
                   )}
                 </div>
+              )}
+
+              {!isCurrent && !isDone && (
+                <SwipeRow phone={job.customerPhone} directions={directionsUrl(job.address)} label={job.customerName}>
+                  <Link to={`/jobs/${job.id}`} className="stop-ahead">
+                    <span className="stop-tags">
+                      <span className="time">{formatTime(job.startTime)}</span>
+                      {job.urgency === 'URGENT' && <Pill tone="urgent">Urgent</Pill>}
+                      {late(job) && <Pill tone="warning">Late</Pill>}
+                      {job.unsynced && <Pill>Waiting to sync</Pill>}
+                    </span>
+                    <strong>{job.customerName}</strong>
+                    <span className="muted">
+                      {job.typeLabel} · {town}
+                    </span>
+                  </Link>
+                </SwipeRow>
               )}
             </li>
           )
         })}
       </ol>
+
+      {jobs.length > 0 && done === jobs.length && <p className="route-end muted">Every stop done. Nice work.</p>}
     </main>
   )
+}
+
+// "250 State St, Apt 5B, Springfield, MA 01103" -> "Springfield"
+function townOf(address: string): string {
+  const parts = address.split(', ')
+  return parts.length >= 2 ? parts[parts.length - 2] : address
 }

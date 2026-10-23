@@ -2423,3 +2423,261 @@ a.row:active {
 .empty-state svg {
   color: var(--border-strong);
 }
+
+/* --- My day as a route of stops (S39) --- */
+.route-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.route-header h1 {
+  margin: 2px 0 0;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+a.button.icon-only {
+  width: 48px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.day-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.segments {
+  display: flex;
+  gap: 4px;
+}
+
+.seg {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+}
+
+.seg.done {
+  background: var(--text);
+}
+
+.seg.now {
+  background: var(--signal);
+}
+
+.progress-text {
+  font-family: var(--mono);
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.route {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.stop {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  column-gap: 14px;
+}
+
+/* The line the stops sit on */
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 3px;
+}
+
+.marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  box-sizing: border-box;
+  border: 2px solid var(--muted);
+  background: var(--bg);
+}
+
+.stop.done .marker {
+  border: none;
+  background: var(--text);
+  color: var(--bg);
+}
+
+.stop.current .marker {
+  border: 5px solid var(--text);
+  background: var(--signal);
+}
+
+.line {
+  flex: 1;
+  width: 2px;
+  margin: 4px 0;
+  min-height: 18px;
+}
+
+.line.solid {
+  background: var(--text);
+}
+
+.line.dashed {
+  background: repeating-linear-gradient(var(--border-strong) 0 6px, transparent 6px 11px);
+}
+
+/* A done stop: one small line */
+a.stop-done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 10px;
+  padding: 0 0 18px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* The stop happening now (or next): the big one */
+.stop-current {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 0 26px;
+}
+
+.stop-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+a.stop-name {
+  margin-top: 6px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.stop-what,
+.stop-where {
+  margin: 0;
+}
+
+.stop-what {
+  color: var(--text-2);
+}
+
+.stop-where {
+  color: var(--muted);
+}
+
+.stop-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.stop-actions .button,
+.stop-actions button {
+  min-height: 56px;
+  padding: 10px 8px;
+  border-width: 2px;
+}
+
+.stop-actions .button.secondary,
+.stop-actions button.secondary {
+  border-color: var(--text);
+}
+
+button.undo-start {
+  align-self: flex-start;
+  gap: 6px;
+  padding: 0;
+  font-size: 0.94rem;
+}
+
+/* A stop ahead: swipeable, with the whole row as the link */
+a.stop-ahead {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0 0 20px;
+  color: var(--text);
+  font-weight: 400;
+}
+
+a.stop-ahead .time {
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+a.stop-ahead strong {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+a.stop-ahead:hover {
+  text-decoration: none;
+}
+
+.route-end {
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* Swipe: the row slides over a layer that says what letting go will do */
+.swipe {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+.swipe-under {
+  position: absolute;
+  inset: 0 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-weight: 700;
+}
+
+.swipe-call,
+.swipe-drive {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swipe-call {
+  color: var(--success);
+}
+
+.swipe-drive {
+  color: var(--link);
+}
+
+.swipe-top {
+  position: relative;
+  background: var(--bg);
+  touch-action: pan-y;
+  cursor: grab;
+}
