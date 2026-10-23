@@ -1,4 +1,20 @@
-import { ArrowUp, ChatCircleDots, Lightbulb, NavigationArrow, NotePencil, Phone, User } from '@phosphor-icons/react'
+import {
+  ArrowUp,
+  CalendarBlank,
+  CalendarPlus,
+  CaretRight,
+  ClockCounterClockwise,
+  Lightbulb,
+  ListChecks,
+  LockSimple,
+  NavigationArrow,
+  NotePencil,
+  Phone,
+  ShieldCheck,
+  User,
+  Wrench,
+  type Icon,
+} from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { Link, useLocation } from 'react-router'
 import { assistantApi, type CustomerCard, type Proposal } from '../../api/assistant'
@@ -26,14 +42,20 @@ interface Chat {
 
 export const CHAT_KEY = 'servicelog.chat'
 
-const SUGGESTIONS = [
-  "What's on tomorrow?",
-  'Book a tune-up for … next week',
-  'Who’s due for a tune-up?',
-  'Any follow-ups I still owe?',
-  'Which warranties end soon?',
-  'What did I do at the … house last time?',
+// Each with an icon and a tint, like a grouped list in iOS Settings
+const SUGGESTIONS: { text: string; icon: Icon; tint: string }[] = [
+  { text: "What's on tomorrow?", icon: CalendarBlank, tint: 'blue' },
+  { text: 'Book a tune-up for … next week', icon: CalendarPlus, tint: 'green' },
+  { text: 'Who’s due for a tune-up?', icon: Wrench, tint: 'orange' },
+  { text: 'Any follow-ups I still owe?', icon: ListChecks, tint: 'purple' },
+  { text: 'Which warranties end soon?', icon: ShieldCheck, tint: 'teal' },
+  { text: 'What did I do at the … house last time?', icon: ClockCounterClockwise, tint: 'pink' },
 ]
+
+function greeting(): string {
+  const hour = new Date().getHours()
+  return hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+}
 
 function loadChat(): Chat {
   try {
@@ -60,7 +82,8 @@ export function AssistantPage() {
     } catch {
       // storage full or blocked: the chat still works for this visit
     }
-    end.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    // An empty chat starts at the top, with the greeting
+    if (chat.messages.length > 0 || thinking) end.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [chat, thinking])
 
   async function send(text: string) {
@@ -137,30 +160,38 @@ export function AssistantPage() {
 
   return (
     <main className="assistant">
-      <div className="page-title">
-        <h1>Ask ServiceLog</h1>
+      <header className="ask-header">
+        <h1>Ask</h1>
         {chat.messages.length > 0 && (
-          <button type="button" className="secondary" onClick={newChat}>
-            <NotePencil size={18} aria-hidden="true" />
-            New chat
+          <button type="button" className="compose" onClick={newChat} aria-label="New chat">
+            <NotePencil size={20} aria-hidden="true" />
           </button>
         )}
-      </div>
+      </header>
 
       {chat.messages.length === 0 && (
-        <div className="assistant-welcome">
-          <span className="assistant-avatar large" aria-hidden="true">
-            <ChatCircleDots size={26} />
-          </span>
-          <p>Ask about your customers, equipment and schedule. Answers come from your own records.</p>
-          <div className="chips">
+        <div className="ask-welcome">
+          <p className="ask-hello">
+            {greeting()}.
+            <span>What do you need to know?</span>
+          </p>
+          <p className="ask-intro">Answers come from your own customers, equipment and schedule.</p>
+          <h2 className="ask-group-label">Try asking</h2>
+          <ul className="ask-suggestions">
             {SUGGESTIONS.map((s) => (
-              <button key={s} type="button" className="chip" onClick={() => suggest(s)}>
-                {s}
-              </button>
+              <li key={s.text}>
+                <button type="button" onClick={() => suggest(s.text)}>
+                  <span className={`ask-tile ${s.tint}`} aria-hidden="true">
+                    <s.icon size={18} weight="fill" />
+                  </span>
+                  <span className="ask-suggestion-text">{s.text}</span>
+                  <CaretRight size={16} className="ask-chevron" aria-hidden="true" />
+                </button>
+              </li>
             ))}
-          </div>
-          <p className="muted small">
+          </ul>
+          <p className="ask-footnote">
+            <LockSimple size={14} weight="fill" aria-hidden="true" />
             Names, phone numbers and addresses are replaced with placeholders before anything is sent to the AI.
           </p>
         </div>
@@ -169,11 +200,6 @@ export function AssistantPage() {
       <ol className="messages" aria-live="polite">
         {chat.messages.map((m, i) => (
           <li key={i} className={`message ${m.role}`}>
-            {m.role !== 'user' && (
-              <span className="assistant-avatar" aria-hidden="true">
-                <ChatCircleDots size={16} />
-              </span>
-            )}
             <div className="message-body">
               {m.suggestions && (
                 <span className="suggestions-label">
@@ -193,9 +219,6 @@ export function AssistantPage() {
         ))}
         {thinking && (
           <li className="message assistant">
-            <span className="assistant-avatar" aria-hidden="true">
-              <ChatCircleDots size={16} />
-            </span>
             <div className="bubble typing" role="status">
               <span className="visually-hidden">Looking that up…</span>
               <i />
@@ -216,7 +239,7 @@ export function AssistantPage() {
           ref={box}
           autoFocus={Boolean(started)}
           rows={1}
-          placeholder="Ask about a customer, job or unit"
+          placeholder="Ask anything"
           value={input}
           maxLength={2000}
           onChange={(e) => setInput(e.target.value)}
