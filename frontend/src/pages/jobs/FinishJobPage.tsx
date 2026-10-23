@@ -97,7 +97,7 @@ export function FinishJobPage() {
     try {
       await jobsApi.complete(job!.id, input)
       toast.success(`Job finished · ${job!.customerName}`)
-      navigate(`/jobs/${job!.id}`, { replace: true })
+      navigate('/', { replace: true })
     } catch (err) {
       // No signal: keep it on the phone; the job and its service records sync by itself later
       if (err instanceof OfflineError) {
@@ -109,10 +109,8 @@ export function FinishJobPage() {
           body: input,
           jobId: job!.id,
         })
-        navigate(`/jobs/${job!.id}`, {
-          replace: true,
-          state: { notice: 'No signal, so this was saved on your phone. It will sync by itself when there’s signal.' },
-        })
+        // Today shows it as done, marked "Waiting to sync"
+        navigate('/', { replace: true })
         return
       }
       setError(errorMessage(err))

@@ -167,7 +167,7 @@ export function TuneUpsPage() {
               )}
 
               <div className="actions">
-                <a href={`tel:${first.customerPhone}`} className="button secondary">
+                <a href={`tel:${first.customerPhone}`} className="button call">
                   Call {formatPhone(first.customerPhone)}
                 </a>
                 {!booked &&

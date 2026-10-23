@@ -124,7 +124,7 @@ export function WarrantyPage() {
               <Link to={`/customers/${w.customerId}`}>{w.customerName}</Link>
               <span className="muted">{w.address}</span>
               <div className="actions">
-                <a href={`tel:${w.customerPhone}`} className="button secondary">
+                <a href={`tel:${w.customerPhone}`} className="button call">
                   <Phone size={18} aria-hidden="true" />
                   Call
                 </a>

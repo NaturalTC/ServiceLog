@@ -93,6 +93,8 @@ export function MyDayPage() {
   }, [load])
 
   const [starting, setStarting] = useState<number | null>(null)
+  // The stop shown as the big card: the current one, unless another was tapped
+  const [openId, setOpenId] = useState<number | null>(null)
 
   // Warranties ending soon that haven't been offered yet: a reminder, not part of the day's work
   const [warrantiesEnding, setWarrantiesEnding] = useState(0)
@@ -159,6 +161,8 @@ export function MyDayPage() {
     return status ? { ...j, status, unsynced: true } : { ...j, unsynced: false }
   })
   const highlight = currentOrNext(jobs, minute)
+  const openStop = jobs.find((j) => j.id === openId && j.status !== 'DONE') ?? null
+  const openIdNow = openStop?.id ?? highlight?.id
   const done = jobs.filter((j) => j.status === 'DONE').length
   const toGo = jobs.length - done - (highlight?.label === 'Now' ? 1 : 0)
   const late = (job: Job) =>
@@ -226,7 +230,8 @@ export function MyDayPage() {
       <ol className="route" aria-label="Today's stops">
         {jobs.map((job, i) => {
           const isDone = job.status === 'DONE'
-          const isCurrent = highlight?.id === job.id
+          const isCurrent = openIdNow === job.id
+          const isHighlight = highlight?.id === job.id
           const last = i === jobs.length - 1
           const town = townOf(job.address)
           const marker = isDone ? 'done' : isCurrent ? 'current' : 'ahead'
@@ -251,9 +256,16 @@ export function MyDayPage() {
               {isCurrent && !isDone && (
                 <div className="stop-current">
                   <div className="stop-tags">
-                    <Pill tone={highlight?.label === 'Late' ? 'warning' : 'now'}>
-                      <span className="time">{formatTime(job.startTime)}</span> · {highlight?.label.toLowerCase()}
-                    </Pill>
+                    {isHighlight ? (
+                      <Pill tone={highlight?.label === 'Late' ? 'warning' : 'now'}>
+                        <span className="time">{formatTime(job.startTime)}</span> · {highlight?.label.toLowerCase()}
+                      </Pill>
+                    ) : (
+                      <Pill tone={late(job) ? 'warning' : undefined}>
+                        <span className="time">{formatTime(job.startTime)}</span>
+                        {late(job) ? ' · late' : ''}
+                      </Pill>
+                    )}
                     {job.urgency === 'URGENT' && <Pill tone="urgent">Urgent</Pill>}
                     {job.unsynced && <Pill>Waiting to sync</Pill>}
                   </div>
@@ -268,7 +280,7 @@ export function MyDayPage() {
                   <div className="stop-actions">
                     <a
                       href={`tel:${job.customerPhone}`}
-                      className="button secondary"
+                      className="button call"
                       aria-label={`Call ${job.customerName} at ${formatPhone(job.customerPhone)}`}
                     >
                       <Phone size={20} aria-hidden="true" />
@@ -313,7 +325,12 @@ export function MyDayPage() {
 
               {!isCurrent && !isDone && (
                 <SwipeRow phone={job.customerPhone} directions={directionsUrl(job.address)} label={job.customerName}>
-                  <Link to={`/jobs/${job.id}`} className="stop-ahead">
+                  <button
+                    type="button"
+                    className="stop-ahead"
+                    onClick={() => setOpenId(job.id)}
+                    aria-label={`Open ${job.customerName}, ${formatTime(job.startTime)}`}
+                  >
                     <span className="stop-tags">
                       <span className="time">{formatTime(job.startTime)}</span>
                       {job.urgency === 'URGENT' && <Pill tone="urgent">Urgent</Pill>}
@@ -324,7 +341,7 @@ export function MyDayPage() {
                     <span className="muted">
                       {job.typeLabel} · {town}
                     </span>
-                  </Link>
+                  </button>
                 </SwipeRow>
               )}
             </li>

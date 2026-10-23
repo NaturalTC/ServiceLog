@@ -74,7 +74,7 @@ export function CustomerDetailPage() {
       </div>
 
       <div className="actions">
-        <a href={`tel:${customer.phone}`} className="button">
+        <a href={`tel:${customer.phone}`} className="button call">
           <Phone size={18} aria-hidden="true" />
           Call {formatPhone(customer.phone)}
         </a>

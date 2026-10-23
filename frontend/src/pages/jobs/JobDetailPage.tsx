@@ -155,7 +155,7 @@ export function JobDetailPage() {
       </ul>
 
       <div className="actions">
-        <a href={`tel:${job.customerPhone}`} className="button secondary">
+        <a href={`tel:${job.customerPhone}`} className="button call">
           <Phone size={18} aria-hidden="true" />
           Call {formatPhone(job.customerPhone)}
         </a>

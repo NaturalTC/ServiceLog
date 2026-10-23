@@ -257,7 +257,7 @@ function CustomerResult({ customer }: { customer: CustomerCard }) {
       </Link>
       {customer.address && <span className="muted">{customer.address}</span>}
       <div className="result-actions">
-        <a href={`tel:${customer.phone}`} className="button secondary" aria-label={`Call ${customer.name}`}>
+        <a href={`tel:${customer.phone}`} className="button call" aria-label={`Call ${customer.name}`}>
           <Phone size={16} aria-hidden="true" />
           {formatPhone(customer.phone)}
         </a>

@@ -36,6 +36,11 @@
   --signal: #f4c531;
   --signal-text: #0f2e33;
 
+  /* Call buttons: green, like the phone's own call button */
+  --call: #1e7d45;
+  --call-hover: #19693a;
+  --call-text: #ffffff;
+
   /* The floating tab bar */
   --tabbar: #0f2e33;
   --tabbar-text: #c9d6d8;
@@ -87,6 +92,10 @@
 
     --signal: #f4c531;
     --signal-text: #0b1a1d;
+
+    --call: #4cc983;
+    --call-hover: #6ad597;
+    --call-text: #0b1a1d;
 
     --tabbar: #1a3237;
     --tabbar-text: #b9cdd0;
@@ -432,6 +441,17 @@ a.button.dark:hover {
 }
 
 /* Signal yellow: the one thing to do on a page that isn't the app (e.g. the landing page) */
+/* Call: always green, wherever it shows up */
+a.button.call {
+  background: var(--call);
+  border-color: var(--call);
+  color: var(--call-text);
+}
+a.button.call:hover {
+  background: var(--call-hover);
+  border-color: var(--call-hover);
+}
+
 a.button.signal {
   background: var(--signal);
   color: var(--signal-text);
@@ -2503,28 +2523,38 @@ button.undo-start {
   font-size: 0.94rem;
 }
 
-/* A stop ahead: swipeable, with the whole row as the link */
-a.stop-ahead {
+/* A stop ahead: swipeable, and a tap opens it as the big card */
+button.stop-ahead {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 1px;
+  width: 100%;
+  min-height: 0;
   padding: 0 0 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--text);
   font-weight: 400;
+  text-align: left;
+  white-space: normal;
 }
 
-a.stop-ahead .time {
+button.stop-ahead:hover,
+button.stop-ahead:active {
+  background: transparent;
+  transform: none;
+}
+
+button.stop-ahead .time {
   font-size: 0.94rem;
   font-weight: 600;
 }
 
-a.stop-ahead strong {
+button.stop-ahead strong {
   font-size: 1.15rem;
   font-weight: 700;
-}
-
-a.stop-ahead:hover {
-  text-decoration: none;
 }
 
 .route-end {
@@ -2559,7 +2589,7 @@ a.stop-ahead:hover {
 }
 
 .swipe-call {
-  color: var(--success);
+  color: var(--call);
 }
 
 .swipe-drive {
