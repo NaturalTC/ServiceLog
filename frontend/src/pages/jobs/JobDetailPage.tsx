@@ -1,9 +1,11 @@
 import { CalendarBlank, CheckCircle, Clock, MapPin, NavigationArrow, Phone, Play, User } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage, OfflineError } from '../../api/client'
 import { isOpen, jobsApi, type Job } from '../../api/jobs'
 import { formatDate, formatDuration, formatPhone, formatTime, mapsUrl } from '../../lib/format'
+import { useConfirm } from '../../components/ConfirmSheet'
 import { Loading } from '../../components/Loading'
 import { pendingStatus, syncQueue, useSyncQueue } from '../../lib/syncQueue'
 
@@ -14,6 +16,7 @@ export function JobDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const queue = useSyncQueue()
+  const [ask, sheet] = useConfirm()
   // e.g. "finished on your phone" after finishing without signal
   const notice = (useLocation().state as { notice?: string } | null)?.notice
 
@@ -25,10 +28,19 @@ export function JobDetailPage() {
   }, [id])
 
   async function cancelJob() {
-    if (!job || !window.confirm(`Cancel the ${job.typeLabel.toLowerCase()} for ${job.customerName}?`)) return
+    if (!job) return
+    const ok = await ask({
+      title: `Cancel the ${job.typeLabel.toLowerCase()} for ${job.customerName}?`,
+      message: `${formatDate(job.date)} at ${formatTime(job.startTime)}. It comes off the schedule.`,
+      confirmLabel: 'Cancel job',
+      cancelLabel: 'Keep job',
+      danger: true,
+    })
+    if (!ok) return
     setBusy(true)
     try {
       await jobsApi.cancel(job.id)
+      toast.success(`Cancelled: ${job.typeLabel} for ${job.customerName}`)
       navigate('/jobs', { replace: true })
     } catch (err) {
       setError(errorMessage(err))
@@ -59,6 +71,7 @@ export function JobDetailPage() {
     setBusy(true)
     try {
       setJob(await jobsApi.start(job.id))
+      toast.success('Job started', { action: { label: 'Undo', onClick: () => void undoStart() } })
     } catch (err) {
       // No signal: keep the start on the phone; it syncs by itself later
       if (err instanceof OfflineError) {
@@ -207,6 +220,7 @@ export function JobDetailPage() {
       <p className="links">
         <Link to="/jobs">Back to jobs</Link>
       </p>
+      {sheet}
     </main>
   )
 }

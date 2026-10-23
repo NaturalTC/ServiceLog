@@ -1,5 +1,6 @@
 import { ArrowsClockwise } from '@phosphor-icons/react'
 import { useState } from 'react'
+import { useConfirm } from '../../components/ConfirmSheet'
 import { useConnection } from '../../lib/connection'
 import { formatDateTime } from '../../lib/format'
 import { syncQueue, useSyncQueue } from '../../lib/syncQueue'
@@ -9,6 +10,7 @@ export function SyncPage() {
   const queue = useSyncQueue()
   const { online } = useConnection()
   const [syncing, setSyncing] = useState(false)
+  const [ask, sheet] = useConfirm()
 
   async function syncNow() {
     setSyncing(true)
@@ -16,8 +18,15 @@ export function SyncPage() {
     setSyncing(false)
   }
 
-  function discard(id: string, label: string) {
-    if (window.confirm(`Discard “${label}”? It won't be saved.`)) void syncQueue.discard(id)
+  async function discard(id: string, label: string) {
+    const ok = await ask({
+      title: `Discard “${label}”?`,
+      message: "It's deleted from this phone and won't be saved.",
+      confirmLabel: 'Discard',
+      cancelLabel: 'Keep it',
+      danger: true,
+    })
+    if (ok) void syncQueue.discard(id)
   }
 
   return (
@@ -67,6 +76,7 @@ export function SyncPage() {
           </button>
         </div>
       )}
+      {sheet}
     </main>
   )
 }

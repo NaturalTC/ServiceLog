@@ -1,6 +1,7 @@
 import { Envelope, Phone } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage } from '../../api/client'
 import { equipmentApi, toInput, type ExpiringWarranties, type UnregisteredUnit } from '../../api/equipment'
 import { Loading } from '../../components/Loading'
@@ -39,12 +40,17 @@ export function WarrantyPage() {
     if (loaded && hash) document.getElementById(hash.slice(1))?.scrollIntoView()
   }, [loaded, hash])
 
-  async function markOffered(id: number, offered: boolean) {
+  async function markOffered(id: number, offered: boolean, customerName?: string) {
     setSaving(id)
     setError(null)
     try {
       await equipmentApi.markOffered(id, offered)
       setEnding(await equipmentApi.warrantyEnding())
+      if (offered) {
+        toast.success(`Marked offered${customerName ? ` for ${customerName}` : ''}`, {
+          action: { label: 'Undo', onClick: () => void markOffered(id, false) },
+        })
+      }
     } catch (err) {
       setError(errorMessage(err))
     }
@@ -63,6 +69,7 @@ export function WarrantyPage() {
         warrantyRegisteredOn: todayIso(),
       })
       setUnits((current) => current?.filter((u) => u.equipmentId !== id) ?? null)
+      toast.success(`Registered: ${equipment.typeLabel}`)
     } catch (err) {
       setError(errorMessage(err))
     }
@@ -141,7 +148,7 @@ export function WarrantyPage() {
                 <button
                   type="button"
                   className="dark"
-                  onClick={() => markOffered(w.equipmentId, true)}
+                  onClick={() => markOffered(w.equipmentId, true, w.customerName)}
                   disabled={saving === w.equipmentId}
                   aria-label={`Mark offered: ${w.typeLabel} for ${w.customerName}, ${formatPhone(w.customerPhone)}`}
                 >

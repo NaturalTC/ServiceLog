@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage, OfflineError } from '../../api/client'
 import { equipmentApi } from '../../api/equipment'
 import { jobsApi, type Job, type Today } from '../../api/jobs'
@@ -115,6 +116,11 @@ export function MyDayPage() {
       } else {
         await jobsApi[action](job.id)
         load()
+        if (action === 'start') {
+          toast.success(`Started · ${job.customerName}`, {
+            action: { label: 'Undo', onClick: () => void changeStatus(job, 'undoStart') },
+          })
+        }
       }
     } catch (err) {
       if (err instanceof OfflineError && action === 'start') {

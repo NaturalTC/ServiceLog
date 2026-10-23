@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage } from '../../api/client'
 import { recentlyRemindedAt, tuneUpsApi, type DueList, type DueUnit } from '../../api/tuneUps'
 import { daysAgo, formatDate, formatDateTime, formatPhone } from '../../lib/format'
+import { useConfirm } from '../../components/ConfirmSheet'
 import { Loading } from '../../components/Loading'
 
 // Customers due for a seasonal tune-up. Units are grouped by address, since one visit
@@ -34,7 +36,8 @@ export function TuneUpsPage() {
   const [list, setList] = useState<DueList | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState<string | null>(null)
-  const [message, setMessage] = useState<{ key: string; text: string; ok: boolean } | null>(null)
+  const [message, setMessage] = useState<{ key: string; text: string } | null>(null)
+  const [ask, sheet] = useConfirm()
 
   const load = () =>
     tuneUpsApi
@@ -48,21 +51,34 @@ export function TuneUpsPage() {
 
   // Nothing is emailed without the owner's tap and a confirmation
   async function emailReminder(key: string, unit: DueUnit) {
-    if (!window.confirm(`Email a tune-up reminder to ${unit.customerName} (${unit.customerEmail})?`)) return
+    const ok = await ask({
+      title: `Email a tune-up reminder to ${unit.customerName}?`,
+      message: `It goes to ${unit.customerEmail}.`,
+      confirmLabel: 'Send reminder',
+    })
+    if (!ok) return
     setSending(key)
     setMessage(null)
     try {
       await send(unit, false)
     } catch (err) {
       const lastSent = recentlyRemindedAt(err)
-      if (lastSent && window.confirm(`A reminder already went out ${formatDateTime(lastSent)}. Send another?`)) {
+      const again =
+        lastSent &&
+        (await ask({
+          title: 'Send another reminder?',
+          message: `One already went to ${unit.customerName} ${formatDateTime(lastSent)}.`,
+          confirmLabel: 'Send another',
+          cancelLabel: "Don't send",
+        }))
+      if (again) {
         try {
           await send(unit, true)
         } catch (retryErr) {
-          setMessage({ key, text: errorMessage(retryErr), ok: false })
+          setMessage({ key, text: errorMessage(retryErr) })
         }
       } else if (!lastSent) {
-        setMessage({ key, text: errorMessage(err), ok: false })
+        setMessage({ key, text: errorMessage(err) })
       }
     }
     setSending(null)
@@ -70,8 +86,7 @@ export function TuneUpsPage() {
 
   async function send(unit: DueUnit, resend: boolean) {
     const sent = await tuneUpsApi.sendReminder(unit.customerId, unit.propertyId, resend)
-    const key = `${unit.customerId}-${unit.propertyId}`
-    setMessage({ key, text: `Reminder sent to ${sent.recipientEmail}.`, ok: true })
+    toast.success(`Reminder sent to ${sent.recipientEmail}`)
     await load()
   }
 
@@ -146,7 +161,7 @@ export function TuneUpsPage() {
               </ul>
 
               {message?.key === key && (
-                <p className={message.ok ? 'notice' : 'error'} role="status">
+                <p className="error" role="alert">
                   {message.text}
                 </p>
               )}
@@ -189,6 +204,7 @@ export function TuneUpsPage() {
           )
         })}
       </ul>
+      {sheet}
     </main>
   )
 }

@@ -1,8 +1,10 @@
 import { Camera, Trash, X } from '@phosphor-icons/react'
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
+import { toast } from 'sonner'
 import { errorMessage } from '../api/client'
 import { photosApi, type Photo } from '../api/photos'
 import { shrinkPhoto } from '../lib/photos'
+import { useConfirm } from './ConfirmSheet'
 
 // "Add photos": on a phone this offers the camera or the photo library
 export function AddPhotosButton({ onPick, busy }: { onPick: (files: File[]) => void; busy?: boolean }) {
@@ -26,7 +28,9 @@ export function PhotoGallery({ recordId }: { recordId: number }) {
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [open, setOpen] = useState<Photo | null>(null)
-  const dialog = useRef<HTMLDialogElement>(null)
+  // The viewer is a modal <dialog>, so the delete confirmation opens inside it
+  const [dialog, setDialog] = useState<HTMLDialogElement | null>(null)
+  const [ask, sheet] = useConfirm(dialog)
 
   const load = useCallback(() => {
     photosApi
@@ -38,9 +42,9 @@ export function PhotoGallery({ recordId }: { recordId: number }) {
   useEffect(load, [load])
 
   useEffect(() => {
-    if (open) dialog.current?.showModal()
-    else dialog.current?.close()
-  }, [open])
+    if (open && !dialog?.open) dialog?.showModal()
+    else if (!open) dialog?.close()
+  }, [open, dialog])
 
   async function add(files: File[]) {
     setUploading(true)
@@ -55,11 +59,18 @@ export function PhotoGallery({ recordId }: { recordId: number }) {
   }
 
   async function remove(photo: Photo) {
-    if (!window.confirm('Delete this photo?')) return
+    const ok = await ask({
+      title: 'Delete this photo?',
+      message: 'It is removed from the service record for good.',
+      confirmLabel: 'Delete photo',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await photosApi.remove(photo.id)
       setPhotos((current) => current?.filter((p) => p.id !== photo.id) ?? null)
       setOpen(null)
+      toast.success('Photo deleted')
     } catch (err) {
       setError(errorMessage(err))
     }
@@ -87,7 +98,7 @@ export function PhotoGallery({ recordId }: { recordId: number }) {
       {photos?.length === 0 && <p className="muted">No photos yet.</p>}
       <AddPhotosButton onPick={add} busy={uploading} />
 
-      <dialog ref={dialog} className="photo-viewer" onClose={() => setOpen(null)} aria-label="Photo">
+      <dialog ref={setDialog} className="photo-viewer" onClose={() => setOpen(null)} aria-label="Photo">
         {open && (
           <>
             <img src={open.url} alt="" width={open.width} height={open.height} />
@@ -103,6 +114,7 @@ export function PhotoGallery({ recordId }: { recordId: number }) {
             </div>
           </>
         )}
+        {sheet}
       </dialog>
     </section>
   )

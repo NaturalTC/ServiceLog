@@ -1,12 +1,14 @@
 import { Envelope, MapPin, Phone } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
 import { equipmentApi, type Equipment } from '../../api/equipment'
 import { jobsApi, type Job } from '../../api/jobs'
 import { tuneUpsApi, type Reminder } from '../../api/tuneUps'
 import { formatAddress, formatDate, formatDateTime, formatPhone, formatTime, mapsUrl } from '../../lib/format'
+import { useConfirm } from '../../components/ConfirmSheet'
 import { Loading } from '../../components/Loading'
 
 export function CustomerDetailPage() {
@@ -16,6 +18,7 @@ export function CustomerDetailPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [ask, sheet] = useConfirm()
 
   useEffect(() => {
     Promise.all([
@@ -35,10 +38,15 @@ export function CustomerDetailPage() {
 
   async function resumeReminders() {
     if (!customer) return
-    if (!window.confirm(`Only do this if ${customer.name} asked to get tune-up reminders again. Turn them back on?`))
-      return
+    const ok = await ask({
+      title: 'Turn tune-up reminders back on?',
+      message: `Only do this if ${customer.name} asked to get them again.`,
+      confirmLabel: 'Turn reminders on',
+    })
+    if (!ok) return
     try {
       setCustomer(await customersApi.resumeReminders(customer.id))
+      toast.success(`Reminders back on for ${customer.name}`)
     } catch (err) {
       setError(errorMessage(err))
     }
@@ -171,6 +179,7 @@ export function CustomerDetailPage() {
       <p className="links">
         <Link to="/customers">Back to customers</Link>
       </p>
+      {sheet}
     </main>
   )
 }

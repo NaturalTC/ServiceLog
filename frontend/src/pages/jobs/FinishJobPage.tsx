@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage, OfflineError } from '../../api/client'
 import { equipmentApi, type Equipment } from '../../api/equipment'
 import { isOpen, jobsApi, type Job, type JobType } from '../../api/jobs'
@@ -95,6 +96,7 @@ export function FinishJobPage() {
     }
     try {
       await jobsApi.complete(job!.id, input)
+      toast.success(`Job finished · ${job!.customerName}`)
       navigate(`/jobs/${job!.id}`, { replace: true })
     } catch (err) {
       // No signal: keep it on the phone; the job and its service records sync by itself later

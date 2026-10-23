@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage } from '../../api/client'
 import { assistantApi } from '../../api/assistant'
 import { customersApi, type CustomerInput } from '../../api/customers'
@@ -181,6 +182,7 @@ export function CustomerFormPage() {
       const saved = editingId
         ? await customersApi.update(editingId, toInput(draft))
         : await customersApi.create(toInput(draft))
+      toast.success(editingId ? 'Customer saved' : `Added ${saved.name}`)
       navigate(`/customers/${saved.id}`, { replace: true })
     } catch (err) {
       setServerError(errorMessage(err))

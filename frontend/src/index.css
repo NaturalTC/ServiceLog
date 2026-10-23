@@ -2608,3 +2608,146 @@ a.stop-ahead:hover {
 fieldset.property {
   box-shadow: none;
 }
+
+/* --- Confirm sheets (S41): slide up from the bottom, big buttons in thumb reach --- */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(6 20 23 / 0.5);
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 560px;
+  max-height: 90dvh;
+  margin: 0 auto;
+  padding: 10px max(20px, env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+  overflow-y: auto;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--border);
+  outline: none;
+}
+
+.sheet-handle {
+  align-self: center;
+  width: 44px;
+  height: 5px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.sheet-title {
+  margin: 0;
+  color: var(--text);
+  text-transform: none;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.sheet-message {
+  margin: 0;
+  color: var(--text-2);
+}
+
+.sheet-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.sheet-actions button {
+  width: 100%;
+  min-height: 56px;
+  font-size: 1.05rem;
+  white-space: normal;
+}
+
+.sheet-actions button.sheet-danger {
+  background: var(--error);
+  color: var(--surface);
+}
+
+.sheet-actions button.sheet-danger:hover {
+  background: color-mix(in srgb, var(--error) 88%, var(--text));
+}
+
+/* --- Toasts (S41): one line of ink above the tab bar, with Undo when there is one --- */
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 16px;
+  background: var(--dark);
+  color: var(--dark-text);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.22);
+  font-weight: 600;
+}
+
+.toast-icon {
+  display: inline-flex;
+  color: var(--signal);
+}
+
+@media (prefers-color-scheme: dark) {
+  .toast-icon {
+    color: #1d6b3f;
+  }
+}
+
+.toast-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-title {
+  overflow-wrap: anywhere;
+}
+
+.toast-description {
+  font-weight: 400;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.toast button.toast-action {
+  flex: none;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: var(--signal);
+  color: var(--signal-text);
+  font-weight: 800;
+}
+
+.toast button.toast-action:hover {
+  background: color-mix(in srgb, var(--signal) 85%, #ffffff);
+}
+
+/* Reduce Motion turned on: sheets, toasts and every transition just appear */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

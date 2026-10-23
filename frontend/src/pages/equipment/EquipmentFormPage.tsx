@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage } from '../../api/client'
 import { assistantApi, type EquipmentFill, type NameplateReading } from '../../api/assistant'
 import { DescribeBox } from '../../components/DescribeBox'
@@ -150,6 +151,7 @@ export function EquipmentFormPage() {
       const saved = editingId
         ? await equipmentApi.update(editingId, input)
         : await equipmentApi.create(propertyId!, input)
+      toast.success(`${editingId ? 'Saved' : 'Added'}: ${saved.equipment.typeLabel}`)
       navigate(`/equipment/${saved.equipment.id}`, { replace: true })
     } catch (err) {
       setServerError(errorMessage(err))

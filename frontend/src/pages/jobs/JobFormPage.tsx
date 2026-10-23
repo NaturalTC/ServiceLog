@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
 import { assistantApi, type JobFill } from '../../api/assistant'
@@ -178,6 +179,7 @@ export function JobFormPage() {
     setSaving(true)
     try {
       const saved = editingId ? await jobsApi.update(editingId, input) : await jobsApi.create(input)
+      toast.success(editingId ? 'Job saved' : `Booked: ${saved.typeLabel} for ${saved.customerName}`)
       navigate(`/jobs/${saved.id}`, { replace: true })
     } catch (err) {
       const clash = overlappingJobs(err)

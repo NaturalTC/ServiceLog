@@ -1,6 +1,7 @@
 import { Lightning } from '@phosphor-icons/react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage, OfflineError } from '../../api/client'
 import { equipmentApi } from '../../api/equipment'
 import {
@@ -185,6 +186,7 @@ export function ServiceRecordFormPage() {
           notice = `Saved, but the photos didn't upload: ${errorMessage(err)} Add them again below.`
         }
       }
+      if (!notice) toast.success(`Saved: ${saved.record.kindLabel}`)
       navigate(`/service-records/${saved.record.id}`, { replace: true, state: notice ? { notice } : undefined })
     } catch (err) {
       // No signal: keep a new record (and its photos) on the phone; it syncs by itself later

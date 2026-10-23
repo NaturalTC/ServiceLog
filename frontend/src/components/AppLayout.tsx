@@ -1,9 +1,11 @@
-import { Briefcase, CalendarCheck, ChatCircleDots, SignOut, Users, Wrench } from '@phosphor-icons/react'
+import { Briefcase, CalendarCheck, ChatCircleDots, CheckCircle, SignOut, Users, Wrench } from '@phosphor-icons/react'
 import { useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router'
+import { toast, Toaster } from 'sonner'
 import { useAuth } from '../auth/authContext'
 import { CACHE, offlineStore } from '../lib/offlineStore'
 import { startSyncing, syncQueue, useSyncQueue } from '../lib/syncQueue'
+import { useConfirm } from './ConfirmSheet'
 import { OfflineStatus } from './OfflineStatus'
 import { CHAT_KEY } from '../pages/assistant/AssistantPage'
 
@@ -21,18 +23,37 @@ const TABS = [
 export function AppLayout() {
   const { logout } = useAuth()
   const queue = useSyncQueue()
+  const [ask, sheet] = useConfirm()
 
   // Send anything done without signal as soon as it can go
   useEffect(startSyncing, [])
 
+  // Say so when things done without signal reach the server
+  useEffect(() => {
+    const onSynced = (e: Event) => {
+      const sent = (e as CustomEvent<number>).detail
+      toast.success(`Synced ${sent} change${sent === 1 ? '' : 's'} made without signal`)
+    }
+    window.addEventListener('servicelog:synced', onSynced)
+    return () => window.removeEventListener('servicelog:synced', onSynced)
+  }, [])
+
   // Out of the way in the corner, and confirmed, so it's never tapped by accident on a job.
   // Logging out wipes everything saved on the phone, including anything not yet synced.
   async function confirmLogout() {
-    const message =
-      queue.length > 0
-        ? `${queue.length} change${queue.length === 1 ? " hasn't" : "s haven't"} synced yet and will be lost. Log out anyway?`
-        : 'Log out of ServiceLog?'
-    if (!window.confirm(message)) return
+    const unsynced = queue.length > 0
+    const ok = await ask(
+      unsynced
+        ? {
+            title: 'Log out and lose unsynced changes?',
+            message: `${queue.length} change${queue.length === 1 ? " hasn't" : "s haven't"} synced yet. Logging out deletes ${queue.length === 1 ? 'it' : 'them'} from this phone.`,
+            confirmLabel: 'Log out anyway',
+            cancelLabel: 'Stay logged in',
+            danger: true,
+          }
+        : { title: 'Log out of ServiceLog?', confirmLabel: 'Log out', cancelLabel: 'Stay logged in' },
+    )
+    if (!ok) return
     await syncQueue.clear()
     await offlineStore.clear(CACHE).catch(() => {})
     sessionStorage.removeItem(CHAT_KEY)
@@ -65,6 +86,25 @@ export function AppLayout() {
         <OfflineStatus />
         <Outlet />
       </div>
+      {sheet}
+      <Toaster
+        position="bottom-center"
+        offset={{ bottom: 24 }}
+        mobileOffset={{ bottom: 'calc(88px + env(safe-area-inset-bottom))', left: 12, right: 12 }}
+        icons={{ success: <CheckCircle size={22} weight="fill" /> }}
+        toastOptions={{
+          unstyled: true,
+          duration: 5000,
+          classNames: {
+            toast: 'toast',
+            icon: 'toast-icon',
+            content: 'toast-content',
+            title: 'toast-title',
+            description: 'toast-description',
+            actionButton: 'toast-action',
+          },
+        }}
+      />
     </>
   )
 }
