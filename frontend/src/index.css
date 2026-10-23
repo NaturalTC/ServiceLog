@@ -325,12 +325,12 @@ fieldset.property legend {
 
 .row {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: 12px;
 }
 
 .row.even {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .row > div {
@@ -662,9 +662,10 @@ a.card:hover {
 
 .card-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
 }
 
 /* Long notes show two lines in the list; the full text is on the record page */
@@ -974,10 +975,13 @@ button.icon-button:hover {
   align-items: center;
   justify-content: center;
   gap: 2px;
+  min-width: 0;
   min-height: 54px;
   border-radius: 16px;
-  font-size: 0.72rem;
+  /* Labels stay on one line even with the phone's text turned up, like iOS tab bars */
+  font-size: min(0.72rem, 13px);
   font-weight: 600;
+  white-space: nowrap;
   color: var(--tabbar-text);
   text-decoration: none;
 }
@@ -1100,13 +1104,21 @@ button.icon-button:hover {
   pointer-events: none;
 }
 
-.landing > * {
+.landing > *,
+.landing-main > * {
   position: relative;
   max-width: var(--landing-max);
   margin-left: auto;
   margin-right: auto;
   padding-left: 16px;
   padding-right: 16px;
+}
+
+/* The landing's main landmark: a plain wrapper, its sections lay out as before */
+.landing > main.landing-main {
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 /* Floating rounded top bar */
@@ -1591,8 +1603,9 @@ main .skeleton-list {
 }
 
 /* Handled items (e.g. warranty offered) fade back; their buttons stay usable */
-.card.finished > :not(.actions, button) {
-  opacity: 0.6;
+.card.finished > :not(.actions, button),
+.card.finished a strong {
+  color: var(--muted);
 }
 
 .card a.card-title {
@@ -2198,7 +2211,7 @@ form.ask-bar {
   align-items: flex-end;
   gap: 8px;
   margin-top: 20px;
-  padding: 6px 6px 6px 18px;
+  padding: 4px 4px 4px 18px;
   background: color-mix(in srgb, var(--surface) 78%, transparent);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   backdrop-filter: saturate(180%) blur(20px);
@@ -2209,7 +2222,7 @@ form.ask-bar {
 
 form.ask-bar textarea {
   flex: 1;
-  min-height: 40px;
+  min-height: 44px;
   max-height: 160px;
   padding: 8px 0;
   border: none;
@@ -2228,9 +2241,9 @@ form.ask-bar:focus-within {
 
 button.send {
   flex-shrink: 0;
-  width: 40px;
-  min-height: 40px;
-  height: 40px;
+  width: 44px;
+  min-height: 44px;
+  height: 44px;
   padding: 0;
   border-radius: 999px;
   background: var(--go);
@@ -2641,7 +2654,10 @@ a.stop-done {
 }
 
 a.stop-name {
-  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 2px;
   font-size: 1.6rem;
   font-weight: 800;
   letter-spacing: -0.01em;
@@ -3165,4 +3181,24 @@ button.month-day.outside .month-marks {
 a.month-add {
   width: 100%;
   margin-top: 14px;
+}
+
+/* --- Accessibility (S42): every tap target at least 44px tall --- */
+.icon-link,
+.card a.card-title,
+.card > a:not(.button),
+.card-row > a:not(.button),
+a.tap-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.card a.card-title {
+  padding-top: 0;
+}
+
+/* Date and time fields can shrink to their column instead of pushing the page wider */
+.row input {
+  min-width: 0;
 }

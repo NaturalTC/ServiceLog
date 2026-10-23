@@ -146,7 +146,9 @@ export function JobDetailPage() {
         </li>
         <li>
           <User size={18} aria-hidden="true" />
-          <Link to={`/customers/${job.customerId}`}>{job.customerName}</Link>
+          <Link to={`/customers/${job.customerId}`} className="tap-link">
+            {job.customerName}
+          </Link>
         </li>
         <li>
           <MapPin size={18} aria-hidden="true" />
@@ -196,7 +198,9 @@ export function JobDetailPage() {
           </div>
           {shown.status === 'SCHEDULED' && (
             <p className="center">
-              <Link to={`/jobs/${job.id}/finish`}>Already done? Finish without starting</Link>
+              <Link to={`/jobs/${job.id}/finish`} className="tap-link">
+                Already done? Finish without starting
+              </Link>
             </p>
           )}
           {shown.status === 'IN_PROGRESS' && (
