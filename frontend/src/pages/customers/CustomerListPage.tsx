@@ -4,9 +4,10 @@ import { Link, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
 import { equipmentApi } from '../../api/equipment'
-import { formatAddress, formatPhone } from '../../lib/format'
+import { formatPhone } from '../../lib/format'
 import { useDebouncedValue } from '../../lib/useDebouncedValue'
 import { Loading } from '../../components/Loading'
+import { Row } from '../../components/ui/Row'
 
 const SEARCH_DELAY_MS = 250
 const MAX_RESULTS = 50 // the server's cap on search results
@@ -98,17 +99,21 @@ export function CustomerListPage() {
           <p className="empty">No customers yet. Tap “+ New” to add your first one.</p>
         ))}
 
-      <ul className="card-list">
+      <ul className="rows">
         {customers?.map((c) => (
           <li key={c.id}>
-            <Link to={`/customers/${c.id}`} className="card">
-              <strong>{c.name}</strong>
-              <span>{formatPhone(c.phone)}</span>
-              {c.properties[0] && <span className="muted">{formatAddress(c.properties[0])}</span>}
-              {c.properties.length > 1 && (
-                <span className="muted">+{c.properties.length - 1} more address(es)</span>
-              )}
-            </Link>
+            <Row
+              to={`/customers/${c.id}`}
+              title={c.name}
+              sub={
+                <>
+                  {c.properties[0] && c.properties[0].city}
+                  {c.properties.length > 1 && ` +${c.properties.length - 1}`}
+                  {' · '}
+                  <span className="time">{formatPhone(c.phone)}</span>
+                </>
+              }
+            />
           </li>
         ))}
       </ul>

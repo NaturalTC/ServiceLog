@@ -21,7 +21,7 @@ await page.goto(`${base}/login`)
 await page.fill('#email', process.env.EMAIL)
 await page.fill('#password', process.env.PASSWORD)
 await page.click('button[type=submit]')
-await page.waitForSelector('text=My day')
+await page.waitForSelector('.route-header')
 
 // Find the customer and unit to show, through the app's own API
 const ids = await page.evaluate(async () => {

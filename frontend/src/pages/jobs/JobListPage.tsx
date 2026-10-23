@@ -4,6 +4,9 @@ import { errorMessage } from '../../api/client'
 import { jobsApi, type Job } from '../../api/jobs'
 import { addDays, formatDate, formatDuration, formatTime, todayIso } from '../../lib/format'
 import { Loading } from '../../components/Loading'
+import { Pill } from '../../components/ui/Pill'
+import { Row } from '../../components/ui/Row'
+import { SectionHeading } from '../../components/ui/SectionHeading'
 
 const DAYS_AHEAD = 13 // today plus the next two weeks
 
@@ -43,24 +46,28 @@ export function JobListPage() {
 
       {[...byDay.entries()].map(([day, dayJobs]) => (
         <section key={day}>
-          <h2>{day === todayIso() ? `Today · ${formatDate(day)}` : formatDate(day)}</h2>
-          <ul className="card-list">
+          <SectionHeading count={dayJobs.length}>
+            {day === todayIso() ? `Today · ${formatDate(day)}` : formatDate(day)}
+          </SectionHeading>
+          <ul className="rows">
             {dayJobs.map((job) => (
               <li key={job.id}>
-                <Link to={`/jobs/${job.id}`} className="card">
-                  <span className="card-row">
-                    <strong>
-                      {formatTime(job.startTime)} · {job.customerName}
-                    </strong>
-                    {job.status === 'DONE' && <span className="badge done">Done</span>}
-                    {job.status === 'IN_PROGRESS' && <span className="badge now">In progress</span>}
-                    {job.urgency === 'URGENT' && job.status !== 'DONE' && <span className="badge urgent">Urgent</span>}
-                  </span>
-                  <span>
-                    {job.typeLabel} · {formatDuration(job.durationMinutes)}
-                  </span>
-                  <span className="muted">{job.address}</span>
-                </Link>
+                <Row
+                  to={`/jobs/${job.id}`}
+                  title={
+                    <>
+                      <span className="time">{formatTime(job.startTime)}</span> · {job.customerName}
+                    </>
+                  }
+                  sub={`${job.typeLabel} · ${formatDuration(job.durationMinutes)} · ${townOf(job.address)}`}
+                  end={
+                    <>
+                      {job.status === 'DONE' && <Pill tone="done">Done</Pill>}
+                      {job.status === 'IN_PROGRESS' && <Pill tone="now">In progress</Pill>}
+                      {job.urgency === 'URGENT' && job.status !== 'DONE' && <Pill tone="urgent">Urgent</Pill>}
+                    </>
+                  }
+                />
               </li>
             ))}
           </ul>
@@ -68,4 +75,10 @@ export function JobListPage() {
       ))}
     </main>
   )
+}
+
+// "250 State St, Apt 5B, Springfield, MA 01103" -> "Springfield"
+function townOf(address: string): string {
+  const parts = address.split(', ')
+  return parts.length >= 2 ? parts[parts.length - 2] : address
 }

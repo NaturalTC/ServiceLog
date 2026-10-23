@@ -93,7 +93,7 @@ export function LandingPage() {
           a tune-up. Made for HVAC technicians who work on their own.
         </p>
         <div className="landing-cta">
-          <a href="#how-it-works" className="button">
+          <a href="#how-it-works" className="button signal">
             See how it works
             <ArrowDown size={18} aria-hidden="true" />
           </a>

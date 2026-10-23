@@ -256,8 +256,8 @@ export function MyDayPage() {
                   </Link>
                   <p className="stop-what">
                     {job.typeLabel} · {formatDuration(job.durationMinutes)}
-                    {job.notes && <span className="clamp"> · {job.notes}</span>}
                   </p>
+                  {job.notes && <p className="stop-notes clamp">{job.notes}</p>}
                   <p className="stop-where">{job.address}</p>
                   <div className="stop-actions">
                     <a
