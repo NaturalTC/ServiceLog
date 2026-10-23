@@ -1,4 +1,4 @@
-import { ScanLine } from 'lucide-react'
+import { Scan } from '@phosphor-icons/react'
 import { useState, type ChangeEvent } from 'react'
 import { assistantApi, type NameplateReading } from '../api/assistant'
 import { ApiError, errorMessage, OfflineError } from '../api/client'
@@ -45,7 +45,7 @@ export function NameplateButton({ onRead }: { onRead: (reading: NameplateReading
   return (
     <div className="nameplate">
       <label className={`button secondary file-button${busy ? ' disabled' : ''}`}>
-        <ScanLine size={18} aria-hidden="true" />
+        <Scan size={18} aria-hidden="true" />
         {busy ? 'Reading the plate…' : 'Read nameplate'}
         <input type="file" accept="image/*" capture="environment" onChange={picked} disabled={busy} />
       </label>

@@ -1,4 +1,4 @@
-import { Camera, Trash2, X } from 'lucide-react'
+import { Camera, Trash, X } from '@phosphor-icons/react'
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { errorMessage } from '../api/client'
 import { photosApi, type Photo } from '../api/photos'
@@ -93,7 +93,7 @@ export function PhotoGallery({ recordId }: { recordId: number }) {
             <img src={open.url} alt="" width={open.width} height={open.height} />
             <div className="photo-viewer-actions">
               <button type="button" className="secondary danger" onClick={() => remove(open)}>
-                <Trash2 size={18} aria-hidden="true" />
+                <Trash size={18} aria-hidden="true" />
                 Delete
               </button>
               <button type="button" className="dark" onClick={() => setOpen(null)}>

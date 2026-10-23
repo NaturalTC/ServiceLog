@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, CircleCheck, ClipboardList, Pencil, UserRoundPlus } from 'lucide-react'
+import { Briefcase, CheckCircle, ClipboardText, PencilSimple, UserPlus } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import type { Proposal } from '../api/assistant'
@@ -10,7 +10,7 @@ import { formatDate, formatTime } from '../lib/format'
 
 // Something the assistant prepared (S34). Confirm saves it through the app's normal checks
 // (e.g. double-booking); Edit opens the normal form, filled in. Nothing is saved before.
-const ICONS = { JOB: BriefcaseBusiness, CUSTOMER: UserRoundPlus, SERVICE_RECORD: ClipboardList }
+const ICONS = { JOB: Briefcase, CUSTOMER: UserPlus, SERVICE_RECORD: ClipboardText }
 
 export function ProposalCard({ proposal, onDone }: { proposal: Proposal; onDone: (outcome: Proposal['outcome']) => void }) {
   const navigate = useNavigate()
@@ -60,7 +60,7 @@ export function ProposalCard({ proposal, onDone }: { proposal: Proposal; onDone:
   if (proposal.outcome) {
     return (
       <Link to={proposal.outcome.link} className="proposal done">
-        <CircleCheck size={18} aria-hidden="true" />
+        <CheckCircle size={18} aria-hidden="true" />
         <span>{proposal.outcome.label}</span>
       </Link>
     )
@@ -108,12 +108,12 @@ export function ProposalCard({ proposal, onDone }: { proposal: Proposal; onDone:
       )}
       <div className="proposal-actions">
         <button type="button" className="secondary" onClick={edit}>
-          <Pencil size={16} aria-hidden="true" />
+          <PencilSimple size={16} aria-hidden="true" />
           Edit
         </button>
         {!incomplete && !clash && (
           <button type="button" onClick={() => confirm()} disabled={saving}>
-            <CircleCheck size={16} aria-hidden="true" />
+            <CheckCircle size={16} aria-hidden="true" />
             {saving ? 'Saving…' : 'Confirm'}
           </button>
         )}

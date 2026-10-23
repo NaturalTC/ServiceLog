@@ -1,4 +1,4 @@
-import { ArrowUp, Lightbulb, Navigation, Phone, Sparkles, SquarePen, UserRound } from 'lucide-react'
+import { ArrowUp, ChatCircleDots, Lightbulb, NavigationArrow, NotePencil, Phone, User } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { Link, useLocation } from 'react-router'
 import { assistantApi, type CustomerCard, type Proposal } from '../../api/assistant'
@@ -141,7 +141,7 @@ export function AssistantPage() {
         <h1>Ask ServiceLog</h1>
         {chat.messages.length > 0 && (
           <button type="button" className="secondary" onClick={newChat}>
-            <SquarePen size={18} aria-hidden="true" />
+            <NotePencil size={18} aria-hidden="true" />
             New chat
           </button>
         )}
@@ -150,7 +150,7 @@ export function AssistantPage() {
       {chat.messages.length === 0 && (
         <div className="assistant-welcome">
           <span className="assistant-avatar large" aria-hidden="true">
-            <Sparkles size={26} />
+            <ChatCircleDots size={26} />
           </span>
           <p>Ask about your customers, equipment and schedule. Answers come from your own records.</p>
           <div className="chips">
@@ -171,7 +171,7 @@ export function AssistantPage() {
           <li key={i} className={`message ${m.role}`}>
             {m.role !== 'user' && (
               <span className="assistant-avatar" aria-hidden="true">
-                <Sparkles size={16} />
+                <ChatCircleDots size={16} />
               </span>
             )}
             <div className="message-body">
@@ -194,7 +194,7 @@ export function AssistantPage() {
         {thinking && (
           <li className="message assistant">
             <span className="assistant-avatar" aria-hidden="true">
-              <Sparkles size={16} />
+              <ChatCircleDots size={16} />
             </span>
             <div className="bubble typing" role="status">
               <span className="visually-hidden">Looking that up…</span>
@@ -252,7 +252,7 @@ function CustomerResult({ customer }: { customer: CustomerCard }) {
   return (
     <div className="result-card">
       <Link to={`/customers/${customer.id}`} className="result-title">
-        <UserRound size={16} aria-hidden="true" />
+        <User size={16} aria-hidden="true" />
         {customer.name}
       </Link>
       {customer.address && <span className="muted">{customer.address}</span>}
@@ -269,7 +269,7 @@ function CustomerResult({ customer }: { customer: CustomerCard }) {
             className="button secondary"
             aria-label={`Directions to ${customer.name}`}
           >
-            <Navigation size={16} aria-hidden="true" />
+            <NavigationArrow size={16} aria-hidden="true" />
             Navigate
           </a>
         )}

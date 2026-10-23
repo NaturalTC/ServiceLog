@@ -1,4 +1,4 @@
-import { Mail, MapPin, Phone } from 'lucide-react'
+import { Envelope, MapPin, Phone } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
@@ -72,7 +72,7 @@ export function CustomerDetailPage() {
         </a>
         {customer.email && (
           <a href={`mailto:${customer.email}`} className="button secondary">
-            <Mail size={18} aria-hidden="true" />
+            <Envelope size={18} aria-hidden="true" />
             Email
           </a>
         )}

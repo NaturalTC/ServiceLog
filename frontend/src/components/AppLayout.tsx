@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, CalendarCheck, LogOut, Sparkles, Users, Wrench } from 'lucide-react'
+import { Briefcase, CalendarCheck, ChatCircleDots, SignOut, Users, Wrench } from '@phosphor-icons/react'
 import { useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import { useAuth } from '../auth/authContext'
@@ -12,8 +12,8 @@ import { CHAT_KEY } from '../pages/assistant/AssistantPage'
 // sit in a floating bar at the top instead.
 const TABS = [
   { to: '/', label: 'Today', icon: CalendarCheck, end: true },
-  { to: '/jobs', label: 'Jobs', icon: BriefcaseBusiness, end: false },
-  { to: '/assistant', label: 'Ask', icon: Sparkles, end: false },
+  { to: '/jobs', label: 'Jobs', icon: Briefcase, end: false },
+  { to: '/assistant', label: 'Ask', icon: ChatCircleDots, end: false },
   { to: '/tune-ups', label: 'Tune-ups', icon: Wrench, end: false },
   { to: '/customers', label: 'Customers', icon: Users, end: false },
 ]
@@ -50,14 +50,14 @@ export function AppLayout() {
           {TABS.map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end}>
               <span className="tab-icon">
-                <Icon size={22} strokeWidth={2} aria-hidden="true" />
+                <Icon size={22} aria-hidden="true" />
               </span>
               {label}
             </NavLink>
           ))}
         </nav>
         <button type="button" className="icon-button" onClick={confirmLogout} aria-label="Log out">
-          <LogOut size={20} aria-hidden="true" />
+          <SignOut size={20} aria-hidden="true" />
           <span className="wide-only">Log out</span>
         </button>
       </header>

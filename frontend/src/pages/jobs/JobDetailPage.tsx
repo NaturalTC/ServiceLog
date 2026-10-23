@@ -1,4 +1,4 @@
-import { CalendarDays, CircleCheck, Clock, MapPin, Navigation, Phone, Play, User } from 'lucide-react'
+import { CalendarBlank, CheckCircle, Clock, MapPin, NavigationArrow, Phone, Play, User } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { errorMessage, OfflineError } from '../../api/client'
@@ -122,7 +122,7 @@ export function JobDetailPage() {
       {/* Key facts first: when, who, where */}
       <ul className="fact-list">
         <li>
-          <CalendarDays size={18} aria-hidden="true" />
+          <CalendarBlank size={18} aria-hidden="true" />
           <strong>{formatDate(job.date)}</strong>
         </li>
         <li>
@@ -147,7 +147,7 @@ export function JobDetailPage() {
           Call {formatPhone(job.customerPhone)}
         </a>
         <a href={mapsUrl(job.address)} target="_blank" rel="noreferrer" className="button secondary">
-          <Navigation size={18} aria-hidden="true" />
+          <NavigationArrow size={18} aria-hidden="true" />
           Directions
         </a>
       </div>
@@ -176,7 +176,7 @@ export function JobDetailPage() {
               </button>
             ) : (
               <Link to={`/jobs/${job.id}/finish`} className="button">
-                <CircleCheck size={18} aria-hidden="true" />
+                <CheckCircle size={18} aria-hidden="true" />
                 Finish job
               </Link>
             )}

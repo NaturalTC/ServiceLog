@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+import { Lightning } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { ApiError, errorMessage, OfflineError } from '../api/client'
 
@@ -40,7 +40,7 @@ export function DescribeBox({
   return (
     <section className="ai-box" aria-labelledby="describe-title">
       <h2 id="describe-title">
-        <Sparkles size={16} aria-hidden="true" />
+        <Lightning size={16} aria-hidden="true" />
         Describe it
       </h2>
       <p className="muted no-margin">Type or dictate it, and AI fills in the form below for you to check.</p>
@@ -49,7 +49,7 @@ export function DescribeBox({
       </label>
       <textarea id="describe" rows={2} placeholder={placeholder} value={text} onChange={(e) => setText(e.target.value)} />
       <button type="button" className="dark" onClick={run} disabled={busy || !text.trim()}>
-        <Sparkles size={18} aria-hidden="true" />
+        <Lightning size={18} aria-hidden="true" />
         {busy ? 'Filling in…' : 'Fill in with AI'}
       </button>
       {message && (

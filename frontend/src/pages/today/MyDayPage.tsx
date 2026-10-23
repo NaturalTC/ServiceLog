@@ -1,4 +1,4 @@
-import { CalendarCheck, ChevronRight, CircleCheck, Navigation, Phone, Play, ShieldAlert, Undo2 } from 'lucide-react'
+import { ArrowCounterClockwise, CalendarCheck, CaretRight, CheckCircle, NavigationArrow, Phone, Play, ShieldWarning } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { errorMessage, OfflineError } from '../../api/client'
@@ -151,11 +151,11 @@ export function MyDayPage() {
 
       {warrantiesEnding > 0 && (
         <Link to="/warranty" className="banner warning">
-          <ShieldAlert size={20} aria-hidden="true" />
+          <ShieldWarning size={20} aria-hidden="true" />
           <span>
             {warrantiesEnding} warrant{warrantiesEnding === 1 ? 'y' : 'ies'} ending soon: offer an extension
           </span>
-          <ChevronRight size={18} aria-hidden="true" />
+          <CaretRight size={18} aria-hidden="true" />
         </Link>
       )}
 
@@ -237,7 +237,7 @@ export function MyDayPage() {
                     className="button"
                     aria-label={`Navigate to ${job.address}`}
                   >
-                    <Navigation size={18} aria-hidden="true" />
+                    <NavigationArrow size={18} aria-hidden="true" />
                     Navigate
                   </a>
                   {/* Start first; once started, the same spot becomes Finish */}
@@ -254,7 +254,7 @@ export function MyDayPage() {
                   ) : (
                     <>
                       <Link to={`/jobs/${job.id}/finish`} className="button span-2">
-                        <CircleCheck size={18} aria-hidden="true" />
+                        <CheckCircle size={18} aria-hidden="true" />
                         Finish job
                       </Link>
                       <button
@@ -263,7 +263,7 @@ export function MyDayPage() {
                         onClick={() => changeStatus(job, 'undoStart')}
                         disabled={starting === job.id}
                       >
-                        <Undo2 size={16} aria-hidden="true" />
+                        <ArrowCounterClockwise size={16} aria-hidden="true" />
                         Undo start
                       </button>
                     </>

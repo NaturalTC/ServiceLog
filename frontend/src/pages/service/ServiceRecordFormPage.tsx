@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+import { Lightning } from '@phosphor-icons/react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { errorMessage, OfflineError } from '../../api/client'
@@ -223,7 +223,7 @@ export function ServiceRecordFormPage() {
       {!editingId && (
         <section className="ai-box" aria-labelledby="ai-title">
           <h2 id="ai-title">
-            <Sparkles size={16} aria-hidden="true" />
+            <Lightning size={16} aria-hidden="true" />
             Describe the visit
           </h2>
           <p className="muted no-margin">
@@ -241,7 +241,7 @@ export function ServiceRecordFormPage() {
             onChange={(e) => setQuickNote(e.target.value)}
           />
           <button type="button" className="dark" onClick={fillWithAi} disabled={drafting || !quickNote.trim()}>
-            <Sparkles size={18} aria-hidden="true" />
+            <Lightning size={18} aria-hidden="true" />
             {drafting ? 'Filling in…' : 'Fill in with AI'}
           </button>
           {aiMessage && (

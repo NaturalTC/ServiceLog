@@ -117,6 +117,18 @@ yet; those get written when a phase starts, from what the owner says he needs.
 | S23 | As the owner, AI suggests likely causes for a symptom (suggestions only, clearly labelled). | E8 | 3 |
 | S37 | As the developer, the assistant is measured before it ships (accuracy, privacy, prompt injection). | E8 | 3 |
 
+### Route UI (sprint 8)
+A distinct, easy-to-read look ("Route": the day as a route of stops), chosen from three
+directions mocked side by side.
+
+| ID | Story | Epic | Pts |
+|---|---|---|---|
+| S38 | Route design system: Atkinson Hyperlegible, teal ink and signal yellow (light and dark), Phosphor icons, shared building blocks. | E5 | 3 |
+| S39 | My day as a route of stops, with swipe actions. | E5 | 5 |
+| S40 | Every other screen in the Route look; long lists as ruled rows. | E5 | 5 |
+| S41 | Native-feeling feedback: bottom sheets, toasts, motion. | E5 | 3 |
+| S42 | Accessibility and readability check (axe, larger text). | E5 | 2 |
+
 ### Later phases (see VISION.md)
 - **E7 (v2):** quotes and PDF invoices built from service records, synced with QuickBooks
   (the owner already uses it for billing, so we connect to it rather than replace it).

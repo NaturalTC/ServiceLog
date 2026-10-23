@@ -26,8 +26,8 @@ export default defineConfig({
         scope: '/',
         display: 'standalone', // full screen, no browser bar
         orientation: 'portrait',
-        background_color: '#f7f7f8',
-        theme_color: '#f7f7f8',
+        background_color: '#f4f7f7',
+        theme_color: '#f4f7f7',
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -38,7 +38,7 @@ export default defineConfig({
         // Cache only the app's own files. API responses (customer data) are never cached;
         // working offline is a separate story (S21).
         // Only the Latin font file: the other alphabets load on demand if ever needed
-        globPatterns: ['**/*.{js,css,html,png,webp,svg,ico,webmanifest}', 'assets/inter-latin-wght-normal-*.woff2'],
+        globPatterns: ['**/*.{js,css,html,png,webp,svg,ico,webmanifest}', 'assets/atkinson-hyperlegible-next-latin-wght-normal-*.woff2', 'assets/atkinson-hyperlegible-mono-latin-wght-normal-*.woff2'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/actuator\//],
         runtimeCaching: [],

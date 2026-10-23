@@ -1,4 +1,4 @@
-import { CloudOff, RefreshCw, TriangleAlert } from 'lucide-react'
+import { ArrowsClockwise, CloudSlash, Warning } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 import { useConnection } from '../lib/connection'
 import { formatDateTime } from '../lib/format'
@@ -17,7 +17,7 @@ export function OfflineStatus() {
     <div className="offline-status" role="status">
       {!online && (
         <p className="offline-banner">
-          <CloudOff size={18} aria-hidden="true" />
+          <CloudSlash size={18} aria-hidden="true" />
           <span>
             No signal. Showing what's saved on this phone
             {savedAt ? ` (saved ${formatDateTime(savedAt)})` : ''}.
@@ -26,7 +26,7 @@ export function OfflineStatus() {
       )}
       {queue.length > 0 && (
         <Link to="/sync" className={`sync-pill${refused > 0 ? ' refused' : ''}`}>
-          {refused > 0 ? <TriangleAlert size={16} aria-hidden="true" /> : <RefreshCw size={16} aria-hidden="true" />}
+          {refused > 0 ? <Warning size={16} aria-hidden="true" /> : <ArrowsClockwise size={16} aria-hidden="true" />}
           {waiting > 0 && `${waiting} waiting to sync`}
           {waiting > 0 && refused > 0 && ' · '}
           {refused > 0 && `${refused} couldn't sync`}

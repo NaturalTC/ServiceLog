@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-react'
+import { ArrowsClockwise } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection'
 import { formatDateTime } from '../../lib/format'
@@ -62,7 +62,7 @@ export function SyncPage() {
       {queue.some((q) => !q.error) && (
         <div className="actions spaced">
           <button type="button" className="dark" onClick={syncNow} disabled={syncing}>
-            <RefreshCw size={18} aria-hidden="true" />
+            <ArrowsClockwise size={18} aria-hidden="true" />
             {syncing ? 'Syncing…' : online ? 'Sync now' : 'Try to sync now'}
           </button>
         </div>

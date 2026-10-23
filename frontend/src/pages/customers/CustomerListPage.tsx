@@ -1,4 +1,4 @@
-import { ChevronRight, ShieldAlert } from 'lucide-react'
+import { CaretRight, ShieldWarning } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
@@ -57,11 +57,11 @@ export function CustomerListPage() {
 
       {unregistered > 0 && (
         <Link to="/warranty#register" className="banner warning">
-          <ShieldAlert size={20} aria-hidden="true" />
+          <ShieldWarning size={20} aria-hidden="true" />
           <span>
             {unregistered} installed unit{unregistered === 1 ? '' : 's'} not registered for warranty
           </span>
-          <ChevronRight size={18} aria-hidden="true" />
+          <CaretRight size={18} aria-hidden="true" />
         </Link>
       )}
 

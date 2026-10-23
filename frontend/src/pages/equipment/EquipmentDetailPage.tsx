@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Stethoscope } from 'lucide-react'
+import { Stethoscope } from '@phosphor-icons/react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { errorMessage } from '../../api/client'
 import { equipmentApi, type EquipmentDetail } from '../../api/equipment'

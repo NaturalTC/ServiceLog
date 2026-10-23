@@ -1,92 +1,108 @@
 /* Phone-first: big tap targets, readable outdoors, one column.
-   Light and airy: near-white page, white cards with soft borders, one warm accent for the
-   main action, small grey labels for sections, status shown as soft coloured pills. */
+   The "Route" look: the day as a route of stops. Cool white ground, deep teal ink for text
+   and the main action, signal yellow only for what's happening now. Atkinson Hyperlegible
+   (made by the Braille Institute: 1/l/I and 0/O never look alike) for everything, its mono
+   cut for times, serial numbers and readings. Long lists are ruled rows, not stacks of cards. */
 
 /* --- Design tokens --- */
 :root {
   color-scheme: light dark;
-  font-family: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Atkinson Hyperlegible Next Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Atkinson Hyperlegible Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 
   /* Surfaces */
-  --bg: #f7f7f8;
+  --bg: #f4f7f7;
   --surface: #ffffff;
-  --surface-2: #f2f2f4;
-  --border: #e6e7eb;
-  --border-strong: #d3d6dc;
+  --surface-2: #e9efef;
+  --border: #d5e0e1;
+  --border-strong: #b3c5c7;
 
-  /* Text */
-  --text: #16181d;
-  --text-2: #3f4450;
-  --muted: #646a76;
+  /* Text: deep teal ink */
+  --text: #0f2e33;
+  --text-2: #263f43;
+  --muted: #4b6266;
+  --link: #1e6570;
 
-  /* Warm accent for the one main action on a screen (AA with white text) */
-  --accent: #b44f14;
-  --accent-hover: #9a4311;
+  /* The main action on a screen: ink in light mode, signal yellow in dark */
+  --accent: #0f2e33;
+  --accent-hover: #1c454c;
   --accent-text: #ffffff;
-  --accent-soft: #fcefe7;
-  --accent-strong: #933d0f;
+  --accent-soft: #e2eced;
+  --accent-strong: #0f2e33;
 
-  /* Dark buttons and selected chips */
-  --dark: #17181c;
+  /* "Now": the current stop, today's highlight */
+  --signal: #f4c531;
+  --signal-text: #0f2e33;
+
+  /* Selected chips and strong secondary buttons */
+  --dark: #0f2e33;
   --dark-text: #ffffff;
 
   /* Status */
-  --success: #1d7444;
-  --success-bg: #e6f4ec;
-  --warning: #85500a;
-  --warning-bg: #fdf3e1;
-  --error: #b42318;
-  --error-bg: #fdecea;
-  --info: #44546f;
-  --info-bg: #edf1f6;
+  --success: #1d6b3f;
+  --success-bg: #e3f2e9;
+  --warning: #8a4b00;
+  --warning-bg: #fff1d6;
+  --error: #a3361e;
+  --error-bg: #fce9e5;
+  --info: #2a4f55;
+  --info-bg: #e2eced;
 
   /* Older names, kept so every screen picks up the new colours */
   --notice-bg: var(--success-bg);
   --notice-text: var(--success);
 
-  /* Shape and depth */
-  --radius: 16px;
+  /* Shape and depth: flat, with hairlines doing most of the work */
+  --radius: 14px;
   --radius-sm: 12px;
-  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.04);
-  --shadow: 0 1px 3px rgb(16 24 40 / 0.06), 0 8px 24px rgb(16 24 40 / 0.05);
-  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  --shadow-sm: none;
+  --shadow: 0 1px 2px rgb(15 46 51 / 0.06), 0 6px 18px rgb(15 46 51 / 0.06);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--link) 30%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f1012;
-    --surface: #18191c;
-    --surface-2: #222327;
-    --border: #2b2d32;
-    --border-strong: #3b3e45;
+    --bg: #0b1a1d;
+    --surface: #12262a;
+    --surface-2: #1a3237;
+    --border: #23403f;
+    --border-strong: #36585c;
 
-    --text: #ececee;
-    --text-2: #c6c8ce;
-    --muted: #9da1aa;
+    --text: #e8f0f0;
+    --text-2: #c3d3d4;
+    --muted: #9db2b4;
+    --link: #8ed1d9;
 
-    --accent: #ec8043;
-    --accent-hover: #f39563;
-    --accent-text: #1b0e06;
-    --accent-soft: #3a2316;
-    --accent-strong: #f6ae84;
+    --accent: #f4c531;
+    --accent-hover: #ffd75c;
+    --accent-text: #0b1a1d;
+    --accent-soft: #1a3237;
+    --accent-strong: #f4c531;
 
-    --dark: #ececee;
-    --dark-text: #121316;
+    --signal: #f4c531;
+    --signal-text: #0b1a1d;
 
-    --success: #74d39d;
-    --success-bg: #132f20;
-    --warning: #f1c46f;
-    --warning-bg: #352710;
-    --error: #ff8f86;
-    --error-bg: #3a1714;
-    --info: #b9c5da;
-    --info-bg: #232a36;
+    --dark: #e8f0f0;
+    --dark-text: #0b1a1d;
 
-    --shadow-sm: none;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+    --success: #79d9a0;
+    --success-bg: #143222;
+    --warning: #f4c531;
+    --warning-bg: #33290c;
+    --error: #ff9b87;
+    --error-bg: #3a1712;
+    --info: #b9d3d6;
+    --info-bg: #1a3237;
+
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.5);
   }
+}
+
+/* Slightly larger base text (17px): easier to read at arm's length, on a ladder */
+html {
+  font-size: 106.25%;
 }
 
 * {
@@ -126,8 +142,8 @@ h2,
 }
 
 a {
-  color: var(--accent);
-  font-weight: 500;
+  color: var(--link);
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -153,11 +169,12 @@ a:hover {
 }
 
 .mono {
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 0.92em;
+  font-family: var(--mono);
+  font-size: 0.94em;
 }
 
 .time {
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -228,7 +245,7 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--link);
   box-shadow: var(--ring);
 }
 
@@ -422,7 +439,7 @@ button.secondary.danger:hover {
   align-items: center;
   min-height: 44px;
   padding: 0 10px;
-  color: var(--accent);
+  color: var(--link);
   font-weight: 600;
 }
 
@@ -1632,7 +1649,7 @@ main .skeleton-list {
 }
 
 .card a.icon-link {
-  color: var(--accent);
+  color: var(--link);
   font-weight: 500;
 }
 
@@ -2271,4 +2288,138 @@ a.proposal.done {
   color: var(--warning);
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+/* --- Building blocks (components/ui) --- */
+
+/* Ruled rows: long lists read faster as lines than as stacked cards */
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.rows > li {
+  border-bottom: 1px solid var(--border);
+}
+
+a.row,
+div.row-static {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 2px;
+  color: var(--text);
+  font-weight: 400;
+  text-decoration: none;
+}
+
+a.row:hover {
+  text-decoration: none;
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+}
+
+a.row:active {
+  background: var(--surface-2);
+}
+
+.row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.row-title {
+  font-size: 1.06rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.row-sub {
+  color: var(--muted);
+  font-size: 0.94rem;
+  overflow-wrap: anywhere;
+}
+
+.row-end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+/* Small uppercase heading over a group */
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 28px 0 8px;
+}
+
+.section-heading h2 {
+  margin: 0;
+}
+
+.section-heading .count {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* Status pill; tone picks the colours */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.pill.now {
+  background: var(--signal);
+  color: var(--signal-text);
+}
+
+.pill.done {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.pill.urgent {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.pill.warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+/* Nothing here yet: a short line and the one useful next step */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-state p {
+  margin: 0;
+  max-width: 300px;
+}
+
+.empty-state svg {
+  color: var(--border-strong);
 }
