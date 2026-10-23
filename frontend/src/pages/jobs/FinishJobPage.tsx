@@ -110,6 +110,7 @@ export function FinishJobPage() {
           jobId: job!.id,
         })
         // Today shows it as done, marked "Waiting to sync"
+        toast.success('Finished without signal. It will sync by itself.')
         navigate('/', { replace: true })
         return
       }
