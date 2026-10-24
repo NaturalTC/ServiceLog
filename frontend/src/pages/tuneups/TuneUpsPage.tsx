@@ -25,12 +25,6 @@ function groupByAddress(units: DueUnit[]): Visit[] {
   return [...visits.values()]
 }
 
-function seasonText(list: DueList): string {
-  if (list.heatingSeason && list.coolingSeason) return 'Heating and cooling season'
-  if (list.heatingSeason) return 'Heating season: oil burners, boilers, furnaces, heat pumps and mini-splits'
-  if (list.coolingSeason) return 'Cooling season: AC, heat pumps and mini-splits'
-  return 'Between seasons'
-}
 
 export function TuneUpsPage() {
   const [list, setList] = useState<DueList | null>(null)
@@ -107,9 +101,6 @@ export function TuneUpsPage() {
   return (
     <main>
       <h1>Tune-ups due</h1>
-      <p className="muted">
-        {seasonText(list)}. Due when the last tune-up was {list.intervalMonths}+ months ago.
-      </p>
 
       {visits.length > 0 && (
         <p>
