@@ -20,8 +20,11 @@ import { Link, useLocation } from 'react-router'
 import { assistantApi, type CustomerCard, type Proposal } from '../../api/assistant'
 import { ApiError, errorMessage, OfflineError } from '../../api/client'
 import { ProposalCard } from '../../components/ProposalCard'
+import { MicButton } from '../../components/MicButton'
 import { RichText } from '../../components/RichText'
+import { toast } from 'sonner'
 import { directionsUrl, formatPhone } from '../../lib/format'
+import { useSpeech } from '../../lib/useSpeech'
 
 // "Ask ServiceLog" (S33): questions in plain words, answered from the app's own data.
 // The chat lives in this browser tab (sessionStorage), so going to a customer and back
@@ -71,6 +74,11 @@ export function AssistantPage() {
   const [thinking, setThinking] = useState(false)
   const end = useRef<HTMLDivElement>(null)
   const box = useRef<HTMLTextAreaElement>(null)
+  // Voice: the words appear in the box as you speak, and the question sends when you stop
+  const speech = useSpeech({ onText: setInput, onFinal: (text) => void send(text) })
+  useEffect(() => {
+    if (speech.error) toast.error(speech.error)
+  }, [speech.error])
 
   useEffect(() => {
     try {
@@ -231,13 +239,16 @@ export function AssistantPage() {
           ref={box}
           autoFocus={Boolean(started)}
           rows={1}
-          placeholder="Ask anything"
+          placeholder={speech.listening ? 'Listening…' : 'Ask anything'}
           value={input}
           maxLength={2000}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKey}
         />
-        <button type="submit" className="send" disabled={!input.trim() || thinking} aria-label="Send">
+        {speech.supported && (
+          <MicButton listening={speech.listening} onClick={speech.toggle} label="Ask by voice" />
+        )}
+        <button type="submit" className="send" disabled={!input.trim() || thinking || speech.listening} aria-label="Send">
           <ArrowUp size={20} aria-hidden="true" />
         </button>
       </form>

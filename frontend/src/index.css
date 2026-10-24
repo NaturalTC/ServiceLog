@@ -3178,3 +3178,52 @@ a.tap-link {
 .row input {
   min-width: 0;
 }
+
+/* --- Voice: a round mic button; while listening it turns red and pulses --- */
+button.mic {
+  flex-shrink: 0;
+  width: 44px;
+  min-height: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+button.mic:hover {
+  background: var(--border);
+}
+
+button.mic.listening {
+  background: var(--error);
+  color: var(--surface);
+  animation: mic-pulse 1.4s ease-out infinite;
+}
+
+@keyframes mic-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--error) 45%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 12px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.mic.listening {
+    animation: none;
+  }
+}
+
+/* The Describe-it box: the mic sits beside the text */
+.describe-input {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.describe-input textarea {
+  flex: 1;
+  min-width: 0;
+}
