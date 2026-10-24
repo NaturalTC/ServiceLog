@@ -27,6 +27,7 @@ import {
 import { Loading } from '../../components/Loading'
 import { SwipeRow } from '../../components/SwipeRow'
 import { EmptyState } from '../../components/ui/EmptyState'
+import { JobTypeTag } from '../../components/ui/JobTypeTag'
 import { Pill } from '../../components/ui/Pill'
 import { saveTodayForOffline } from '../../lib/prefetch'
 import { pendingStatus, syncQueue, useSyncQueue } from '../../lib/syncQueue'
@@ -273,7 +274,7 @@ export function MyDayPage() {
                     {job.customerName}
                   </Link>
                   <p className="stop-what">
-                    {job.typeLabel} · {formatDuration(job.durationMinutes)}
+                    <JobTypeTag type={job.type} label={job.typeLabel} /> {formatDuration(job.durationMinutes)}
                   </p>
                   {job.notes && <p className="stop-notes clamp">{job.notes}</p>}
                   <p className="stop-where">{job.address}</p>
@@ -339,7 +340,7 @@ export function MyDayPage() {
                     </span>
                     <strong>{job.customerName}</strong>
                     <span className="muted">
-                      {job.typeLabel} · {town}
+                      <JobTypeTag type={job.type} label={job.typeLabel} /> {town}
                     </span>
                   </button>
                 </SwipeRow>

@@ -41,6 +41,16 @@
   --call-hover: #19693a;
   --call-text: #ffffff;
 
+  /* Kinds of job: each its own colour (text on tint), the same everywhere */
+  --tune-up: #0b6470;
+  --tune-up-bg: #d9eff2;
+  --service-call: #9a4300;
+  --service-call-bg: #fde7d2;
+  --install: #5a3cc0;
+  --install-bg: #ebe5fb;
+  --estimate: #a12d66;
+  --estimate-bg: #fbe2ee;
+
   /* Directions and email reminders: blue */
   --go: #1f5fbf;
   --go-hover: #1a50a3;
@@ -101,6 +111,15 @@
     --call: #4cc983;
     --call-hover: #6ad597;
     --call-text: #0b1a1d;
+
+    --tune-up: #7fd8e3;
+    --tune-up-bg: #0f3238;
+    --service-call: #ffb470;
+    --service-call-bg: #3a2512;
+    --install: #c4b4ff;
+    --install-bg: #2a2148;
+    --estimate: #f6a5c9;
+    --estimate-bg: #3b1629;
 
     --go: #7db3ff;
     --go-hover: #9cc5ff;
@@ -3121,14 +3140,24 @@ button.month-day[aria-pressed='true'].today .month-num {
   color: var(--muted);
 }
 
-.month-marks i.urgent,
-.month-legend i.urgent {
-  background: var(--error);
+.month-marks i.tune-up,
+.month-legend i.tune-up {
+  background: var(--tune-up);
+}
+
+.month-marks i.service-call,
+.month-legend i.service-call {
+  background: var(--service-call);
 }
 
 .month-marks i.install,
 .month-legend i.install {
-  background: var(--go);
+  background: var(--install);
+}
+
+.month-marks i.estimate,
+.month-legend i.estimate {
+  background: var(--estimate);
 }
 
 .month-marks i.done,
@@ -3226,4 +3255,55 @@ button.mic.listening {
 .describe-input textarea {
   flex: 1;
   min-width: 0;
+}
+
+/* --- Kind of job: a tinted tag with an icon (Tune-up, Service call, Install, Estimate) --- */
+.job-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 9px 1px 7px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+  vertical-align: 1px;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.job-type.tune-up { background: var(--tune-up-bg); color: var(--tune-up); }
+.job-type.service-call { background: var(--service-call-bg); color: var(--service-call); }
+.job-type.install { background: var(--install-bg); color: var(--install); }
+.job-type.estimate { background: var(--estimate-bg); color: var(--estimate); }
+
+/* On the job page the kind is the title: big text with the icon in a tinted tile */
+.job-type.large {
+  gap: 12px;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  background: none;
+  white-space: normal;
+}
+
+.job-type.large svg {
+  flex-shrink: 0;
+  box-sizing: content-box;
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.job-type.large.tune-up svg { background: var(--tune-up-bg); }
+.job-type.large.service-call svg { background: var(--service-call-bg); }
+.job-type.large.install svg { background: var(--install-bg); }
+.job-type.large.estimate svg { background: var(--estimate-bg); }
+
+.job-type-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }

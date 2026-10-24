@@ -10,6 +10,7 @@ import { tuneUpsApi, type Reminder } from '../../api/tuneUps'
 import { formatAddress, formatDate, formatDateTime, formatPhone, formatTime, mapsUrl } from '../../lib/format'
 import { useConfirm } from '../../components/ConfirmSheet'
 import { Loading } from '../../components/Loading'
+import { JobTypeTag } from '../../components/ui/JobTypeTag'
 
 export function CustomerDetailPage() {
   const id = Number(useParams().id)
@@ -97,9 +98,9 @@ export function CustomerDetailPage() {
               <strong>
                 {formatDate(j.date)} · {formatTime(j.startTime)}
               </strong>
-              <span>
-                {j.typeLabel}
-                {j.urgency === 'URGENT' && ' · Urgent'}
+              <span className="job-type-line">
+                <JobTypeTag type={j.type} label={j.typeLabel} />
+                {j.urgency === 'URGENT' && <span className="badge urgent">Urgent</span>}
               </span>
             </Link>
           </li>

@@ -6,6 +6,7 @@ import { errorMessage, OfflineError } from '../../api/client'
 import { isOpen, jobsApi, type Job } from '../../api/jobs'
 import { formatDate, formatDuration, formatPhone, formatTime, mapsUrl } from '../../lib/format'
 import { useConfirm } from '../../components/ConfirmSheet'
+import { JobTypeTag } from '../../components/ui/JobTypeTag'
 import { Loading } from '../../components/Loading'
 import { pendingStatus, syncQueue, useSyncQueue } from '../../lib/syncQueue'
 
@@ -111,7 +112,9 @@ export function JobDetailPage() {
   return (
     <main>
       <div className="page-title">
-        <h1>{job.typeLabel}</h1>
+        <h1>
+          <JobTypeTag type={job.type} label={job.typeLabel} large />
+        </h1>
         <span className="tags">
           {shown.status === 'IN_PROGRESS' && <span className="badge now">In progress</span>}
           {shown.status === 'DONE' && <span className="badge done">Done</span>}

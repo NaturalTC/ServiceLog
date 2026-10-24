@@ -5,6 +5,7 @@ import { errorMessage } from '../../api/client'
 import { jobsApi, type Job } from '../../api/jobs'
 import { addDays, formatDate, todayIso } from '../../lib/format'
 import { SectionHeading } from '../../components/ui/SectionHeading'
+import { jobTypeClass } from '../../lib/jobTypes'
 import { JobRows } from './JobRows'
 
 // A month at a glance: a calendar with a mark per job, and the tapped day's jobs under it.
@@ -150,7 +151,7 @@ export function MonthView() {
                 {list.slice(0, list.length > MAX_MARKS ? MAX_MARKS - 1 : MAX_MARKS).map((j) => (
                   <i
                     key={j.id}
-                    className={j.status === 'DONE' ? 'done' : j.urgency === 'URGENT' ? 'urgent' : j.type === 'INSTALL' ? 'install' : ''}
+                    className={j.status === 'DONE' ? 'done' : jobTypeClass(j.type)}
                   />
                 ))}
                 {list.length > MAX_MARKS && <b>+{list.length - (MAX_MARKS - 1)}</b>}
@@ -161,9 +162,10 @@ export function MonthView() {
       </div>
 
       <p className="month-legend muted">
-        <span><i /> Job</span>
-        <span><i className="urgent" /> Urgent</span>
+        <span><i className="tune-up" /> Tune-up</span>
+        <span><i className="service-call" /> Service call</span>
         <span><i className="install" /> Install</span>
+        <span><i className="estimate" /> Estimate</span>
         <span><i className="done" /> Done</span>
       </p>
 

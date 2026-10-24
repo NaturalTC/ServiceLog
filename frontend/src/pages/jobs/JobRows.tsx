@@ -2,6 +2,7 @@ import type { Job } from '../../api/jobs'
 import { formatDuration, formatTime } from '../../lib/format'
 import { Pill } from '../../components/ui/Pill'
 import { Row } from '../../components/ui/Row'
+import { JobTypeTag } from '../../components/ui/JobTypeTag'
 
 // One day's jobs as ruled rows: time and customer, then type, length and town
 export function JobRows({ jobs }: { jobs: Job[] }) {
@@ -16,7 +17,12 @@ export function JobRows({ jobs }: { jobs: Job[] }) {
                 <span className="time">{formatTime(job.startTime)}</span> · {job.customerName}
               </>
             }
-            sub={`${job.typeLabel} · ${formatDuration(job.durationMinutes)} · ${townOf(job.address)}`}
+            sub={
+              <>
+                <JobTypeTag type={job.type} label={job.typeLabel} /> {formatDuration(job.durationMinutes)} ·{' '}
+                {townOf(job.address)}
+              </>
+            }
             end={
               <>
                 {job.status === 'DONE' && <Pill tone="done">Done</Pill>}
