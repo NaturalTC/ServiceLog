@@ -19,3 +19,7 @@ settings.local.json
 
 # Python
 __pycache__/
+
+# Customer data from a QuickBooks export never goes in the repo
+quickbooks-needs-fixing.csv
+*.xlsx
