@@ -52,10 +52,6 @@ const SUGGESTIONS: { text: string; icon: Icon; tint: string }[] = [
   { text: 'What did I do at the … house last time?', icon: ClockCounterClockwise, tint: 'pink' },
 ]
 
-function greeting(): string {
-  const hour = new Date().getHours()
-  return hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
-}
 
 function loadChat(): Chat {
   try {
@@ -82,7 +78,7 @@ export function AssistantPage() {
     } catch {
       // storage full or blocked: the chat still works for this visit
     }
-    // An empty chat starts at the top, with the greeting
+    // An empty chat starts at the top, with the suggestions
     if (chat.messages.length > 0 || thinking) end.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [chat, thinking])
 
@@ -161,7 +157,8 @@ export function AssistantPage() {
   return (
     <main className="assistant">
       <header className="ask-header">
-        <h1>Ask</h1>
+        {/* No visible title: the tab bar already says where you are */}
+        <h1 className="visually-hidden">Ask ServiceLog</h1>
         {chat.messages.length > 0 && (
           <button type="button" className="compose" onClick={newChat} aria-label="New chat">
             <NotePencil size={20} aria-hidden="true" />
@@ -171,11 +168,6 @@ export function AssistantPage() {
 
       {chat.messages.length === 0 && (
         <div className="ask-welcome">
-          <p className="ask-hello">
-            {greeting()}.
-            <span>What do you need to know?</span>
-          </p>
-          <p className="ask-intro">Answers come from your own customers, equipment and schedule.</p>
           <h2 className="ask-group-label">Try asking</h2>
           <ul className="ask-suggestions">
             {SUGGESTIONS.map((s) => (
@@ -192,7 +184,7 @@ export function AssistantPage() {
           </ul>
           <p className="ask-footnote">
             <LockSimple size={14} weight="fill" aria-hidden="true" />
-            Names, phone numbers and addresses are replaced with placeholders before anything is sent to the AI.
+            Names, phone numbers and addresses are hidden from the AI.
           </p>
         </div>
       )}
