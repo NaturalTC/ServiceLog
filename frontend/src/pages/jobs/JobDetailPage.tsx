@@ -196,13 +196,6 @@ export function JobDetailPage() {
               </Link>
             )}
           </div>
-          {shown.status === 'SCHEDULED' && (
-            <p className="center">
-              <Link to={`/jobs/${job.id}/finish`} className="tap-link">
-                Already done? Finish without starting
-              </Link>
-            </p>
-          )}
           {shown.status === 'IN_PROGRESS' && (
             <p className="center">
               <button type="button" className="link-button" onClick={undoStart} disabled={busy}>
