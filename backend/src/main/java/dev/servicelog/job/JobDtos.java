@@ -33,7 +33,8 @@ public final class JobDtos {
     public record JobResponse(Long id, LocalDate date, LocalTime startTime, int durationMinutes, JobType type,
                               String typeLabel, JobUrgency urgency, JobStatus status, String notes,
                               Long propertyId, String address, Long customerId, String customerName,
-                              String customerPhone, Instant completedAt) {
+                              String customerPhone, Instant completedAt,
+                              Double latitude, Double longitude) { // where the job's address is, if looked up
     }
 
     // Finishing a job: the same work notes are recorded on each piece of equipment worked on

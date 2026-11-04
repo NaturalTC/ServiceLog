@@ -37,11 +37,11 @@ public final class CustomerDtos {
     }
 
     public record PropertyResponse(Long id, String street, String unit, String city, String state, String zip,
-                                   String notes) {
+                                   String notes, Double latitude, Double longitude) {
 
         static PropertyResponse from(Property p) {
             return new PropertyResponse(p.getId(), p.getStreet(), p.getUnit(), p.getCity(), p.getState(), p.getZip(),
-                    p.getNotes());
+                    p.getNotes(), p.getLatitude(), p.getLongitude());
         }
     }
 

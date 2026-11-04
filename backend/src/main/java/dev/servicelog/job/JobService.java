@@ -160,7 +160,8 @@ public class JobService {
                 + p.getState() + " " + p.getZip();
         return new JobResponse(j.getId(), j.getScheduledDate(), j.getStartTime(), j.getDurationMinutes(), j.getType(),
                 j.getType().getLabel(), j.getUrgency(), j.getStatus(), j.getNotes(), p.getId(), address,
-                p.getCustomer().getId(), p.getCustomer().getName(), p.getCustomer().getPhone(), j.getCompletedAt());
+                p.getCustomer().getId(), p.getCustomer().getName(), p.getCustomer().getPhone(), j.getCompletedAt(),
+                p.getLatitude(), p.getLongitude());
     }
 
     private static String clean(String input) {
