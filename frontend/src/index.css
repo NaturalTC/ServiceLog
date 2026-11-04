@@ -4368,3 +4368,82 @@ a.round-button:active {
     background: color-mix(in srgb, var(--bar-bg) 92%, transparent);
   }
 }
+
+/* --- Location: "I'm here" and "Who's this house?" --- */
+.title-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+button.round-button {
+  width: 44px;
+  min-height: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--accent-strong);
+}
+
+button.round-button:hover {
+  background: color-mix(in srgb, var(--accent) 24%, var(--surface));
+}
+
+button.round-button:disabled {
+  opacity: 0.6;
+}
+
+.location-offer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 12px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-2);
+}
+
+.location-offer > svg {
+  margin-top: 2px;
+  color: var(--link);
+}
+
+.location-offer p {
+  margin: 0;
+  font-size: 0.94rem;
+}
+
+.location-offer strong {
+  display: block;
+  color: var(--text);
+}
+
+.location-offer-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.location-offer-actions button {
+  min-height: 44px;
+}
+
+.now-dot.here {
+  color: var(--link);
+}
+
+.now-dot.here::before {
+  background: var(--link);
+}
+
+a.here-banner {
+  background: var(--surface);
+  color: var(--text);
+}
+
+a.here-banner > svg:first-child {
+  color: var(--link);
+}

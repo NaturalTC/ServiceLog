@@ -8,6 +8,8 @@ export interface Property {
   state: string
   zip: string
   notes: string | null
+  latitude?: number | null // from the server once the address is on the map
+  longitude?: number | null
 }
 
 export interface Customer {

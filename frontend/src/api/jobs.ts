@@ -20,6 +20,8 @@ export interface Job {
   customerName: string
   customerPhone: string
   completedAt: string | null
+  latitude: number | null // where the address is on the map, once looked up
+  longitude: number | null
 }
 
 // Still on the calendar and changeable

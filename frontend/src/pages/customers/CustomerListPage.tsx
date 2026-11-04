@@ -1,10 +1,12 @@
-import { CaretRight, Plus, ShieldWarning } from '@phosphor-icons/react'
+import { CaretRight, MapPin, Plus, ShieldWarning } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
+import { toast } from 'sonner'
 import { errorMessage } from '../../api/client'
 import { customersApi, type Customer } from '../../api/customers'
 import { equipmentApi } from '../../api/equipment'
 import { formatPhone } from '../../lib/format'
+import { atTheHouse, distanceMetres, formatDistance, locateOnce, supported } from '../../lib/here'
 import { useDebouncedValue } from '../../lib/useDebouncedValue'
 import { Loading } from '../../components/Loading'
 import { Row } from '../../components/ui/Row'
@@ -35,6 +37,39 @@ export function CustomerListPage() {
     return () => controller.abort()
   }, [debouncedQuery])
 
+  // "Who's this house?": the customer whose address is where the phone is
+  const navigate = useNavigate()
+  const [finding, setFinding] = useState(false)
+  async function whoIsHere() {
+    setFinding(true)
+    try {
+      const [here, everyone] = await Promise.all([locateOnce(), customersApi.list()])
+      const nearest = everyone
+        .flatMap((c) =>
+          c.properties.map((p) => ({
+            customer: c,
+            place: { latitude: p.latitude ?? null, longitude: p.longitude ?? null },
+          })),
+        )
+        .map((x) => ({ ...x, metres: distanceMetres(here, x.place) }))
+        .filter((x): x is typeof x & { metres: number } => x.metres != null)
+        .sort((a, b) => a.metres - b.metres)[0]
+      if (nearest && atTheHouse(here, nearest.place)) {
+        toast.success(`You’re at ${nearest.customer.name}’s`)
+        navigate(`/customers/${nearest.customer.id}`)
+      } else if (nearest) {
+        toast(`No customer at this spot. Closest: ${nearest.customer.name}, ${formatDistance(nearest.metres)} away`, {
+          action: { label: 'Open', onClick: () => navigate(`/customers/${nearest.customer.id}`) },
+        })
+      } else {
+        toast('No customer addresses are on the map yet. They’re looked up in the background; try again soon.')
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Couldn’t get your location.')
+    }
+    setFinding(false)
+  }
+
   // How many installed units still need their warranty registered (link shown only when some do)
   const [unregistered, setUnregistered] = useState(0)
   useEffect(() => {
@@ -51,9 +86,22 @@ export function CustomerListPage() {
     <main>
       <div className="page-title">
         <h1>Customers</h1>
-        <Link to="/customers/new" className="round-button" aria-label="Add a customer">
-          <Plus size={20} weight="bold" aria-hidden="true" />
-        </Link>
+        <div className="title-buttons">
+          {supported && (
+            <button
+              type="button"
+              className="round-button"
+              onClick={whoIsHere}
+              disabled={finding}
+              aria-label="Who’s this house? Find the customer at your location"
+            >
+              <MapPin size={20} weight="fill" aria-hidden="true" />
+            </button>
+          )}
+          <Link to="/customers/new" className="round-button" aria-label="Add a customer">
+            <Plus size={20} weight="bold" aria-hidden="true" />
+          </Link>
+        </div>
       </div>
 
       {unregistered > 0 && (

@@ -2,6 +2,7 @@ import {
   ArrowCounterClockwise,
   CaretRight,
   CheckCircle,
+  MapPin,
   MapTrifold,
   NavigationArrow,
   Phone,
@@ -14,7 +15,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 import { errorMessage, OfflineError } from '../../api/client'
+import { customersApi, type Customer } from '../../api/customers'
 import { equipmentApi } from '../../api/equipment'
+import { atTheHouse, distanceMetres, useHere } from '../../lib/here'
 import { jobsApi, type Job, type Today } from '../../api/jobs'
 import { directionsUrl, formatDuration, formatPhone, formatTime, minutesOfDay } from '../../lib/format'
 import { Loading } from '../../components/Loading'
@@ -102,6 +105,19 @@ export function MyDayPage() {
 
   const queue = useSyncQueue()
 
+  // Where the phone is (only if the owner turned it on; it never leaves the phone)
+  const location = useHere()
+  // Every customer's addresses, to say whose house this is when it isn't on today's list
+  const [everyone, setEveryone] = useState<Customer[] | null>(null)
+  useEffect(() => {
+    if (location.here && everyone === null) {
+      customersApi
+        .list()
+        .then(setEveryone)
+        .catch(() => setEveryone([]))
+    }
+  }, [location.here, everyone])
+
   // Start a job, or undo an accidental start; then reload the day. Without signal a start
   // is kept on the phone, and undoing a start that hasn't synced just drops it.
   async function changeStatus(job: Job, action: 'start' | 'undoStart') {
@@ -157,7 +173,22 @@ export function MyDayPage() {
   })
   const highlight = currentOrNext(jobs, minute)
   const openStop = jobs.find((j) => j.id === openId && j.status !== 'DONE') ?? null
-  const cardJob = openStop ?? jobs.find((j) => j.id === highlight?.id) ?? null
+  // "I'm here": standing at one of today's addresses brings that stop up, ready to start
+  const here = location.here
+  const hereJob = here
+    ? (jobs
+        .filter((j) => j.status !== 'DONE' && atTheHouse(here, j))
+        .sort((a, b) => (distanceMetres(here, a) ?? 0) - (distanceMetres(here, b) ?? 0))[0] ?? null)
+    : null
+  // At a customer's house that isn't on today's list: say whose it is
+  const hereCustomer =
+    here && !hereJob && everyone
+      ? (everyone
+          .flatMap((c) => c.properties.map((p) => ({ customer: c, property: p })))
+          .filter(({ property }) => atTheHouse(here, { latitude: property.latitude ?? null, longitude: property.longitude ?? null }))
+          .map(({ customer }) => customer)[0] ?? null)
+      : null
+  const cardJob = openStop ?? hereJob ?? jobs.find((j) => j.id === highlight?.id) ?? null
   const ahead = jobs.filter((j) => j.status !== 'DONE' && j.id !== cardJob?.id)
   const finished = jobs.filter((j) => j.status === 'DONE')
   const late = (job: Job) =>
@@ -167,6 +198,8 @@ export function MyDayPage() {
     ? ''
     : cardJob.status === 'IN_PROGRESS'
       ? 'In progress'
+      : cardJob.id === hereJob?.id
+        ? 'You’re here'
       : cardJob.id === highlight?.id
         ? highlight.label
         : late(cardJob)
@@ -209,6 +242,35 @@ export function MyDayPage() {
         </Link>
       )}
 
+      {/* Offered once: location makes "I'm here" work. It stays on the phone. */}
+      {location.supported && !location.on && !location.decided && jobs.length > 0 && (
+        <div className="location-offer">
+          <MapPin size={24} weight="fill" aria-hidden="true" />
+          <p>
+            <strong>Know whose house you’re at</strong>
+            Open the app at a job and it’s ready to start. Your location stays on this phone.
+          </p>
+          <div className="location-offer-actions">
+            <button type="button" onClick={location.enable}>
+              Turn on location
+            </button>
+            <button type="button" className="secondary" onClick={location.disable}>
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {hereCustomer && (
+        <Link to={`/customers/${hereCustomer.id}`} className="banner here-banner">
+          <MapPin size={22} weight="fill" aria-hidden="true" />
+          <span>
+            You’re at <strong>{hereCustomer.name}</strong>’s
+          </span>
+          <CaretRight size={18} aria-hidden="true" />
+        </Link>
+      )}
+
       {jobs.length === 0 && (
         <EmptyState
           icon={MapTrifold}
@@ -238,7 +300,9 @@ export function MyDayPage() {
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
         >
           <p className="now-status">
-            <span className={`now-dot ${cardLabel === 'Late' ? 'late' : ''}`}>{cardLabel}</span>
+            <span className={`now-dot ${cardLabel === 'Late' ? 'late' : cardJob.id === hereJob?.id ? 'here' : ''}`}>
+              {cardLabel}
+            </span>
             <span className="time">
               {formatTime(cardJob.startTime)} – {formatTime(endTime(cardJob))}
             </span>
