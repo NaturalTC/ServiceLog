@@ -1,4 +1,16 @@
-import { CalendarBlank, CheckCircle, Clock, MapPin, NavigationArrow, Phone, Play, User } from '@phosphor-icons/react'
+import {
+  ArrowCounterClockwise,
+  CalendarBlank,
+  CheckCircle,
+  Clock,
+  MapPin,
+  NavigationArrow,
+  PencilSimple,
+  Phone,
+  Play,
+  User,
+  XCircle,
+} from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
@@ -8,6 +20,8 @@ import { formatDate, formatDuration, formatPhone, formatTime, mapsUrl, ticketNo 
 import { useConfirm } from '../../components/ConfirmSheet'
 import { JobTypeTag } from '../../components/ui/JobTypeTag'
 import { Loading } from '../../components/Loading'
+import { MoreMenu } from '../../components/MoreMenu'
+import { Panel } from '../../components/ui/Panel'
 import { pendingStatus, syncQueue, useSyncQueue } from '../../lib/syncQueue'
 
 export function JobDetailPage() {
@@ -138,46 +152,54 @@ export function JobDetailPage() {
         </p>
       )}
 
-      {/* Key facts first: when, who, where */}
-      <ul className="fact-list">
-        <li>
-          <CalendarBlank size={18} aria-hidden="true" />
-          <strong>{formatDate(job.date)}</strong>
-        </li>
-        <li>
-          <Clock size={18} aria-hidden="true" />
-          <span className="time">
-            {formatTime(job.startTime)} · {formatDuration(job.durationMinutes)}
-          </span>
-        </li>
-        <li>
-          <User size={18} aria-hidden="true" />
-          <Link to={`/customers/${job.customerId}`} className="tap-link">
-            {job.customerName}
-          </Link>
-        </li>
-        <li>
-          <MapPin size={18} aria-hidden="true" />
-          <span>{job.address}</span>
-        </li>
-      </ul>
+      {/* Grouped: when, who, where, notes. The one next step stays pinned at the bottom */}
+      <Panel title="When">
+        <ul className="fact-list">
+          <li>
+            <CalendarBlank size={18} aria-hidden="true" />
+            <strong>{formatDate(job.date)}</strong>
+          </li>
+          <li>
+            <Clock size={18} aria-hidden="true" />
+            <span className="time">
+              {formatTime(job.startTime)} · {formatDuration(job.durationMinutes)}
+            </span>
+          </li>
+        </ul>
+      </Panel>
 
-      <div className="actions">
+      <Panel title="Customer">
+        <ul className="fact-list">
+          <li>
+            <User size={18} aria-hidden="true" />
+            <Link to={`/customers/${job.customerId}`} className="tap-link">
+              {job.customerName}
+            </Link>
+          </li>
+        </ul>
         <a href={`tel:${job.customerPhone}`} className="button call">
           <Phone size={18} aria-hidden="true" />
           Call {formatPhone(job.customerPhone)}
         </a>
+      </Panel>
+
+      <Panel title="Where">
+        <ul className="fact-list">
+          <li>
+            <MapPin size={18} aria-hidden="true" />
+            <span>{job.address}</span>
+          </li>
+        </ul>
         <a href={mapsUrl(job.address)} target="_blank" rel="noreferrer" className="button go">
           <NavigationArrow size={18} aria-hidden="true" />
           Directions
         </a>
-      </div>
+      </Panel>
 
       {job.notes && (
-        <>
-          <h2>Notes</h2>
+        <Panel title="Notes">
           <p className="notes note-card">{job.notes}</p>
-        </>
+        </Panel>
       )}
 
       {error && (
@@ -187,42 +209,36 @@ export function JobDetailPage() {
       )}
 
       {open && (
-        <>
-          {/* One clear next step: Start a scheduled job, Finish one in progress */}
-          <div className="actions spaced">
-            {shown.status === 'SCHEDULED' ? (
-              <button type="button" onClick={startJob} disabled={busy}>
-                <Play size={18} aria-hidden="true" />
-                {busy ? 'Starting…' : 'Start job'}
-              </button>
-            ) : (
-              <Link to={`/jobs/${job.id}/finish`} className="button">
-                <CheckCircle size={18} aria-hidden="true" />
-                Finish job
-              </Link>
-            )}
-          </div>
-          {shown.status === 'IN_PROGRESS' && (
-            <p className="center">
-              <button type="button" className="link-button" onClick={undoStart} disabled={busy}>
-                Started by mistake? Undo start
-              </button>
-            </p>
-          )}
-          <div className="actions spaced">
-            <Link to={`/jobs/${job.id}/edit`} className="button secondary">
-              Reschedule or edit
-            </Link>
-            <button type="button" className="secondary danger" onClick={cancelJob} disabled={busy}>
-              Cancel job
+        <div className="action-bar">
+          {shown.status === 'SCHEDULED' ? (
+            <button type="button" onClick={startJob} disabled={busy}>
+              <Play size={18} aria-hidden="true" />
+              {busy ? 'Starting…' : 'Start job'}
             </button>
-          </div>
-        </>
+          ) : (
+            <Link to={`/jobs/${job.id}/finish`} className="button">
+              <CheckCircle size={18} aria-hidden="true" />
+              Finish job
+            </Link>
+          )}
+          <MoreMenu
+            title={`${job.typeLabel} · ${job.customerName}`}
+            items={[
+              { label: 'Reschedule or edit', icon: PencilSimple, to: `/jobs/${job.id}/edit` },
+              ...(shown.status === 'IN_PROGRESS'
+                ? [{ label: 'Undo start (started by mistake)', icon: ArrowCounterClockwise, onSelect: () => void undoStart() }]
+                : []),
+              { label: 'Cancel job', icon: XCircle, onSelect: () => void cancelJob(), danger: true },
+            ]}
+          />
+        </div>
       )}
 
-      <p className="links">
-        <Link to="/jobs">Back to jobs</Link>
-      </p>
+      {!open && (
+        <p className="links">
+          <Link to="/jobs">Back to jobs</Link>
+        </p>
+      )}
       {sheet}
     </main>
   )
