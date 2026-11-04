@@ -7,8 +7,10 @@ import { customersApi, type CustomerInput } from '../../api/customers'
 import { DescribeBox } from '../../components/DescribeBox'
 import { formatPhone, isValidEmail, isValidState, isValidUsPhone, isValidZip } from '../../lib/format'
 import { Loading } from '../../components/Loading'
+import { Steps } from '../../components/ui/Steps'
 
-// One form for both "new customer" (/customers/new) and "edit" (/customers/:id/edit).
+// One form for both "new customer" (/customers/new) and "edit" (/customers/:id/edit), in three
+// short steps: Contact, Address, then Notes with a summary of the first two to check.
 // Built for speed on a phone: name gets focus, the phone field opens the number pad,
 // and state defaults to MA.
 
@@ -60,6 +62,10 @@ function validate(d: Draft): Errors {
 }
 
 const blankToNull = (s: string) => (s.trim() ? s.trim() : null)
+
+const STEPS = ['Contact', 'Address', 'Notes']
+// Which step a field's error belongs to
+const stepOf = (key: string) => (key.startsWith('p') && key.includes('.') ? 1 : 0)
 
 const blankDraft = (): Draft => ({ name: '', phone: '', email: '', notes: '', properties: [emptyProperty()] })
 
@@ -114,6 +120,8 @@ export function CustomerFormPage() {
   const [submitted, setSubmitted] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [step, setStep] = useState(0)
+  const [reached, setReached] = useState(0)
 
   // When editing, load the customer into the form
   useEffect(() => {
@@ -168,14 +176,33 @@ export function CustomerFormPage() {
   const removeProperty = (index: number) =>
     update({ ...draft, properties: draft.properties.filter((_, i) => i !== index) })
 
+  function go(i: number) {
+    setStep(i)
+    setReached((r) => Math.max(r, editingId ? 2 : i))
+    window.scrollTo({ top: 0 })
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (!draft) return
     setSubmitted(true)
     setServerError(null)
     const found = validate(draft)
+    // Next: only this step's fields have to be right to move on
+    if (step < STEPS.length - 1) {
+      const here = Object.fromEntries(Object.entries(found).filter(([key]) => stepOf(key) === step))
+      setErrors(here)
+      if (Object.keys(here).length === 0) {
+        setSubmitted(false)
+        go(step + 1)
+      }
+      return
+    }
     setErrors(found)
-    if (Object.keys(found).length > 0) return
+    if (Object.keys(found).length > 0) {
+      go(Math.min(...Object.keys(found).map(stepOf)))
+      return
+    }
 
     setSaving(true)
     try {
@@ -201,149 +228,196 @@ export function CustomerFormPage() {
   return (
     <main>
       <h1>{editingId ? 'Edit customer' : 'New customer'}</h1>
-      {!editingId && (
+      <Steps steps={STEPS} current={step} reached={editingId ? 2 : reached} onGo={go} />
+      {!editingId && step === 0 && (
         <DescribeBox
           placeholder="e.g. Mark Lee, 413-555-0166, 22 Birch Rd Westfield, two oil burners"
-          fill={async (text) => setDraft(fromInput(await assistantApi.fill<Partial<CustomerInput>>('customer', text)))}
+          fill={async (text) => {
+            setDraft(fromInput(await assistantApi.fill<Partial<CustomerInput>>('customer', text)))
+            // Filled in: straight to the summary, to check it before saving
+            go(2)
+          }}
         />
       )}
       <form onSubmit={handleSubmit} noValidate className="customer-form">
-        <label htmlFor="name">Name</label>
-        <input
-          id="name"
-          autoFocus={!editingId}
-          autoComplete="off"
-          autoCapitalize="words"
-          value={draft.name}
-          onChange={(e) => setField('name', e.target.value)}
-          aria-invalid={!!errors.name}
-          aria-describedby={describedBy('name')}
-        />
-        {fieldError('name')}
-
-        <label htmlFor="phone">Phone</label>
-        <input
-          id="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="off"
-          value={draft.phone}
-          onChange={(e) => setField('phone', e.target.value)}
-          onBlur={() => isValidUsPhone(draft.phone) && setField('phone', formatPhone(draft.phone))}
-          aria-invalid={!!errors.phone}
-          aria-describedby={describedBy('phone')}
-        />
-        {fieldError('phone')}
-
-        <label htmlFor="email">
-          Email <span className="optional">(optional)</span>
-        </label>
-        <input
-          id="email"
-          type="email"
-          inputMode="email"
-          autoComplete="off"
-          value={draft.email}
-          onChange={(e) => setField('email', e.target.value)}
-          aria-invalid={!!errors.email}
-          aria-describedby={describedBy('email')}
-        />
-        {fieldError('email')}
-
-        {draft.properties.map((p, i) => (
-          <fieldset key={p.key} className="property">
-            <legend>{draft.properties.length > 1 ? `Address ${i + 1}` : 'Address'}</legend>
-
-            <label htmlFor={`p${i}-street`}>Street</label>
+        {step === 0 && (
+          <>
+            <label htmlFor="name">Name</label>
             <input
-              id={`p${i}-street`}
-              autoComplete="off"
-              value={p.street}
-              onChange={(e) => setPropertyField(i, 'street', e.target.value)}
-              aria-invalid={!!errors[`p${i}.street`]}
-              aria-describedby={describedBy(`p${i}.street`)}
-            />
-            {fieldError(`p${i}.street`)}
-
-            <label htmlFor={`p${i}-unit`}>
-              Unit <span className="optional">(optional)</span>
-            </label>
-            <input
-              id={`p${i}-unit`}
-              autoComplete="off"
-              value={p.unit}
-              onChange={(e) => setPropertyField(i, 'unit', e.target.value)}
-            />
-
-            <label htmlFor={`p${i}-city`}>City</label>
-            <input
-              id={`p${i}-city`}
+              id="name"
+              autoFocus={!editingId}
               autoComplete="off"
               autoCapitalize="words"
-              value={p.city}
-              onChange={(e) => setPropertyField(i, 'city', e.target.value)}
-              aria-invalid={!!errors[`p${i}.city`]}
-              aria-describedby={describedBy(`p${i}.city`)}
+              value={draft.name}
+              onChange={(e) => setField('name', e.target.value)}
+              aria-invalid={!!errors.name}
+              aria-describedby={describedBy('name')}
             />
-            {fieldError(`p${i}.city`)}
+            {fieldError('name')}
 
-            <div className="row">
-              <div>
-                <label htmlFor={`p${i}-state`}>State</label>
-                <input
-                  id={`p${i}-state`}
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  maxLength={2}
-                  value={p.state}
-                  onChange={(e) => setPropertyField(i, 'state', e.target.value)}
-                  aria-invalid={!!errors[`p${i}.state`]}
-                  aria-describedby={describedBy(`p${i}.state`)}
-                />
-                {fieldError(`p${i}.state`)}
-              </div>
-              <div>
-                <label htmlFor={`p${i}-zip`}>ZIP</label>
-                <input
-                  id={`p${i}-zip`}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  maxLength={10}
-                  value={p.zip}
-                  onChange={(e) => setPropertyField(i, 'zip', e.target.value)}
-                  aria-invalid={!!errors[`p${i}.zip`]}
-                  aria-describedby={describedBy(`p${i}.zip`)}
-                />
-                {fieldError(`p${i}.zip`)}
-              </div>
-            </div>
+            <label htmlFor="phone">Phone</label>
+            <input
+              id="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="off"
+              value={draft.phone}
+              onChange={(e) => setField('phone', e.target.value)}
+              onBlur={() => isValidUsPhone(draft.phone) && setField('phone', formatPhone(draft.phone))}
+              aria-invalid={!!errors.phone}
+              aria-describedby={describedBy('phone')}
+            />
+            {fieldError('phone')}
 
-            <label htmlFor={`p${i}-notes`}>
-              Notes <span className="optional">(gate code, dog, where the unit is…)</span>
+            <label htmlFor="email">
+              Email <span className="optional">(optional)</span>
             </label>
-            <textarea
-              id={`p${i}-notes`}
-              rows={2}
-              value={p.notes}
-              onChange={(e) => setPropertyField(i, 'notes', e.target.value)}
+            <input
+              id="email"
+              type="email"
+              inputMode="email"
+              autoComplete="off"
+              value={draft.email}
+              onChange={(e) => setField('email', e.target.value)}
+              aria-invalid={!!errors.email}
+              aria-describedby={describedBy('email')}
             />
+            {fieldError('email')}
+          </>
+        )}
 
-            {draft.properties.length > 1 && (
-              <button type="button" className="secondary" onClick={() => removeProperty(i)}>
-                Remove this address
-              </button>
-            )}
-          </fieldset>
-        ))}
+        {step === 1 && (
+          <>
+            {draft.properties.map((p, i) => (
+              <fieldset key={p.key} className="property">
+                <legend>{draft.properties.length > 1 ? `Address ${i + 1}` : 'Address'}</legend>
 
-        <button type="button" className="secondary" onClick={addProperty}>
-          + Add another address
-        </button>
+                <label htmlFor={`p${i}-street`}>Street</label>
+                <input
+                  id={`p${i}-street`}
+                  autoComplete="off"
+                  value={p.street}
+                  onChange={(e) => setPropertyField(i, 'street', e.target.value)}
+                  aria-invalid={!!errors[`p${i}.street`]}
+                  aria-describedby={describedBy(`p${i}.street`)}
+                />
+                {fieldError(`p${i}.street`)}
 
-        <label htmlFor="notes">
-          Customer notes <span className="optional">(optional)</span>
-        </label>
-        <textarea id="notes" rows={3} value={draft.notes} onChange={(e) => setField('notes', e.target.value)} />
+                <label htmlFor={`p${i}-unit`}>
+                  Unit <span className="optional">(optional)</span>
+                </label>
+                <input
+                  id={`p${i}-unit`}
+                  autoComplete="off"
+                  value={p.unit}
+                  onChange={(e) => setPropertyField(i, 'unit', e.target.value)}
+                />
+
+                <label htmlFor={`p${i}-city`}>City</label>
+                <input
+                  id={`p${i}-city`}
+                  autoComplete="off"
+                  autoCapitalize="words"
+                  value={p.city}
+                  onChange={(e) => setPropertyField(i, 'city', e.target.value)}
+                  aria-invalid={!!errors[`p${i}.city`]}
+                  aria-describedby={describedBy(`p${i}.city`)}
+                />
+                {fieldError(`p${i}.city`)}
+
+                <div className="row">
+                  <div>
+                    <label htmlFor={`p${i}-state`}>State</label>
+                    <input
+                      id={`p${i}-state`}
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      maxLength={2}
+                      value={p.state}
+                      onChange={(e) => setPropertyField(i, 'state', e.target.value)}
+                      aria-invalid={!!errors[`p${i}.state`]}
+                      aria-describedby={describedBy(`p${i}.state`)}
+                    />
+                    {fieldError(`p${i}.state`)}
+                  </div>
+                  <div>
+                    <label htmlFor={`p${i}-zip`}>ZIP</label>
+                    <input
+                      id={`p${i}-zip`}
+                      inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={10}
+                      value={p.zip}
+                      onChange={(e) => setPropertyField(i, 'zip', e.target.value)}
+                      aria-invalid={!!errors[`p${i}.zip`]}
+                      aria-describedby={describedBy(`p${i}.zip`)}
+                    />
+                    {fieldError(`p${i}.zip`)}
+                  </div>
+                </div>
+
+                <label htmlFor={`p${i}-notes`}>
+                  Notes <span className="optional">(gate code, dog, where the unit is…)</span>
+                </label>
+                <textarea
+                  id={`p${i}-notes`}
+                  rows={2}
+                  value={p.notes}
+                  onChange={(e) => setPropertyField(i, 'notes', e.target.value)}
+                />
+
+                {draft.properties.length > 1 && (
+                  <button type="button" className="secondary" onClick={() => removeProperty(i)}>
+                    Remove this address
+                  </button>
+                )}
+              </fieldset>
+            ))}
+
+            <button type="button" className="secondary" onClick={addProperty}>
+              + Add another address
+            </button>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            {/* The first two steps at a glance, to check before saving */}
+            <dl className="step-summary">
+              <div>
+                <dt>Contact</dt>
+                <dd>
+                  {draft.name || '—'}
+                  <span className="muted block">
+                    {[draft.phone, draft.email].filter((x) => x.trim()).join(' · ') || 'No phone yet'}
+                  </span>
+                </dd>
+                <button type="button" className="link-button" onClick={() => go(0)}>
+                  Change
+                </button>
+              </div>
+              <div>
+                <dt>Address</dt>
+                <dd>
+                  {draft.properties.map((p) => (
+                    <span key={p.key} className="block">
+                      {[p.street, p.unit, p.city].filter((x) => x.trim()).join(', ') || '—'}
+                      {p.zip && ` ${p.state} ${p.zip}`}
+                    </span>
+                  ))}
+                </dd>
+                <button type="button" className="link-button" onClick={() => go(1)}>
+                  Change
+                </button>
+              </div>
+            </dl>
+
+            <label htmlFor="notes">
+              Customer notes <span className="optional">(optional)</span>
+            </label>
+            <textarea id="notes" rows={3} value={draft.notes} onChange={(e) => setField('notes', e.target.value)} />
+          </>
+        )}
 
         {serverError && (
           <p className="error" role="alert">
@@ -358,12 +432,22 @@ export function CustomerFormPage() {
 
         {/* Sticky so Save is always under the thumb */}
         <div className="sticky-actions">
-          <Link to={editingId ? `/customers/${editingId}` : '/customers'} className="button secondary">
-            Cancel
-          </Link>
-          <button type="submit" disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
-          </button>
+          {step === 0 ? (
+            <Link to={editingId ? `/customers/${editingId}` : '/customers'} className="button secondary">
+              Cancel
+            </Link>
+          ) : (
+            <button type="button" className="secondary" onClick={() => go(step - 1)}>
+              Back
+            </button>
+          )}
+          {step < STEPS.length - 1 ? (
+            <button type="submit">Next: {STEPS[step + 1]}</button>
+          ) : (
+            <button type="submit" disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          )}
         </div>
       </form>
     </main>

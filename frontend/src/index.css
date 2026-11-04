@@ -3635,3 +3635,96 @@ a.tuneup-name {
   justify-content: center;
   text-align: center;
 }
+
+/* --- Forms in steps: Who → When → What --- */
+.steps {
+  list-style: none;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 6px;
+  margin: -8px 0 20px;
+  padding: 0;
+}
+
+.steps button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 0 0;
+  border: 0;
+  border-top: 4px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.steps button:hover,
+.steps button:active {
+  background: transparent;
+  transform: none;
+}
+
+.steps button:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.steps li.done button {
+  border-top-color: var(--text);
+  color: var(--text-2);
+}
+
+.steps li.current button {
+  border-top-color: var(--signal);
+  color: var(--text);
+}
+
+.step-no {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+
+/* What's been chosen on the earlier steps, each with Change */
+.step-summary {
+  margin: 0 0 8px;
+  padding: 4px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.step-summary > div {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 0;
+}
+
+.step-summary > div + div {
+  border-top: 1px solid var(--border);
+}
+
+.step-summary dt {
+  font-family: var(--condensed);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.step-summary dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.step-summary .link-button {
+  min-height: 44px;
+}

@@ -6,13 +6,18 @@ import { customersApi, type Customer } from '../../api/customers'
 import { assistantApi, type JobFill } from '../../api/assistant'
 import { DescribeBox } from '../../components/DescribeBox'
 import { jobsApi, overlappingJobs, type Job, type JobInput, type JobType, type JobTypeOption } from '../../api/jobs'
-import { addDays, formatAddress, formatPhone, formatTime, todayIso } from '../../lib/format'
+import { addDays, formatAddress, formatDate, formatPhone, formatTime, todayIso } from '../../lib/format'
 import { useDebouncedValue } from '../../lib/useDebouncedValue'
 import { Loading } from '../../components/Loading'
+import { Steps } from '../../components/ui/Steps'
 
 // One form for scheduling (/jobs/new, optionally ?customerId=) and rescheduling or
-// editing (/jobs/:id/edit). If the time clashes with another job, the owner sees the
-// clash and can book anyway.
+// editing (/jobs/:id/edit), in three short steps: Who (customer and address), When (day,
+// time, length), What (kind of job, urgency, notes) with a summary of the first two to
+// check before saving. If the time clashes with another job, the owner sees the clash and
+// can book anyway.
+
+const STEPS = ['Who', 'When', 'What']
 
 const DURATIONS = [30, 60, 90, 120, 180, 240, 480]
 const LAST_START_HOUR_TODAY = 17
@@ -25,6 +30,10 @@ interface Draft {
   type: JobType | ''
   urgent: boolean
   notes: string
+}
+
+function durationLabel(m: number): string {
+  return m < 60 ? `${m} min` : m === 480 ? 'Full day (8 hr)' : `${m / 60} hr`
 }
 
 // Next full hour today, or 8 AM tomorrow if it's late in the day
@@ -71,6 +80,10 @@ export function JobFormPage() {
           }),
         },
   )
+  // Rescheduling starts on When; coming from Tune-ups (customer, address and type known) too
+  const firstStep = editingId || (presetCustomerId && presetPropertyId && presetType) ? 1 : 0
+  const [step, setStep] = useState(firstStep)
+  const [reached, setReached] = useState(editingId ? 2 : firstStep)
   const [conflicts, setConflicts] = useState<Job[] | null>(null)
   const [missing, setMissing] = useState<string[]>([])
   const [serverError, setServerError] = useState<string | null>(null)
@@ -156,17 +169,45 @@ export function JobFormPage() {
     setConflicts(null) // any change means the old clash may no longer apply
   }
 
+  // What's still missing on a step
+  function problemsOn(i: number): string[] {
+    if (!draft) return []
+    const byStep = [
+      [!customer && 'customer', !draft.propertyId && 'address'],
+      [!draft.date && 'date', !draft.startTime && 'time'],
+      [!draft.type && 'type of job'],
+    ]
+    return byStep[i].filter(Boolean) as string[]
+  }
+
+  function go(i: number) {
+    setMissing([])
+    setStep(i)
+    setReached((r) => Math.max(r, i))
+    window.scrollTo({ top: 0 })
+  }
+
+  function next() {
+    const problems = problemsOn(step)
+    setMissing(problems)
+    if (problems.length === 0) go(step + 1)
+  }
+
+  // Picked from the search: with one address there's nothing more to ask, so on to When
+  function pickFromSearch(c: Customer) {
+    chooseCustomer(c)
+    if (c.properties.length === 1) go(1)
+  }
+
   async function save(allowOverlap: boolean) {
     if (!draft) return
-    const problems = [
-      !customer && 'customer',
-      !draft.propertyId && 'address',
-      !draft.date && 'date',
-      !draft.startTime && 'time',
-      !draft.type && 'type of job',
-    ].filter(Boolean) as string[]
-    setMissing(problems)
-    if (problems.length > 0) return
+    const firstBad = [0, 1, 2].find((i) => problemsOn(i).length > 0)
+    if (firstBad !== undefined) {
+      setStep(firstBad)
+      setMissing(problemsOn(firstBad))
+      return
+    }
+    setMissing([])
 
     const input: JobInput = {
       propertyId: draft.propertyId!,
@@ -194,7 +235,8 @@ export function JobFormPage() {
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
-    save(false)
+    if (step < STEPS.length - 1) next()
+    else save(false)
   }
 
   const cancelTo = editingId ? `/jobs/${editingId}` : presetCustomerId ? `/customers/${presetCustomerId}` : '/jobs'
@@ -202,153 +244,194 @@ export function JobFormPage() {
   return (
     <main>
       <h1>{editingId ? 'Reschedule or edit job' : 'Schedule a job'}</h1>
-
-      {!editingId && (
-        <DescribeBox
-          placeholder="e.g. No heat at the Kowalski house, tomorrow at 8, urgent"
-          fill={async (text) => {
-            const f = await assistantApi.fill<JobFill>('job', text)
-            if (f.customerId) {
-              const c = await customersApi.get(f.customerId)
-              setCustomer(c)
-            } else if (f.customerName) {
-              setQuery(f.customerName) // the owner picks from the matches
-            }
-            setDraft((d) =>
-              d && {
-                ...d,
-                propertyId: f.propertyId ?? (f.customerId ? null : d.propertyId),
-                type: (f.type as JobType | null) ?? d.type,
-                date: f.date ?? d.date,
-                startTime: f.startTime ?? d.startTime,
-                durationMinutes: f.durationMinutes ?? d.durationMinutes,
-                urgent: f.urgency === 'URGENT',
-                notes: f.notes ?? d.notes,
-              },
-            )
-          }}
-        />
-      )}
+      <Steps steps={STEPS} current={step} reached={reached} onGo={go} />
 
       <form onSubmit={handleSubmit} noValidate className="customer-form">
-        {/* Customer */}
-        {customer ? (
-          <div className="picked">
-            <span>
-              <strong>{customer.name}</strong>
-              <br />
-              <span className="muted">{formatPhone(customer.phone)}</span>
-            </span>
-            {!editingId && !presetCustomerId && (
-              <button type="button" className="link-button" onClick={() => setCustomer(null)}>
-                Change
-              </button>
-            )}
-          </div>
-        ) : (
+        {!editingId && step === 0 && (
+          <DescribeBox
+            placeholder="e.g. No heat at the Kowalski house, tomorrow at 8, urgent"
+            fill={async (text) => {
+              const f = await assistantApi.fill<JobFill>('job', text)
+              if (f.customerId) {
+                const c = await customersApi.get(f.customerId)
+                setCustomer(c)
+              } else if (f.customerName) {
+                setQuery(f.customerName) // the owner picks from the matches
+              }
+              setDraft((d) =>
+                d && {
+                  ...d,
+                  propertyId: f.propertyId ?? (f.customerId ? null : d.propertyId),
+                  type: (f.type as JobType | null) ?? d.type,
+                  date: f.date ?? d.date,
+                  startTime: f.startTime ?? d.startTime,
+                  durationMinutes: f.durationMinutes ?? d.durationMinutes,
+                  urgent: f.urgency === 'URGENT',
+                  notes: f.notes ?? d.notes,
+                },
+              )
+              // Filled in: straight to the summary, to check it before saving
+              go(2)
+            }}
+          />
+        )}
+
+        {step === 0 && (
           <>
-            <label htmlFor="customer-search">Customer</label>
-            <input
-              id="customer-search"
-              type="search"
-              placeholder="Search name, street or phone"
-              autoComplete="off"
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <ul className="pick-list">
-              {matches.map((c) => (
-                <li key={c.id}>
-                  <button type="button" className="secondary" onClick={() => chooseCustomer(c)}>
-                    {c.name} · {formatPhone(c.phone)}
+            {customer ? (
+              <div className="picked">
+                <span>
+                  <strong>{customer.name}</strong>
+                  <br />
+                  <span className="muted">{formatPhone(customer.phone)}</span>
+                </span>
+                {!editingId && !presetCustomerId && (
+                  <button type="button" className="link-button" onClick={() => setCustomer(null)}>
+                    Change
                   </button>
-                </li>
-              ))}
-            </ul>
+                )}
+              </div>
+            ) : (
+              <>
+                <label htmlFor="customer-search">Customer</label>
+                <input
+                  id="customer-search"
+                  type="search"
+                  placeholder="Search name, street or phone"
+                  autoComplete="off"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+                <ul className="pick-list">
+                  {matches.map((c) => (
+                    <li key={c.id}>
+                      <button type="button" className="secondary" onClick={() => pickFromSearch(c)}>
+                        {c.name} · {formatPhone(c.phone)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {/* Address: chosen automatically when there's only one */}
+            {customer && customer.properties.length > 1 && (
+              <fieldset className="choice-group">
+                <legend>Address</legend>
+                <div className="options">
+                  {customer.properties.map((p) => (
+                    <label key={p.id} className="option">
+                      <input
+                        type="radio"
+                        name="property"
+                        checked={draft.propertyId === p.id}
+                        onChange={() => set('propertyId', p.id)}
+                      />
+                      {formatAddress(p)}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+            {customer && customer.properties.length === 1 && (
+              <p className="muted">{formatAddress(customer.properties[0])}</p>
+            )}
           </>
         )}
 
-        {/* Address: chosen automatically when there's only one */}
-        {customer && customer.properties.length > 1 && (
-          <fieldset className="choice-group">
-            <legend>Address</legend>
-            <div className="options">
-              {customer.properties.map((p) => (
-                <label key={p.id} className="option">
-                  <input
-                    type="radio"
-                    name="property"
-                    checked={draft.propertyId === p.id}
-                    onChange={() => set('propertyId', p.id)}
-                  />
-                  {formatAddress(p)}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        )}
-        {customer && customer.properties.length === 1 && (
-          <p className="muted">{formatAddress(customer.properties[0])}</p>
-        )}
-
-        <fieldset className="choice-group">
-          <legend>Type of job</legend>
-          <div className="chips">
-            {types.map((t) => (
-              <label key={t.value} className={draft.type === t.value ? 'chip selected' : 'chip'}>
+        {step === 1 && (
+          <>
+            <div className="row even">
+              <div>
+                <label htmlFor="date">Date</label>
+                <input id="date" type="date" value={draft.date} onChange={(e) => set('date', e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="time">Start time</label>
                 <input
-                  type="radio"
-                  name="type"
-                  value={t.value}
-                  checked={draft.type === t.value}
-                  onChange={() => set('type', t.value)}
+                  id="time"
+                  type="time"
+                  step={900}
+                  value={draft.startTime}
+                  onChange={(e) => set('startTime', e.target.value)}
                 />
-                {t.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
+              </div>
+            </div>
 
-        <div className="row even">
-          <div>
-            <label htmlFor="date">Date</label>
-            <input id="date" type="date" value={draft.date} onChange={(e) => set('date', e.target.value)} />
-          </div>
-          <div>
-            <label htmlFor="time">Start time</label>
-            <input
-              id="time"
-              type="time"
-              step={900}
-              value={draft.startTime}
-              onChange={(e) => set('startTime', e.target.value)}
-            />
-          </div>
-        </div>
+            <label htmlFor="duration">How long</label>
+            <select
+              id="duration"
+              value={draft.durationMinutes}
+              onChange={(e) => set('durationMinutes', Number(e.target.value))}
+            >
+              {DURATIONS.map((m) => (
+                <option key={m} value={m}>
+                  {durationLabel(m)}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
 
-        <label htmlFor="duration">How long</label>
-        <select
-          id="duration"
-          value={draft.durationMinutes}
-          onChange={(e) => set('durationMinutes', Number(e.target.value))}
-        >
-          {DURATIONS.map((m) => (
-            <option key={m} value={m}>
-              {m < 60 ? `${m} min` : m === 480 ? 'Full day (8 hr)' : `${m / 60} hr`}
-            </option>
-          ))}
-        </select>
+        {step === 2 && (
+          <>
+            {/* The first two steps at a glance, to check before saving */}
+            <dl className="step-summary">
+              <div>
+                <dt>Who</dt>
+                <dd>
+                  {customer ? customer.name : '—'}
+                  {customer && draft.propertyId && (
+                    <span className="muted block">
+                      {formatAddress(customer.properties.find((p) => p.id === draft.propertyId)!)}
+                    </span>
+                  )}
+                </dd>
+                <button type="button" className="link-button" onClick={() => go(0)}>
+                  Change
+                </button>
+              </div>
+              <div>
+                <dt>When</dt>
+                <dd>
+                  {draft.date ? formatDate(draft.date) : '—'} · {draft.startTime ? formatTime(draft.startTime) : '—'}
+                  <span className="muted block">{durationLabel(draft.durationMinutes)}</span>
+                </dd>
+                <button type="button" className="link-button" onClick={() => go(1)}>
+                  Change
+                </button>
+              </div>
+            </dl>
 
-        <label className="checkbox">
-          <input type="checkbox" checked={draft.urgent} onChange={(e) => set('urgent', e.target.checked)} />
-          Urgent (e.g. no heat, no cooling)
-        </label>
+            <fieldset className="choice-group">
+              <legend>Type of job</legend>
+              <div className="chips">
+                {types.map((t) => (
+                  <label key={t.value} className={draft.type === t.value ? 'chip selected' : 'chip'}>
+                    <input
+                      type="radio"
+                      name="type"
+                      value={t.value}
+                      checked={draft.type === t.value}
+                      onChange={() => set('type', t.value)}
+                    />
+                    {t.label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
 
-        <label htmlFor="notes">
-          Notes <span className="optional">(what the customer said, access, parts to bring…)</span>
-        </label>
-        <textarea id="notes" rows={3} value={draft.notes} onChange={(e) => set('notes', e.target.value)} />
+            <label className="checkbox">
+              <input type="checkbox" checked={draft.urgent} onChange={(e) => set('urgent', e.target.checked)} />
+              Urgent (e.g. no heat, no cooling)
+            </label>
+
+            <label htmlFor="notes">
+              Notes <span className="optional">(what the customer said, access, parts to bring…)</span>
+            </label>
+            <textarea id="notes" rows={3} value={draft.notes} onChange={(e) => set('notes', e.target.value)} />
+          </>
+        )}
 
         {missing.length > 0 && (
           <p className="error" role="alert">
@@ -361,7 +444,7 @@ export function JobFormPage() {
           </p>
         )}
 
-        {conflicts && (
+        {conflicts && step === 2 && (
           <div className="overlap" role="alert">
             <strong>This overlaps with:</strong>
             <ul>
@@ -378,12 +461,22 @@ export function JobFormPage() {
         )}
 
         <div className="sticky-actions">
-          <Link to={cancelTo} className="button secondary">
-            Cancel
-          </Link>
-          <button type="submit" disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
-          </button>
+          {step === 0 ? (
+            <Link to={cancelTo} className="button secondary">
+              Cancel
+            </Link>
+          ) : (
+            <button type="button" className="secondary" onClick={() => go(step - 1)}>
+              Back
+            </button>
+          )}
+          {step < STEPS.length - 1 ? (
+            <button type="submit">Next: {STEPS[step + 1]}</button>
+          ) : (
+            <button type="submit" disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          )}
         </div>
       </form>
     </main>
