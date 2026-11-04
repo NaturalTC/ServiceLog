@@ -14,6 +14,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,6 +82,19 @@ class PropertyGeocodingTest {
         Property saved = properties.findById(id).orElseThrow();
         assertThat(saved.getLatitude()).isNull();
         assertThat(saved.getGeocodedAt()).isNotNull();
+    }
+
+    @Test
+    void anAddressNotFoundDaysAgoIsTriedAgain() {
+        long id = addCustomerAt("12 Oak St");
+        Property property = properties.findById(id).orElseThrow();
+        property.located(null, null, Instant.now().minus(PropertyGeocoding.RETRY_NOT_FOUND_AFTER).minusSeconds(60));
+        properties.save(property);
+        when(geocoder.locate(anyString())).thenReturn(Optional.of(new Coordinates(42.1, -72.5)));
+
+        assertThat(geocoding.geocodePending()).isEqualTo(1);
+
+        assertThat(properties.findById(id).orElseThrow().getLatitude()).isEqualTo(42.1);
     }
 
     @Test
