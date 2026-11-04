@@ -88,6 +88,11 @@
   --shadow-sm: none;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 6px 20px rgb(0 0 0 / 0.06);
   --ring: 0 0 0 3px color-mix(in srgb, var(--link) 30%, transparent);
+
+  /* The floating tab bar sits just above the home indicator, not a whole inset above it */
+  --tab-gap: max(6px, calc(env(safe-area-inset-bottom) - 20px));
+  /* The bar at the very top, which iOS's own status bar strip (white or black) runs into */
+  --bar-bg: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -145,6 +150,7 @@
     --info-bg: #2c2c2e;
 
     --shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+    --bar-bg: #000000;
   }
 }
 
@@ -989,7 +995,7 @@ button.icon-button:hover {
   position: fixed;
   left: max(10px, env(safe-area-inset-left));
   right: max(10px, env(safe-area-inset-right));
-  bottom: max(10px, env(safe-area-inset-bottom));
+  bottom: var(--tab-gap);
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -1034,11 +1040,11 @@ button.icon-button:hover {
 
 /* Room for the tab bar so it never covers the last item or the sticky Save bar */
 .app-content {
-  padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  padding-bottom: calc(88px + var(--tab-gap));
 }
 
 .app-content .sticky-actions {
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  bottom: calc(76px + var(--tab-gap));
 }
 
 /* Wide screens: one floating bar at the top with the brand, tabs and Log out */
@@ -2173,7 +2179,7 @@ button.chip:hover {
 
 /* Scrolling to the newest message leaves room for the question box and the tab bar */
 .chat-end {
-  scroll-margin-bottom: calc(170px + env(safe-area-inset-bottom));
+  scroll-margin-bottom: calc(150px + var(--tab-gap));
 }
 
 /* A customer the answer mentions */
@@ -2212,7 +2218,7 @@ a.result-title {
 /* The question box: frosted glass, floating above the tab bar */
 form.ask-bar {
   position: sticky;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  bottom: calc(76px + var(--tab-gap));
   display: flex;
   flex-direction: row;
   align-items: flex-end;
@@ -3349,7 +3355,7 @@ button.mic.listening {
 /* --- The one next step, pinned above the tab bar, with everything else under "More" --- */
 .action-bar {
   position: sticky;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  bottom: calc(76px + var(--tab-gap));
   z-index: 5;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 56px;
@@ -3715,7 +3721,7 @@ textarea {
   .tabs {
     left: max(16px, env(safe-area-inset-left));
     right: max(16px, env(safe-area-inset-right));
-    bottom: max(14px, env(safe-area-inset-bottom));
+    bottom: var(--tab-gap);
     padding: 6px;
     border-radius: 34px;
     background: var(--tabbar);
@@ -4177,7 +4183,7 @@ a.done-row {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--bg);
+  background: var(--bar-bg);
   transition: background-color 0.2s;
 }
 
@@ -4186,7 +4192,7 @@ a.done-row {
 }
 
 .app-header.scrolled::before {
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  background: color-mix(in srgb, var(--bar-bg) 80%, transparent);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
 }
@@ -4303,4 +4309,10 @@ a.round-button:active {
 
 .today-header {
   padding-top: 0;
+}
+
+/* The top bar is white (black in dark mode), running on from iOS's status bar strip;
+   a hairline always separates it from the grey page under it */
+.app-header {
+  border-bottom-color: var(--border);
 }

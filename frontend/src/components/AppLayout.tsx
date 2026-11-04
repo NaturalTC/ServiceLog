@@ -122,7 +122,7 @@ export function AppLayout() {
       <Toaster
         position="bottom-center"
         offset={{ bottom: 24 }}
-        mobileOffset={{ bottom: 'calc(88px + env(safe-area-inset-bottom))', left: 12, right: 12 }}
+        mobileOffset={{ bottom: 'calc(80px + var(--tab-gap))', left: 12, right: 12 }}
         icons={{ success: <CheckCircle size={22} weight="fill" /> }}
         toastOptions={{
           unstyled: true,
