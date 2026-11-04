@@ -3549,3 +3549,89 @@ button.more-button {
 .block {
   display: block;
 }
+
+/* --- Tune-ups: compact cards, units fold out, actions in one row --- */
+.tuneup-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tuneup-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tuneup-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+a.tuneup-name {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--condensed);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.tuneup-units summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-2);
+  list-style: none;
+}
+
+.tuneup-units summary::-webkit-details-marker {
+  display: none;
+}
+
+.tuneup-units summary::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.tuneup-units[open] summary::after {
+  transform: rotate(-135deg);
+}
+
+.tuneup-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tuneup-actions .button,
+.tuneup-actions button {
+  padding: 10px 6px;
+  gap: 6px;
+}
+
+.tuneup-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

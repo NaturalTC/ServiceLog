@@ -1,3 +1,4 @@
+import { CalendarPlus, Envelope, Phone } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -6,13 +7,29 @@ import { recentlyRemindedAt, tuneUpsApi, type DueList, type DueUnit } from '../.
 import { daysAgo, formatDate, formatDateTime, formatPhone } from '../../lib/format'
 import { useConfirm } from '../../components/ConfirmSheet'
 import { Loading } from '../../components/Loading'
+import { Panel } from '../../components/ui/Panel'
+import { Row } from '../../components/ui/Row'
 
 // Customers due for a seasonal tune-up. Units are grouped by address, since one visit
-// covers everything there; addresses not yet booked come first.
+// covers everything there. "To book" are compact cards (units fold out) with Call, Remind
+// and Book in one row; ones already booked are a short list under them.
 
 interface Visit {
   key: string
   units: DueUnit[]
+}
+
+// "2 units · last tune-up 21 years ago": the oldest one decides how overdue the visit is
+function lastTuneUpText(units: DueUnit[]): string {
+  if (units.some((u) => !u.lastTuneUp)) return 'no tune-up on record'
+  const oldest = units.map((u) => u.lastTuneUp!).sort()[0]
+  return `last tune-up ${daysAgo(oldest)}`
+}
+
+// "42 Chestnut St, Apt 3, Springfield, MA 01104" -> "Springfield"
+function townOf(address: string): string {
+  const parts = address.split(', ')
+  return parts.length >= 2 ? parts[parts.length - 2] : address
 }
 
 function groupByAddress(units: DueUnit[]): Visit[] {
@@ -97,17 +114,12 @@ export function TuneUpsPage() {
 
   const visits = groupByAddress(list.units)
   const toBook = visits.filter((v) => !v.units[0].bookedJobId)
+  const booked = visits.filter((v) => v.units[0].bookedJobId)
 
   return (
     <main>
       <h1>Tune-ups due</h1>
 
-      {visits.length > 0 && (
-        <p>
-          <strong>{toBook.length}</strong> address{toBook.length === 1 ? '' : 'es'} to book ·{' '}
-          {list.units.length} unit{list.units.length === 1 ? '' : 's'} due
-        </p>
-      )}
       {visits.length === 0 && (
         <p className="empty">
           {list.heatingSeason || list.coolingSeason
@@ -116,85 +128,109 @@ export function TuneUpsPage() {
         </p>
       )}
 
-      <ul className="card-list">
-        {visits.map(({ key, units }) => {
-          const first = units[0]
-          const booked = first.bookedJobId !== null
-          return (
-            <li key={key} className={`card${booked ? ' finished' : ''}`}>
-              <span className="card-row">
-                <Link to={`/customers/${first.customerId}`}>
-                  <strong>{first.customerName}</strong>
-                </Link>
-                {booked && <span className="badge done">Booked {formatDate(first.bookedDate!)}</span>}
-              </span>
-              <span className="muted">{first.address}</span>
-              {first.lastReminderAt && (
-                <span className="muted">Reminder emailed {formatDateTime(first.lastReminderAt)}</span>
-              )}
-
-              <ul className="equipment-list">
-                {units.map((u) => (
-                  <li key={u.equipmentId}>
-                    <Link to={`/equipment/${u.equipmentId}`}>
-                      <strong>{u.equipmentLabel}</strong>
-                      <span className="muted">
-                        {[u.brand, u.model].filter(Boolean).join(' ') || 'Brand not recorded'}
-                      </span>
-                      <span>
-                        {u.lastTuneUp
-                          ? `Last tune-up ${formatDate(u.lastTuneUp)} (${daysAgo(u.lastTuneUp)})`
-                          : 'No tune-up on record'}
-                      </span>
+      {visits.length > 0 && (
+        <Panel title={`To book · ${toBook.length}`}>
+          {toBook.length === 0 && <p className="muted no-margin">Everyone due is booked.</p>}
+          <ul className="tuneup-list">
+            {toBook.map(({ key, units }) => {
+              const first = units[0]
+              return (
+                <li key={key} className="tuneup-card">
+                  <div className="tuneup-head">
+                    <Link to={`/customers/${first.customerId}`} className="tuneup-name">
+                      {first.customerName}
                     </Link>
-                  </li>
-                ))}
-              </ul>
-
-              {message?.key === key && (
-                <p className="error" role="alert">
-                  {message.text}
-                </p>
-              )}
-
-              <div className="actions">
-                <a href={`tel:${first.customerPhone}`} className="button call">
-                  Call {formatPhone(first.customerPhone)}
-                </a>
-                {!booked &&
-                  (first.remindersOptedOut ? (
-                    <span className="muted center-self">Unsubscribed from emails</span>
-                  ) : first.customerEmail ? (
-                    <button
-                      type="button"
-                      className="go"
-                      onClick={() => emailReminder(key, first)}
-                      disabled={sending === key}
+                    <span className="muted">{townOf(first.address)}</span>
+                  </div>
+                  <details className="tuneup-units">
+                    <summary>
+                      {units.length} unit{units.length === 1 ? '' : 's'} · {lastTuneUpText(units)}
+                    </summary>
+                    <p className="muted no-margin">{first.address}</p>
+                    <ul className="rows">
+                      {units.map((u) => (
+                        <li key={u.equipmentId}>
+                          <Row
+                            to={`/equipment/${u.equipmentId}`}
+                            title={u.equipmentLabel}
+                            sub={`${[u.brand, u.model].filter(Boolean).join(' ') || 'Brand not recorded'} · ${
+                              u.lastTuneUp ? `last tune-up ${formatDate(u.lastTuneUp)}` : 'no tune-up on record'
+                            }`}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                  {first.lastReminderAt && (
+                    <p className="muted small no-margin">Reminder emailed {formatDateTime(first.lastReminderAt)}</p>
+                  )}
+                  {message?.key === key && (
+                    <p className="error no-margin" role="alert">
+                      {message.text}
+                    </p>
+                  )}
+                  <div className="tuneup-actions">
+                    <a
+                      href={`tel:${first.customerPhone}`}
+                      className="button call"
+                      aria-label={`Call ${first.customerName}, ${formatPhone(first.customerPhone)}`}
                     >
-                      {sending === key ? 'Sending…' : 'Email reminder'}
-                    </button>
-                  ) : (
-                    <Link to={`/customers/${first.customerId}/edit`} className="button secondary">
-                      Add email
+                      <Phone size={18} aria-hidden="true" />
+                      Call
+                    </a>
+                    {first.remindersOptedOut ? (
+                      <span className="tuneup-note muted">Unsubscribed</span>
+                    ) : first.customerEmail ? (
+                      <button
+                        type="button"
+                        className="go"
+                        onClick={() => emailReminder(key, first)}
+                        disabled={sending === key}
+                        aria-label={`Email a tune-up reminder to ${first.customerName}`}
+                      >
+                        <Envelope size={18} aria-hidden="true" />
+                        {sending === key ? 'Sending…' : 'Remind'}
+                      </button>
+                    ) : (
+                      <Link to={`/customers/${first.customerId}/edit`} className="button secondary">
+                        Add email
+                      </Link>
+                    )}
+                    <Link
+                      to={`/jobs/new?customerId=${first.customerId}&propertyId=${first.propertyId}&type=TUNE_UP`}
+                      className="button"
+                      aria-label={`Book a tune-up for ${first.customerName}`}
+                    >
+                      <CalendarPlus size={18} aria-hidden="true" />
+                      Book
                     </Link>
-                  ))}
-                {booked ? (
-                  <Link to={`/jobs/${first.bookedJobId}`} className="button secondary">
-                    View booking
-                  </Link>
-                ) : (
-                  <Link
-                    to={`/jobs/new?customerId=${first.customerId}&propertyId=${first.propertyId}&type=TUNE_UP`}
-                    className="button"
-                  >
-                    Schedule tune-up
-                  </Link>
-                )}
-              </div>
-            </li>
-          )
-        })}
-      </ul>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </Panel>
+      )}
+
+      {booked.length > 0 && (
+        <Panel title={`Booked · ${booked.length}`}>
+          <ul className="rows">
+            {booked.map(({ key, units }) => {
+              const first = units[0]
+              return (
+                <li key={key}>
+                  <Row
+                    to={`/jobs/${first.bookedJobId}`}
+                    title={first.customerName}
+                    sub={`${townOf(first.address)} · ${units.length} unit${units.length === 1 ? '' : 's'}`}
+                    end={<span className="pill done">{formatDate(first.bookedDate!)}</span>}
+                  />
+                </li>
+              )
+            })}
+          </ul>
+        </Panel>
+      )}
       {sheet}
     </main>
   )
