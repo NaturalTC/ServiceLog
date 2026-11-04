@@ -1,6 +1,7 @@
 import { Briefcase, CalendarCheck, ChatCircleDots, CheckCircle, SignOut, Users, Wrench } from '@phosphor-icons/react'
-import { useEffect } from 'react'
-import { NavLink, Outlet } from 'react-router'
+import { MotionConfig, motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router'
 import { toast, Toaster } from 'sonner'
 import { useAuth } from '../auth/authContext'
 import { CACHE, offlineStore } from '../lib/offlineStore'
@@ -12,6 +13,9 @@ import { CHAT_KEY } from '../pages/assistant/AssistantPage'
 // Shown on every page after login: a slim top bar, and a tab bar at the bottom of the
 // screen where a thumb can reach it (like a native phone app). On wide screens the tabs
 // sit in a floating bar at the top instead.
+// Motion, all of it gentle and off with Reduce Motion: the active tab's highlight slides to
+// the tab you tap, each screen fades up as it opens, and the top bar turns to frosted glass
+// once the page scrolls under it.
 const TABS = [
   { to: '/', label: 'Today', icon: CalendarCheck, end: true },
   { to: '/jobs', label: 'Jobs', icon: Briefcase, end: false },
@@ -24,6 +28,16 @@ export function AppLayout() {
   const { logout } = useAuth()
   const queue = useSyncQueue()
   const [ask, sheet] = useConfirm()
+  const location = useLocation()
+
+  // Frosted top bar only once something is scrolling under it, as in iOS
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   // Send anything done without signal as soon as it can go
   useEffect(startSyncing, [])
@@ -61,8 +75,8 @@ export function AppLayout() {
   }
 
   return (
-    <>
-      <header className="app-header">
+    <MotionConfig reducedMotion="user">
+      <header className={`app-header${scrolled ? ' scrolled' : ''}`}>
         <NavLink to="/" className="brand">
           <img src="/icons/favicon-32.png" alt="" width="24" height="24" />
           ServiceLog
@@ -70,10 +84,21 @@ export function AppLayout() {
         <nav className="tabs" aria-label="Main">
           {TABS.map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end}>
-              <span className="tab-icon">
-                <Icon size={22} aria-hidden="true" />
-              </span>
-              {label}
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <motion.span
+                      layoutId="tab-pill"
+                      className="tab-pill"
+                      transition={{ type: 'spring', stiffness: 520, damping: 40 }}
+                    />
+                  )}
+                  <span className="tab-icon">
+                    <Icon size={22} weight={isActive ? 'fill' : 'regular'} aria-hidden="true" />
+                  </span>
+                  {label}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -84,7 +109,14 @@ export function AppLayout() {
       </header>
       <div className="app-content">
         <OfflineStatus />
-        <Outlet />
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}
+        >
+          <Outlet />
+        </motion.div>
       </div>
       {sheet}
       <Toaster
@@ -105,6 +137,6 @@ export function AppLayout() {
           },
         }}
       />
-    </>
+    </MotionConfig>
   )
 }

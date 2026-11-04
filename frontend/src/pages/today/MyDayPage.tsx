@@ -9,6 +9,7 @@ import {
   Plus,
   ShieldWarning,
 } from '@phosphor-icons/react'
+import { motion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -175,15 +176,21 @@ export function MyDayPage() {
   return (
     <main className="my-day">
       <header className="today-header">
-        <Link to="/jobs/new" className="round-button" aria-label="Schedule a job">
-          <Plus size={20} weight="bold" aria-hidden="true" />
-        </Link>
         <p className="today-date">{longDate(today.date)}</p>
-        <h1>Today</h1>
+        <div className="page-title">
+          <h1>Today</h1>
+          <Link to="/jobs/new" className="round-button" aria-label="Schedule a job">
+            <Plus size={20} weight="bold" aria-hidden="true" />
+          </Link>
+        </div>
         {jobs.length > 0 && (
           <div className="today-progress">
             <span className="bar" role="img" aria-label={`${finished.length} of ${jobs.length} stops done`}>
-              <span style={{ width: `${(finished.length / jobs.length) * 100}%` }} />
+              <motion.span
+                initial={{ width: 0 }}
+                animate={{ width: `${(finished.length / jobs.length) * 100}%` }}
+                transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1], delay: 0.15 }}
+              />
             </span>
             <span>
               {finished.length} of {jobs.length} done
@@ -222,7 +229,14 @@ export function MyDayPage() {
 
       {/* The stop that matters now, like a Live Activity: the next step is one tap away */}
       {cardJob && (
-        <article className="now-card" aria-label={`${cardLabel}: ${cardJob.customerName}`}>
+        <motion.article
+          key={cardJob.id}
+          className="now-card"
+          aria-label={`${cardLabel}: ${cardJob.customerName}`}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+        >
           <p className="now-status">
             <span className={`now-dot ${cardLabel === 'Late' ? 'late' : ''}`}>{cardLabel}</span>
             <span className="time">
@@ -286,7 +300,7 @@ export function MyDayPage() {
               Started by mistake? Undo
             </button>
           )}
-        </article>
+        </motion.article>
       )}
 
       {/* The rest of the day: tap one to bring it up in the card; swipe to call or drive */}
@@ -294,8 +308,14 @@ export function MyDayPage() {
         <section aria-labelledby="up-next">
           <h2 id="up-next">Up next</h2>
           <ul className="rows">
-            {ahead.map((job) => (
-              <li key={job.id}>
+            {ahead.map((job, i) => (
+              <motion.li
+                key={job.id}
+                layout
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.26, delay: 0.05 + i * 0.04 }}
+              >
                 <SwipeRow phone={job.customerPhone} directions={directionsUrl(job.address)} label={job.customerName}>
                   <button
                     type="button"
@@ -316,7 +336,7 @@ export function MyDayPage() {
                     <CaretRight size={16} weight="bold" className="chevron" aria-hidden="true" />
                   </button>
                 </SwipeRow>
-              </li>
+              </motion.li>
             ))}
           </ul>
         </section>
@@ -329,7 +349,14 @@ export function MyDayPage() {
             {finished.map((job) => (
               <li key={job.id}>
                 <Link to={`/jobs/${job.id}`} className="done-row">
-                  <CheckCircle size={26} weight="fill" className="done-check" aria-hidden="true" />
+                  <motion.span
+                    className="done-check"
+                    initial={{ scale: 0.4, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 22, delay: 0.1 }}
+                  >
+                    <CheckCircle size={26} weight="fill" aria-hidden="true" />
+                  </motion.span>
                   <span>
                     {job.customerName} · <span className="time">{formatTime(job.startTime)}</span>
                   </span>

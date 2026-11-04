@@ -1,4 +1,4 @@
-import { CaretRight, ShieldWarning } from '@phosphor-icons/react'
+import { CaretRight, Plus, ShieldWarning } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
@@ -51,8 +51,8 @@ export function CustomerListPage() {
     <main>
       <div className="page-title">
         <h1>Customers</h1>
-        <Link to="/customers/new" className="button">
-          + New
+        <Link to="/customers/new" className="round-button" aria-label="Add a customer">
+          <Plus size={20} weight="bold" aria-hidden="true" />
         </Link>
       </div>
 
@@ -96,7 +96,7 @@ export function CustomerListPage() {
         (searching ? (
           <p className="empty">No customers match “{debouncedQuery}”.</p>
         ) : (
-          <p className="empty">No customers yet. Tap “+ New” to add your first one.</p>
+          <p className="empty">No customers yet. Tap + to add your first one.</p>
         ))}
 
       <ul className="rows">

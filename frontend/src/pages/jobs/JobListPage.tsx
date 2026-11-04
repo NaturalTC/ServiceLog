@@ -1,4 +1,4 @@
-import { CalendarBlank, ListBullets } from '@phosphor-icons/react'
+import { CalendarBlank, ListBullets, Plus } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { errorMessage } from '../../api/client'
@@ -25,8 +25,8 @@ export function JobListPage() {
     <main>
       <div className="page-title">
         <h1>Jobs</h1>
-        <Link to="/jobs/new" className="button">
-          + Schedule
+        <Link to="/jobs/new" className="round-button" aria-label="Schedule a job">
+          <Plus size={20} weight="bold" aria-hidden="true" />
         </Link>
       </div>
 

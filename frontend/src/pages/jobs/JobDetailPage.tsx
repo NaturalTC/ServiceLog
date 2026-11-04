@@ -213,12 +213,12 @@ export function JobDetailPage() {
           {shown.status === 'SCHEDULED' ? (
             <button type="button" onClick={startJob} disabled={busy}>
               <Play size={18} aria-hidden="true" />
-              {busy ? 'Starting…' : 'Start job'}
+              {busy ? 'Starting…' : 'Start Job'}
             </button>
           ) : (
             <Link to={`/jobs/${job.id}/finish`} className="button">
               <CheckCircle size={18} aria-hidden="true" />
-              Finish job
+              Finish Job
             </Link>
           )}
           <MoreMenu

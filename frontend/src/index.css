@@ -3934,7 +3934,6 @@ fieldset.property,
 }
 
 a.round-button {
-  align-self: flex-end;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4157,4 +4156,151 @@ a.done-row {
 /* An address row keeps its Directions link clear of the list's edge */
 .rows > li.address-row {
   padding-right: 14px;
+}
+
+/* ===================================================================================
+   Polish: motion and touch feedback
+   =================================================================================== */
+
+/* The top bar: clear at the top of a page, frosted glass with a hairline once content
+   scrolls under it. The glass is a layer behind the bar, not a filter on the bar itself,
+   which would trap the fixed tab bar inside it. */
+.app-header {
+  isolation: isolate;
+  background: transparent;
+  border-bottom-color: transparent;
+  transition: border-color 0.2s;
+}
+
+.app-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg);
+  transition: background-color 0.2s;
+}
+
+.app-header.scrolled {
+  border-bottom-color: var(--border);
+}
+
+.app-header.scrolled::before {
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* The active tab's highlight is one shape that slides between tabs */
+.tabs a {
+  position: relative;
+  isolation: isolate;
+}
+
+.tab-pill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+@media (max-width: 719px) {
+  .tabs a.active {
+    background: transparent;
+  }
+}
+
+@media (min-width: 720px) {
+  .tab-pill {
+    display: none;
+  }
+}
+
+/* Presses: buttons give a little, rows go grey, like iOS */
+button,
+a.button,
+label.button {
+  transition: background-color 0.15s, border-color 0.15s, transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+button:active:not(:disabled),
+a.button:active {
+  transform: scale(0.97);
+}
+
+a.row,
+button.stop-row,
+a.done-row,
+.ask-suggestions button,
+.more-list button,
+.card-list > li > a.card {
+  transition: background-color 0.12s;
+}
+
+a.row:active,
+button.stop-row:active,
+a.done-row:active,
+.card-list > li > a.card:active {
+  background: var(--surface-2);
+}
+
+.rows > li:has(> a.row:active),
+.rows > li:has(button.stop-row:active),
+.rows > li:has(> a.done-row:active) {
+  border-bottom-color: transparent;
+}
+
+/* The round + (and other icon) buttons in a title row */
+a.round-button {
+  transition: transform 0.12s, background-color 0.15s;
+}
+
+a.round-button:active {
+  transform: scale(0.92);
+}
+
+.page-title a.round-button {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  box-shadow: none;
+}
+
+.done-check {
+  display: inline-flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled),
+  a.button:active,
+  a.round-button:active {
+    transform: none;
+  }
+}
+
+/* Today's title row works like every other page's */
+.today-header .page-title {
+  margin-bottom: 0;
+}
+
+.today-header {
+  padding-top: 8px;
+}
+
+/* A kind-of-job tag sits on the text line, so "Tune-up · 1 hr" lines up */
+.job-type {
+  vertical-align: middle;
+  line-height: 1.25;
+}
+
+.row-sub .job-type,
+.now-meta .job-type {
+  margin-block: -2px;
+}
+
+.row-sub .job-type {
+  font-size: inherit;
+}
+
+.today-header {
+  padding-top: 0;
 }
