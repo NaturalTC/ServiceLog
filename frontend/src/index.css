@@ -1,145 +1,148 @@
 /* Phone-first: big tap targets for gloved hands, readable in sun and in a basement.
-   The "Work Order" look: the day as a stack of service tickets. Warm paper and carbon ink,
-   safety orange (ANSI Z535 hue) only for what needs you now. Barlow, drawn from highway
-   signs and license plates, for text; its condensed cut in capitals for titles, labels and
-   buttons, like stencilled equipment; a mono for times, serials and ticket numbers. */
+   The native iOS look: the system font (SF Pro on an iPhone), Apple's system colours,
+   inset grouped lists on a light grey ground, capsule buttons and a floating glass tab
+   bar. One trades accent, construction orange, for what needs you now. Dark mode is
+   true black with Apple's dark greys. */
 
 /* --- Design tokens --- */
 :root {
   color-scheme: light dark;
-  font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --condensed: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
-  --mono: 'Atkinson Hyperlegible Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
+  /* Titles and labels use the same system font; the name is kept for older rules */
+  --condensed: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, system-ui, sans-serif;
+  /* Serial numbers and readings only; times use the system font with even-width digits */
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  letter-spacing: -0.01em;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 
   /* Surfaces */
-  --bg: #f1ece2;
-  --surface: #fbf9f4;
-  --surface-2: #e6dfd1;
-  --border: #d8cfbd;
-  --border-strong: #a89b80;
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --surface-2: #e9e9ee;
+  --border: #c6c6c8;
+  --border-strong: #aeaeb2;
 
   /* Text: deep teal ink */
-  --text: #1c1d1f;
-  --text-2: #34322e;
-  --muted: #5a5650;
-  --link: #9a3f05;
+  --text: #000000;
+  --text-2: #3c3c43;
+  --muted: #636366;
+  --link: #0062cc;
 
   /* The main action on a screen: ink in light mode, signal yellow in dark */
-  --accent: #1c1d1f;
-  --accent-hover: #33302b;
-  --accent-text: #ffffff;
-  --accent-soft: #e6dfd1;
-  --accent-strong: #1c1d1f;
+  --accent: #ff9500;
+  --accent-hover: #f08800;
+  --accent-text: #1c1300;
+  --accent-soft: #fff1db;
+  --accent-strong: #9a4f00;
 
   /* "Now": the current stop, today's highlight */
-  --signal: #ff7a1a;
-  --signal-text: #1c1d1f;
+  --signal: #ff9500;
+  --signal-text: #1c1300;
 
   /* Call buttons: green, like the phone's own call button */
-  --call: #1b6e3a;
-  --call-hover: #165c30;
-  --call-text: #ffffff;
+  --call: #e4f6e8;
+  --call-hover: #d4efda;
+  --call-text: #1e7e34;
 
   /* Kinds of job: each its own colour (text on tint), the same everywhere */
-  --tune-up: #0b6470;
+  --tune-up: #30b0c7;
   --tune-up-bg: #d9eff2;
-  --service-call: #9a4300;
+  --service-call: #ff9500;
   --service-call-bg: #fde7d2;
-  --install: #5a3cc0;
+  --install: #5856d6;
   --install-bg: #ebe5fb;
-  --estimate: #a12d66;
+  --estimate: #ff2d55;
   --estimate-bg: #fbe2ee;
 
   /* Directions and email reminders: blue */
-  --go: #1d4f9c;
-  --go-hover: #173f7d;
-  --go-text: #ffffff;
+  --go: #e5f0ff;
+  --go-hover: #d5e6ff;
+  --go-text: #0062cc;
 
   /* The floating tab bar */
-  --tabbar: #1c1d1f;
-  --tabbar-text: #d9d2c3;
+  --tabbar: rgb(255 255 255 / 0.8);
+  --tabbar-text: #636366;
 
   /* Selected chips and strong secondary buttons */
-  --dark: #1c1d1f;
+  --dark: #1c1c1e;
   --dark-text: #ffffff;
 
   /* Status */
-  --success: #1b6e3a;
-  --success-bg: #e1efe3;
-  --warning: #8a4b00;
-  --warning-bg: #fff1d6;
-  --error: #a3361e;
-  --error-bg: #fce9e5;
-  --info: #3d3a34;
-  --info-bg: #e6dfd1;
+  --success: #1e7e34;
+  --success-bg: #e4f6e8;
+  --warning: #a05a00;
+  --warning-bg: #fff1db;
+  --error: #c4271c;
+  --error-bg: #ffe5e3;
+  --info: #3c3c43;
+  --info-bg: #e9e9ee;
 
   /* Older names, kept so every screen picks up the new colours */
   --notice-bg: var(--success-bg);
   --notice-text: var(--success);
 
   /* Shape and depth: flat, with hairlines doing most of the work */
-  --radius: 8px;
-  --radius-sm: 6px;
+  --radius: 14px;
+  --radius-sm: 12px;
   --shadow-sm: none;
-  --shadow: 0 1px 0 rgb(28 29 31 / 0.08), 0 4px 14px rgb(28 29 31 / 0.07);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 6px 20px rgb(0 0 0 / 0.06);
   --ring: 0 0 0 3px color-mix(in srgb, var(--link) 30%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161614;
-    --surface: #201f1c;
-    --surface-2: #2b2925;
-    --border: #38352f;
-    --border-strong: #5a554b;
+    --bg: #000000;
+    --surface: #1c1c1e;
+    --surface-2: #2c2c2e;
+    --border: #38383a;
+    --border-strong: #545458;
 
-    --text: #f1ece2;
-    --text-2: #d8d1c3;
-    --muted: #aaa294;
-    --link: #ff9a4d;
+    --text: #ffffff;
+    --text-2: #d1d1d6;
+    --muted: #98989f;
+    --link: #409cff;
 
-    --accent: #ff7a1a;
-    --accent-hover: #ff9440;
-    --accent-text: #161614;
-    --accent-soft: #2b2925;
-    --accent-strong: #ff7a1a;
+    --accent: #ff9f0a;
+    --accent-hover: #ffb340;
+    --accent-text: #1c1300;
+    --accent-soft: #3a2a10;
+    --accent-strong: #ff9f0a;
 
-    --signal: #ff7a1a;
-    --signal-text: #161614;
+    --signal: #ff9f0a;
+    --signal-text: #1c1300;
 
-    --call: #4cc983;
-    --call-hover: #6ad597;
-    --call-text: #161614;
+    --call: #133a1f;
+    --call-hover: #194a28;
+    --call-text: #30d158;
 
-    --tune-up: #7fd8e3;
+    --tune-up: #40c8e0;
     --tune-up-bg: #0f3238;
-    --service-call: #ffb470;
+    --service-call: #ff9f0a;
     --service-call-bg: #3a2512;
-    --install: #c4b4ff;
+    --install: #5e5ce6;
     --install-bg: #2a2148;
-    --estimate: #f6a5c9;
+    --estimate: #ff375f;
     --estimate-bg: #3b1629;
 
-    --go: #7db3ff;
-    --go-hover: #9cc5ff;
-    --go-text: #161614;
+    --go: #0f2a4a;
+    --go-hover: #143a63;
+    --go-text: #409cff;
 
-    --tabbar: #26241f;
-    --tabbar-text: #cfc8b8;
+    --tabbar: rgb(40 40 44 / 0.8);
+    --tabbar-text: #98989f;
 
-    --dark: #f1ece2;
-    --dark-text: #161614;
+    --dark: #f2f2f7;
+    --dark-text: #000000;
 
-    --success: #79d9a0;
-    --success-bg: #143222;
-    --warning: #ffb066;
-    --warning-bg: #35240f;
-    --error: #ff9b87;
-    --error-bg: #3a1712;
-    --info: #d8d1c3;
-    --info-bg: #2b2925;
+    --success: #30d158;
+    --success-bg: #133a1f;
+    --warning: #ffb340;
+    --warning-bg: #3a2a10;
+    --error: #ff6961;
+    --error-bg: #3a1714;
+    --info: #d1d1d6;
+    --info-bg: #2c2c2e;
 
     --shadow: 0 1px 2px rgb(0 0 0 / 0.5);
   }
@@ -500,7 +503,7 @@ button.go:hover {
   border-color: var(--go-hover);
 }
 a.icon-link.go {
-  color: var(--go);
+  color: var(--go-text);
 }
 
 a.button.signal {
@@ -2240,7 +2243,7 @@ form.ask-bar textarea:focus {
 }
 
 form.ask-bar:focus-within {
-  border-color: var(--go);
+  border-color: var(--link);
 }
 
 button.send {
@@ -2250,12 +2253,12 @@ button.send {
   height: 44px;
   padding: 0;
   border-radius: 999px;
-  background: var(--go);
-  color: var(--go-text);
+  background: var(--link);
+  color: var(--surface);
 }
 
 button.send:hover {
-  background: var(--go-hover);
+  background: color-mix(in srgb, var(--link) 85%, var(--text));
 }
 
 button.send:disabled {
@@ -2778,11 +2781,11 @@ button.stop-ahead strong {
 }
 
 .swipe-call {
-  color: var(--call);
+  color: var(--call-text);
 }
 
 .swipe-drive {
-  color: var(--go);
+  color: var(--go-text);
 }
 
 .swipe-top {
@@ -3316,122 +3319,6 @@ button.mic.listening {
   gap: 6px;
 }
 
-/* --- Work Order details --- */
-
-/* Tab labels, pills and type tags in the condensed cut */
-.tabs a,
-.pill,
-.job-type,
-.badge,
-.segmented button {
-  font-family: var(--condensed);
-  letter-spacing: 0.03em;
-}
-
-.tabs a {
-  font-size: min(0.8rem, 14px);
-  text-transform: uppercase;
-}
-
-/* Customer names on the route read like the name line on a ticket */
-a.stop-name,
-button.stop-ahead strong,
-.row-title {
-  font-family: var(--condensed);
-  letter-spacing: 0.005em;
-}
-
-a.stop-name {
-  font-size: 1.85rem;
-  font-weight: 800;
-}
-
-button.stop-ahead strong {
-  font-size: 1.3rem;
-}
-
-.row-title {
-  font-size: 1.12rem;
-  font-weight: 700;
-}
-
-/* The job happening now is a service ticket: paper, hairline frame, perforated top */
-.stop-current {
-  position: relative;
-  margin-bottom: 22px;
-  padding: 14px 16px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-top: 2px dashed var(--border-strong);
-  border-radius: 2px 2px var(--radius) var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.ticket-no {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin: -2px 0 6px;
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-/* "DONE": a rubber stamp, slightly crooked */
-.stamp {
-  display: inline-block;
-  padding: 0 7px;
-  border: 2px solid currentColor;
-  border-radius: 4px;
-  color: var(--success);
-  font-family: var(--condensed);
-  font-size: 0.9rem;
-  font-weight: 800;
-  line-height: 1.35;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  transform: rotate(-4deg);
-}
-
-.stamp.large {
-  padding: 2px 12px;
-  border-width: 3px;
-  font-size: 1.3rem;
-}
-
-.stop-done .stamp {
-  margin-left: 6px;
-}
-
-/* The job page shows its work-order number under the title */
-.page-title .ticket-no {
-  margin: 0;
-}
-
-/* Buttons that are really list rows, days or choices read as normal text, not as stencilled actions */
-button.stop-ahead,
-.ask-suggestions button,
-button.month-day,
-button.chip,
-label.chip,
-button.link-button,
-button.icon-button,
-button.compose,
-button.mic,
-button.month-arrow,
-button.send {
-  font-family: inherit;
-  letter-spacing: normal;
-  text-transform: none;
-}
-
-button.month-day .month-num {
-  font-family: var(--mono);
-}
-
 /* --- Panels: a page as a few labelled blocks --- */
 .panel {
   display: flex;
@@ -3727,4 +3614,547 @@ a.tuneup-name {
 
 .step-summary .link-button {
   min-height: 44px;
+}
+
+/* ===================================================================================
+   The iOS look: how every screen reads like a native iPhone app.
+   Large bold titles, grey section headers over inset grouped lists, capsule buttons,
+   a floating glass tab bar, coloured icon tiles for the kinds of job.
+   =================================================================================== */
+
+/* Type: sentence case everywhere, Apple's sizes */
+h1 {
+  font-family: inherit;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  text-transform: none;
+}
+
+h2,
+.section-label {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 26px 0 8px 16px;
+}
+
+.time,
+.progress-text,
+.section-heading .count,
+.month-num,
+.step-no,
+.ticket-no {
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Buttons are capsules; secondary ones are grey fills, not outlines */
+button,
+a.button,
+label.button {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  min-height: 50px;
+  border-radius: 999px;
+}
+
+button.secondary,
+a.button.secondary,
+label.button.secondary {
+  background: var(--surface-2);
+  border-color: transparent;
+  color: var(--text);
+}
+
+button.secondary:hover,
+a.button.secondary:hover,
+label.button.secondary:hover {
+  background: color-mix(in srgb, var(--surface-2) 85%, var(--text));
+}
+
+.pill,
+.badge,
+.chip {
+  font-family: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Fields: rounded, hairline borders */
+input,
+select,
+textarea {
+  font-family: inherit;
+  border-radius: 12px;
+  border-color: var(--border);
+}
+
+/* The top bar: the app name in the system font, a hairline under it */
+.app-header {
+  border-bottom-width: 0.5px;
+}
+
+.app-header .brand {
+  font-family: inherit;
+  font-size: 1.06rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+/* Phones: the floating glass tab bar of current iOS */
+@media (max-width: 719px) {
+  .tabs {
+    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    padding: 6px;
+    border-radius: 34px;
+    background: var(--tabbar);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 0.5px solid color-mix(in srgb, var(--text) 12%, transparent);
+    box-shadow: 0 8px 30px rgb(0 0 0 / 0.14);
+  }
+
+  .tabs a {
+    min-height: 52px;
+    border-radius: 26px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--tabbar-text);
+  }
+
+  .tabs a.active {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent-strong);
+    font-weight: 700;
+  }
+}
+
+/* Lists: inset grouped, white rows on the grey ground, hairlines starting at the text */
+.rows,
+.card-list {
+  background: var(--surface);
+  border: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.rows > li,
+.card-list > li {
+  margin-left: 16px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.rows > li:last-child,
+.card-list > li:last-child {
+  border-bottom: 0;
+}
+
+a.row,
+div.row-static {
+  padding: 11px 14px 11px 0;
+}
+
+a.row:hover {
+  background: transparent;
+}
+
+.row-title {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.row-sub {
+  font-size: 0.88rem;
+}
+
+.row-end > svg {
+  color: var(--border-strong);
+}
+
+.card-list > li > a.card,
+.card-list > li.card {
+  padding: 12px 14px 12px 0;
+}
+
+.section-heading {
+  margin: 26px 0 8px 16px;
+}
+
+.section-heading h2 {
+  margin: 0;
+}
+
+/* Cards: white on grey, no outline */
+.card,
+.fact-list,
+.tuneup-card,
+.step-summary,
+.details,
+fieldset.property,
+.summary > div {
+  border-color: transparent;
+}
+
+.panel-head {
+  padding-left: 16px;
+}
+
+.panel > .rows,
+.panel > .fact-list {
+  margin: 0;
+}
+
+/* Segmented control, as in iOS */
+.segmented {
+  border-radius: 12px;
+}
+
+.segmented button {
+  min-height: 40px;
+  border-radius: 9px;
+  font-size: 0.94rem;
+}
+
+/* Kinds of job: a coloured rounded-square icon (as in iOS Settings) and plain text */
+.job-type,
+.job-type.tune-up,
+.job-type.service-call,
+.job-type.install,
+.job-type.estimate {
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.job-type svg,
+.type-tile {
+  box-sizing: content-box;
+  flex-shrink: 0;
+  padding: 3px;
+  border-radius: 6px;
+  background: var(--muted);
+  color: #ffffff;
+}
+
+.job-type.tune-up svg,
+.job-type.large.tune-up svg,
+.type-tile.tune-up {
+  background: var(--tune-up);
+}
+
+.job-type.service-call svg,
+.job-type.large.service-call svg,
+.type-tile.service-call {
+  background: var(--service-call);
+}
+
+.job-type.install svg,
+.job-type.large.install svg,
+.type-tile.install {
+  background: var(--install);
+}
+
+.job-type.estimate svg,
+.job-type.large.estimate svg,
+.type-tile.estimate {
+  background: var(--estimate);
+}
+
+.job-type.large {
+  color: var(--text);
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.job-type.large svg {
+  padding: 7px;
+  border-radius: 10px;
+}
+
+.type-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+}
+
+/* Done: a small green capsule; the work-order number as a quiet caption */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.stamp.large {
+  padding: 4px 12px;
+  font-size: 0.9rem;
+}
+
+.ticket-no {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* --- Today --- */
+.today-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 18px;
+}
+
+a.round-button {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent-strong);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+
+.today-date {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.today-header h1 {
+  margin: 0;
+}
+
+.today-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.today-progress .bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.today-progress .bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* The stop that matters now, like a Live Activity */
+.now-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.now-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.now-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-strong);
+}
+
+.now-dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.now-dot.late {
+  color: var(--warning);
+}
+
+.now-dot.late::before {
+  background: var(--warning);
+}
+
+a.now-name {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.now-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--text-2);
+}
+
+.now-notes,
+.now-where {
+  margin: 0;
+  color: var(--muted);
+}
+
+.now-notes {
+  color: var(--text-2);
+}
+
+.now-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.now-actions .button {
+  min-height: 46px;
+}
+
+.now-primary {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 2px;
+  font-size: 1.06rem;
+  font-weight: 700;
+}
+
+.now-card .undo-start {
+  align-self: center;
+}
+
+/* Up next: a grouped list; a tap brings the stop into the card */
+.my-day section h2 {
+  margin-top: 26px;
+}
+
+button.stop-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 62px;
+  padding: 10px 14px 10px 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+}
+
+button.stop-row:hover,
+button.stop-row:active {
+  background: var(--surface);
+  transform: none;
+}
+
+.stop-row .type-tile {
+  width: 26px;
+  height: 26px;
+}
+
+.stop-row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stop-row-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.stop-row-sub {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.stop-row .chevron {
+  flex-shrink: 0;
+  color: var(--border-strong);
+}
+
+/* Swiping a row: the row itself is the sliding layer */
+.rows .swipe-top {
+  background: var(--surface);
+}
+
+/* Completed: a green check and the name */
+a.done-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 14px 8px 0;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.done-check {
+  flex-shrink: 0;
+  color: var(--success);
+}
+
+/* An address row keeps its Directions link clear of the list's edge */
+.rows > li.address-row {
+  padding-right: 14px;
 }

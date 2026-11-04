@@ -19,7 +19,7 @@ export function JobRows({ jobs }: { jobs: Job[] }) {
             }
             sub={
               <>
-                <JobTypeTag type={job.type} label={job.typeLabel} /> {formatDuration(job.durationMinutes)} ·{' '}
+                <JobTypeTag type={job.type} label={job.typeLabel} /> · {formatDuration(job.durationMinutes)} ·{' '}
                 {townOf(job.address)}
               </>
             }

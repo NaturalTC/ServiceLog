@@ -19,3 +19,13 @@ export function JobTypeTag({ type, label, large = false }: { type: JobType; labe
     </span>
   )
 }
+
+// Just the icon, in its coloured rounded square (like the icons in iOS Settings)
+export function JobTypeIcon({ type }: { type: JobType }) {
+  const Glyph = ICONS[type] ?? Wrench
+  return (
+    <span className={`type-tile ${jobTypeClass(type)}`} aria-hidden="true">
+      <Glyph size={17} weight="bold" />
+    </span>
+  )
+}
