@@ -4316,3 +4316,55 @@ a.round-button:active {
 .app-header {
   border-bottom-color: var(--border);
 }
+
+/* Phones: a dark band at the top that reaches up behind the clock and Dynamic Island
+   (full screen), so the app uses the whole screen; iOS's status bar icons are white on it */
+@media (max-width: 719px) {
+  :root {
+    --bar-bg: #1c1c1e;
+  }
+
+  .app-header {
+    padding-top: max(6px, env(safe-area-inset-top));
+    padding-bottom: 6px;
+    border-bottom-color: transparent;
+  }
+
+  .app-header.scrolled {
+    border-bottom-color: transparent;
+  }
+
+  .app-header .brand {
+    color: #ffffff;
+  }
+
+  .app-header button.icon-button {
+    color: #c7c7cc;
+  }
+
+  .app-header button.icon-button:hover {
+    background: rgb(255 255 255 / 0.12);
+    color: #ffffff;
+  }
+
+  :focus-visible {
+    outline-color: var(--accent);
+  }
+}
+
+@media (max-width: 719px) and (prefers-color-scheme: dark) {
+  :root {
+    --bar-bg: #000000;
+  }
+
+  .app-header {
+    border-bottom-color: #2c2c2e;
+  }
+}
+
+/* Scrolled: the dark band stays nearly solid so the white clock always reads */
+@media (max-width: 719px) {
+  .app-header.scrolled::before {
+    background: color-mix(in srgb, var(--bar-bg) 92%, transparent);
+  }
+}
