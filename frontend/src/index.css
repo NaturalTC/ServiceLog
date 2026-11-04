@@ -3526,3 +3526,26 @@ button.more-button {
 .more-list button.danger {
   color: var(--error);
 }
+
+/* Three tabs on the customer page (Overview, Equipment, History) */
+.segmented.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.segmented.three button {
+  padding: 8px 6px;
+  gap: 6px;
+}
+
+/* An address with its Directions link on the right */
+.rows > li.address-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.block {
+  display: block;
+}
