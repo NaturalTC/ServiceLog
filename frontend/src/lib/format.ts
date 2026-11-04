@@ -115,3 +115,8 @@ export function formatDateTime(iso: string): string {
     minute: '2-digit',
   })
 }
+
+// Job 123 -> "WO-00123": the work-order number on its ticket
+export function ticketNo(id: number): string {
+  return `WO-${String(id).padStart(5, '0')}`
+}

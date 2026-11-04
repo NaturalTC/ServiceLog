@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { errorMessage, OfflineError } from '../../api/client'
 import { isOpen, jobsApi, type Job } from '../../api/jobs'
-import { formatDate, formatDuration, formatPhone, formatTime, mapsUrl } from '../../lib/format'
+import { formatDate, formatDuration, formatPhone, formatTime, mapsUrl, ticketNo } from '../../lib/format'
 import { useConfirm } from '../../components/ConfirmSheet'
 import { JobTypeTag } from '../../components/ui/JobTypeTag'
 import { Loading } from '../../components/Loading'
@@ -112,12 +112,15 @@ export function JobDetailPage() {
   return (
     <main>
       <div className="page-title">
-        <h1>
-          <JobTypeTag type={job.type} label={job.typeLabel} large />
-        </h1>
+        <div>
+          <p className="ticket-no">{ticketNo(job.id)}</p>
+          <h1>
+            <JobTypeTag type={job.type} label={job.typeLabel} large />
+          </h1>
+        </div>
         <span className="tags">
           {shown.status === 'IN_PROGRESS' && <span className="badge now">In progress</span>}
-          {shown.status === 'DONE' && <span className="badge done">Done</span>}
+          {shown.status === 'DONE' && <span className="stamp large">Done</span>}
           {job.urgency === 'URGENT' && open && <span className="badge urgent">Urgent</span>}
         </span>
       </div>

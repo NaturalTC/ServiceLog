@@ -25,7 +25,7 @@ export function JobRows({ jobs }: { jobs: Job[] }) {
             }
             end={
               <>
-                {job.status === 'DONE' && <Pill tone="done">Done</Pill>}
+                {job.status === 'DONE' && <span className="stamp">Done</span>}
                 {job.status === 'IN_PROGRESS' && <Pill tone="now">In progress</Pill>}
                 {job.urgency === 'URGENT' && job.status !== 'DONE' && <Pill tone="urgent">Urgent</Pill>}
               </>

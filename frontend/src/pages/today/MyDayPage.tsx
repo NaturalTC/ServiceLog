@@ -23,6 +23,7 @@ import {
   formatPhone,
   formatTime,
   minutesOfDay,
+  ticketNo,
 } from '../../lib/format'
 import { Loading } from '../../components/Loading'
 import { SwipeRow } from '../../components/SwipeRow'
@@ -246,7 +247,10 @@ export function MyDayPage() {
 
               {isDone && (
                 <Link to={`/jobs/${job.id}`} className="stop-done">
-                  <span className="time">{formatTime(job.startTime)} · done</span>
+                  <span className="time">
+                    {formatTime(job.startTime)}
+                    <span className="stamp">Done</span>
+                  </span>
                   <span>
                     {job.customerName} · {town}
                   </span>
@@ -256,6 +260,10 @@ export function MyDayPage() {
 
               {isCurrent && !isDone && (
                 <div className="stop-current">
+                  <p className="ticket-no">
+                    <span>Work order</span>
+                    <span>{ticketNo(job.id)}</span>
+                  </p>
                   <div className="stop-tags">
                     {isHighlight ? (
                       <Pill tone={highlight?.label === 'Late' ? 'warning' : 'now'}>

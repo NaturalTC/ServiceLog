@@ -1,44 +1,45 @@
-/* Phone-first: big tap targets, readable outdoors, one column.
-   The "Route" look: the day as a route of stops. Cool white ground, deep teal ink for text
-   and the main action, signal yellow only for what's happening now. Atkinson Hyperlegible
-   (made by the Braille Institute: 1/l/I and 0/O never look alike) for everything, its mono
-   cut for times, serial numbers and readings. Long lists are ruled rows, not stacks of cards. */
+/* Phone-first: big tap targets for gloved hands, readable in sun and in a basement.
+   The "Work Order" look: the day as a stack of service tickets. Warm paper and carbon ink,
+   safety orange (ANSI Z535 hue) only for what needs you now. Barlow, drawn from highway
+   signs and license plates, for text; its condensed cut in capitals for titles, labels and
+   buttons, like stencilled equipment; a mono for times, serials and ticket numbers. */
 
 /* --- Design tokens --- */
 :root {
   color-scheme: light dark;
-  font-family: 'Atkinson Hyperlegible Next Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --condensed: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
   --mono: 'Atkinson Hyperlegible Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 
   /* Surfaces */
-  --bg: #f4f7f7;
-  --surface: #ffffff;
-  --surface-2: #e9efef;
-  --border: #d5e0e1;
-  --border-strong: #b3c5c7;
+  --bg: #f1ece2;
+  --surface: #fbf9f4;
+  --surface-2: #e6dfd1;
+  --border: #d8cfbd;
+  --border-strong: #a89b80;
 
   /* Text: deep teal ink */
-  --text: #0f2e33;
-  --text-2: #263f43;
-  --muted: #4b6266;
-  --link: #1e6570;
+  --text: #1c1d1f;
+  --text-2: #34322e;
+  --muted: #5a5650;
+  --link: #9a3f05;
 
   /* The main action on a screen: ink in light mode, signal yellow in dark */
-  --accent: #0f2e33;
-  --accent-hover: #1c454c;
+  --accent: #1c1d1f;
+  --accent-hover: #33302b;
   --accent-text: #ffffff;
-  --accent-soft: #e2eced;
-  --accent-strong: #0f2e33;
+  --accent-soft: #e6dfd1;
+  --accent-strong: #1c1d1f;
 
   /* "Now": the current stop, today's highlight */
-  --signal: #f4c531;
-  --signal-text: #0f2e33;
+  --signal: #ff7a1a;
+  --signal-text: #1c1d1f;
 
   /* Call buttons: green, like the phone's own call button */
-  --call: #1e7d45;
-  --call-hover: #19693a;
+  --call: #1b6e3a;
+  --call-hover: #165c30;
   --call-text: #ffffff;
 
   /* Kinds of job: each its own colour (text on tint), the same everywhere */
@@ -52,65 +53,65 @@
   --estimate-bg: #fbe2ee;
 
   /* Directions and email reminders: blue */
-  --go: #1f5fbf;
-  --go-hover: #1a50a3;
+  --go: #1d4f9c;
+  --go-hover: #173f7d;
   --go-text: #ffffff;
 
   /* The floating tab bar */
-  --tabbar: #0f2e33;
-  --tabbar-text: #c9d6d8;
+  --tabbar: #1c1d1f;
+  --tabbar-text: #d9d2c3;
 
   /* Selected chips and strong secondary buttons */
-  --dark: #0f2e33;
+  --dark: #1c1d1f;
   --dark-text: #ffffff;
 
   /* Status */
-  --success: #1d6b3f;
-  --success-bg: #e3f2e9;
+  --success: #1b6e3a;
+  --success-bg: #e1efe3;
   --warning: #8a4b00;
   --warning-bg: #fff1d6;
   --error: #a3361e;
   --error-bg: #fce9e5;
-  --info: #2a4f55;
-  --info-bg: #e2eced;
+  --info: #3d3a34;
+  --info-bg: #e6dfd1;
 
   /* Older names, kept so every screen picks up the new colours */
   --notice-bg: var(--success-bg);
   --notice-text: var(--success);
 
   /* Shape and depth: flat, with hairlines doing most of the work */
-  --radius: 14px;
-  --radius-sm: 12px;
+  --radius: 8px;
+  --radius-sm: 6px;
   --shadow-sm: none;
-  --shadow: 0 1px 2px rgb(15 46 51 / 0.06), 0 6px 18px rgb(15 46 51 / 0.06);
+  --shadow: 0 1px 0 rgb(28 29 31 / 0.08), 0 4px 14px rgb(28 29 31 / 0.07);
   --ring: 0 0 0 3px color-mix(in srgb, var(--link) 30%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b1a1d;
-    --surface: #12262a;
-    --surface-2: #1a3237;
-    --border: #23403f;
-    --border-strong: #36585c;
+    --bg: #161614;
+    --surface: #201f1c;
+    --surface-2: #2b2925;
+    --border: #38352f;
+    --border-strong: #5a554b;
 
-    --text: #e8f0f0;
-    --text-2: #c3d3d4;
-    --muted: #9db2b4;
-    --link: #8ed1d9;
+    --text: #f1ece2;
+    --text-2: #d8d1c3;
+    --muted: #aaa294;
+    --link: #ff9a4d;
 
-    --accent: #f4c531;
-    --accent-hover: #ffd75c;
-    --accent-text: #0b1a1d;
-    --accent-soft: #1a3237;
-    --accent-strong: #f4c531;
+    --accent: #ff7a1a;
+    --accent-hover: #ff9440;
+    --accent-text: #161614;
+    --accent-soft: #2b2925;
+    --accent-strong: #ff7a1a;
 
-    --signal: #f4c531;
-    --signal-text: #0b1a1d;
+    --signal: #ff7a1a;
+    --signal-text: #161614;
 
     --call: #4cc983;
     --call-hover: #6ad597;
-    --call-text: #0b1a1d;
+    --call-text: #161614;
 
     --tune-up: #7fd8e3;
     --tune-up-bg: #0f3238;
@@ -123,22 +124,22 @@
 
     --go: #7db3ff;
     --go-hover: #9cc5ff;
-    --go-text: #0b1a1d;
+    --go-text: #161614;
 
-    --tabbar: #1a3237;
-    --tabbar-text: #b9cdd0;
+    --tabbar: #26241f;
+    --tabbar-text: #cfc8b8;
 
-    --dark: #e8f0f0;
-    --dark-text: #0b1a1d;
+    --dark: #f1ece2;
+    --dark-text: #161614;
 
     --success: #79d9a0;
     --success-bg: #143222;
-    --warning: #f4c531;
-    --warning-bg: #33290c;
+    --warning: #ffb066;
+    --warning-bg: #35240f;
     --error: #ff9b87;
     --error-bg: #3a1712;
-    --info: #b9d3d6;
-    --info-bg: #1a3237;
+    --info: #d8d1c3;
+    --info-bg: #2b2925;
 
     --shadow: 0 1px 2px rgb(0 0 0 / 0.5);
   }
@@ -167,19 +168,22 @@ main {
 
 /* --- Type --- */
 h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-family: var(--condensed);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
   margin: 0 0 24px;
 }
 
 /* Section headings are small grey labels, so the content under them stands out */
 h2,
 .section-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-family: var(--condensed);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
   margin: 28px 0 10px;
@@ -409,9 +413,12 @@ label.button {
   justify-content: center;
   gap: 8px;
   font: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  min-height: 48px;
+  font-family: var(--condensed);
+  font-size: 1.06rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  min-height: 56px;
   padding: 12px 18px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
@@ -938,9 +945,11 @@ label.option {
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: -0.01em;
+  font-family: var(--condensed);
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   color: var(--text);
   text-decoration: none;
 }
@@ -2519,9 +2528,7 @@ a.row:active {
 
 .route-header h1 {
   margin: 2px 0 0;
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-size: 2.3rem;
 }
 
 a.button.icon-only {
@@ -3100,7 +3107,8 @@ button.month-day.past:not(.today) .month-num {
 }
 
 button.month-day.outside .month-num {
-  color: var(--border-strong);
+  color: var(--muted);
+  font-weight: 400;
 }
 
 button.month-day.today .month-num {
@@ -3306,4 +3314,120 @@ button.mic.listening {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+}
+
+/* --- Work Order details --- */
+
+/* Tab labels, pills and type tags in the condensed cut */
+.tabs a,
+.pill,
+.job-type,
+.badge,
+.segmented button {
+  font-family: var(--condensed);
+  letter-spacing: 0.03em;
+}
+
+.tabs a {
+  font-size: min(0.8rem, 14px);
+  text-transform: uppercase;
+}
+
+/* Customer names on the route read like the name line on a ticket */
+a.stop-name,
+button.stop-ahead strong,
+.row-title {
+  font-family: var(--condensed);
+  letter-spacing: 0.005em;
+}
+
+a.stop-name {
+  font-size: 1.85rem;
+  font-weight: 800;
+}
+
+button.stop-ahead strong {
+  font-size: 1.3rem;
+}
+
+.row-title {
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+
+/* The job happening now is a service ticket: paper, hairline frame, perforated top */
+.stop-current {
+  position: relative;
+  margin-bottom: 22px;
+  padding: 14px 16px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-top: 2px dashed var(--border-strong);
+  border-radius: 2px 2px var(--radius) var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.ticket-no {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -2px 0 6px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* "DONE": a rubber stamp, slightly crooked */
+.stamp {
+  display: inline-block;
+  padding: 0 7px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  color: var(--success);
+  font-family: var(--condensed);
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+}
+
+.stamp.large {
+  padding: 2px 12px;
+  border-width: 3px;
+  font-size: 1.3rem;
+}
+
+.stop-done .stamp {
+  margin-left: 6px;
+}
+
+/* The job page shows its work-order number under the title */
+.page-title .ticket-no {
+  margin: 0;
+}
+
+/* Buttons that are really list rows, days or choices read as normal text, not as stencilled actions */
+button.stop-ahead,
+.ask-suggestions button,
+button.month-day,
+button.chip,
+label.chip,
+button.link-button,
+button.icon-button,
+button.compose,
+button.mic,
+button.month-arrow,
+button.send {
+  font-family: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+button.month-day .month-num {
+  font-family: var(--mono);
 }
