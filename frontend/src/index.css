@@ -4447,3 +4447,72 @@ a.here-banner {
 a.here-banner > svg:first-child {
   color: var(--link);
 }
+
+/* --- Polish details --- */
+/* Pull to refresh: a spinner that turns as you pull, and fills in once letting go will refresh */
+.pull-indicator {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  padding-bottom: 8px;
+}
+
+.pull-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  box-shadow: var(--shadow);
+}
+
+.pull-spinner.ready {
+  color: var(--accent-strong);
+}
+
+/* Steps read "① Who" on one line instead of a number stacked over the label */
+.steps button {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+.step-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.steps li.done .step-no {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.steps li.current .step-no {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+/* Legends line up with the labels around them (browsers indent them by default) */
+fieldset legend {
+  padding: 0;
+}
+
+/* Finish job: the job's own notes sit apart from the form under them */
+.notes + form {
+  margin-top: 20px;
+}
