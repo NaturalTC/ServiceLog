@@ -5,9 +5,11 @@ import { NavLink, Outlet, useLocation } from 'react-router'
 import { toast, Toaster } from 'sonner'
 import { useAuth } from '../auth/authContext'
 import { CACHE, offlineStore } from '../lib/offlineStore'
+import { canPullToRefresh, usePullToRefresh } from '../lib/pullToRefresh'
 import { startSyncing, syncQueue, useSyncQueue } from '../lib/syncQueue'
 import { useConfirm } from './ConfirmSheet'
 import { OfflineStatus } from './OfflineStatus'
+import { PullIndicator } from './PullToRefresh'
 import { CHAT_KEY } from '../pages/assistant/AssistantPage'
 
 // Shown on every page after login: a slim top bar, and a tab bar at the bottom of the
@@ -38,6 +40,10 @@ export function AppLayout() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Pull down at the top to load the screen again: a new key remounts the page
+  const [refreshes, setRefreshes] = useState(0)
+  const pull = usePullToRefresh(canPullToRefresh(location.pathname), () => setRefreshes((n) => n + 1))
 
   // Send anything done without signal as soon as it can go
   useEffect(startSyncing, [])
@@ -109,8 +115,9 @@ export function AppLayout() {
       </header>
       <div className="app-content">
         <OfflineStatus />
+        <PullIndicator pull={pull} />
         <motion.div
-          key={location.pathname}
+          key={`${location.pathname}#${refreshes}`}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}

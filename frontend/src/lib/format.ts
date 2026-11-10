@@ -45,14 +45,15 @@ export function todayIso(): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
 }
 
-// "2026-10-21" -> "Wed, Oct 21, 2026" (parsed as a local date, so it never shifts a day)
-export function formatDate(isoDate: string): string {
+// "2026-10-21" -> "Wed, Oct 21", or "Wed, Oct 21, 2025" outside the current year, the way
+// iPhone apps write dates (parsed as a local date, so it never shifts a day)
+export function formatDate(isoDate: string, today = new Date()): string {
   const [year, month, day] = isoDate.split('-').map(Number)
   return new Date(year, month - 1, day).toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    year: year === today.getFullYear() ? undefined : 'numeric',
   })
 }
 
@@ -105,12 +106,14 @@ export function minutesOfDay(time: string): number {
   return h * 60 + m
 }
 
-// ISO timestamp -> "Oct 22, 2026, 9:41 AM" in the device's time zone
-export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString('en-US', {
+// ISO timestamp -> "Oct 22, 9:41 AM" in the device's time zone (with the year when it isn't
+// this year)
+export function formatDateTime(iso: string, today = new Date()): string {
+  const date = new Date(iso)
+  return date.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
     hour: 'numeric',
     minute: '2-digit',
   })
